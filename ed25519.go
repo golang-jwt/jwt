@@ -33,18 +33,37 @@ func (m *SigningMethodEd25519) Alg() string {
 }
 
 // Verify implements token verification for the SigningMethod.
-// For this verify method, key must be an ed25519.PublicKey
+// For this verify method, key must be in types of one of ed25519.PublicKey,
+// []ed25519.PublicKey, or []crypto.PublicKey (slice types for rotation keys),
+// and each key must be of the size ed25519.PublicKeySize.
 func (m *SigningMethodEd25519) Verify(signingString, signature string, key interface{}) error {
 	var err error
-	var ed25519Key ed25519.PublicKey
-	var ok bool
 
-	if ed25519Key, ok = key.(ed25519.PublicKey); !ok {
+	var cryptoKeys []crypto.PublicKey
+	switch v := key.(type) {
+	case ed25519.PublicKey:
+		cryptoKeys = append(cryptoKeys, v)
+	case []ed25519.PublicKey:
+		for _, k := range v {
+			cryptoKeys = append(cryptoKeys, k)
+		}
+	case []crypto.PublicKey:
+		cryptoKeys = v
+	}
+	if len(cryptoKeys) == 0 {
 		return ErrInvalidKeyType
 	}
 
-	if len(ed25519Key) != ed25519.PublicKeySize {
-		return ErrInvalidKey
+	keys := make([]ed25519.PublicKey, len(cryptoKeys))
+	for i, key := range cryptoKeys {
+		ed25519Key, ok := key.(ed25519.PublicKey)
+		if !ok {
+			return ErrInvalidKey
+		}
+		if len(ed25519Key) != ed25519.PublicKeySize {
+			return ErrInvalidKey
+		}
+		keys[i] = ed25519Key
 	}
 
 	// Decode the signature
@@ -53,12 +72,16 @@ func (m *SigningMethodEd25519) Verify(signingString, signature string, key inter
 		return err
 	}
 
-	// Verify the signature
-	if !ed25519.Verify(ed25519Key, []byte(signingString), sig) {
-		return ErrEd25519Verification
+	var lastErr error
+	for _, ed25519Key := range keys {
+		// Verify the signature
+		if ed25519.Verify(ed25519Key, []byte(signingString), sig) {
+			return nil
+		}
+		lastErr = ErrEd25519Verification
 	}
 
-	return nil
+	return lastErr
 }
 
 // Sign implements token signing for the SigningMethod.
