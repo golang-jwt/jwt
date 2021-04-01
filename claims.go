@@ -3,6 +3,7 @@ package jwt
 import (
 	"crypto/subtle"
 	"fmt"
+	"math"
 	"time"
 )
 
@@ -16,13 +17,13 @@ type Claims interface {
 // https://tools.ietf.org/html/rfc7519#section-4.1
 // See examples for how to use this with your own claim types
 type StandardClaims struct {
-	Audience  string `json:"aud,omitempty"`
-	ExpiresAt int64  `json:"exp,omitempty"`
-	Id        string `json:"jti,omitempty"`
-	IssuedAt  int64  `json:"iat,omitempty"`
-	Issuer    string `json:"iss,omitempty"`
-	NotBefore int64  `json:"nbf,omitempty"`
-	Subject   string `json:"sub,omitempty"`
+	Audience  string  `json:"aud,omitempty"`
+	ExpiresAt float64 `json:"exp,omitempty"`
+	Id        string  `json:"jti,omitempty"`
+	IssuedAt  float64 `json:"iat,omitempty"`
+	Issuer    string  `json:"iss,omitempty"`
+	NotBefore float64 `json:"nbf,omitempty"`
+	Subject   string  `json:"sub,omitempty"`
 }
 
 // Validates time based claims "exp, iat, nbf".
@@ -31,12 +32,12 @@ type StandardClaims struct {
 // be considered a valid claim.
 func (c StandardClaims) Valid() error {
 	vErr := new(ValidationError)
-	now := TimeFunc().Unix()
+	now := TimeFunc()
 
 	// The claims below are optional, by default, so if they are set to the
 	// default value in Go, let's not fail the verification for them.
 	if c.VerifyExpiresAt(now, false) == false {
-		delta := time.Unix(now, 0).Sub(time.Unix(c.ExpiresAt, 0))
+		delta := now.Sub(parseUnixFloat(c.ExpiresAt))
 		vErr.Inner = fmt.Errorf("token is expired by %v", delta)
 		vErr.Errors |= ValidationErrorExpired
 	}
@@ -66,13 +67,13 @@ func (c *StandardClaims) VerifyAudience(cmp string, req bool) bool {
 
 // Compares the exp claim against cmp.
 // If required is false, this method will return true if the value matches or is unset
-func (c *StandardClaims) VerifyExpiresAt(cmp int64, req bool) bool {
+func (c *StandardClaims) VerifyExpiresAt(cmp time.Time, req bool) bool {
 	return verifyExp(c.ExpiresAt, cmp, req)
 }
 
 // Compares the iat claim against cmp.
 // If required is false, this method will return true if the value matches or is unset
-func (c *StandardClaims) VerifyIssuedAt(cmp int64, req bool) bool {
+func (c *StandardClaims) VerifyIssuedAt(cmp time.Time, req bool) bool {
 	return verifyIat(c.IssuedAt, cmp, req)
 }
 
@@ -84,7 +85,7 @@ func (c *StandardClaims) VerifyIssuer(cmp string, req bool) bool {
 
 // Compares the nbf claim against cmp.
 // If required is false, this method will return true if the value matches or is unset
-func (c *StandardClaims) VerifyNotBefore(cmp int64, req bool) bool {
+func (c *StandardClaims) VerifyNotBefore(cmp time.Time, req bool) bool {
 	return verifyNbf(c.NotBefore, cmp, req)
 }
 
@@ -101,34 +102,45 @@ func verifyAud(aud string, cmp string, required bool) bool {
 	}
 }
 
-func verifyExp(exp int64, now int64, required bool) bool {
-	if exp == 0 {
+func verifyExp(exp float64, now time.Time, required bool) bool {
+	if exp == 0. {
 		return !required
 	}
-	return now <= exp
+
+	pexp := parseUnixFloat(exp)
+
+	return pexp.Equal(now) || now.Before(pexp)
 }
 
-func verifyIat(iat int64, now int64, required bool) bool {
-	if iat == 0 {
+func verifyIat(iat float64, now time.Time, required bool) bool {
+	if iat == 0. {
 		return !required
 	}
-	return now >= iat
+
+	piat := parseUnixFloat(iat)
+
+	return piat.Equal(now) || now.After(piat)
 }
 
 func verifyIss(iss string, cmp string, required bool) bool {
 	if iss == "" {
 		return !required
 	}
-	if subtle.ConstantTimeCompare([]byte(iss), []byte(cmp)) != 0 {
-		return true
-	} else {
-		return false
-	}
+
+	return subtle.ConstantTimeCompare([]byte(iss), []byte(cmp)) != 0
 }
 
-func verifyNbf(nbf int64, now int64, required bool) bool {
-	if nbf == 0 {
+func verifyNbf(nbf float64, now time.Time, required bool) bool {
+	if nbf == 0. {
 		return !required
 	}
-	return now >= nbf
+
+	pnbf := parseUnixFloat(nbf)
+
+	return pnbf.Equal(now) || now.After(pnbf)
+}
+
+func parseUnixFloat(ts float64) time.Time {
+	int, frac := math.Modf(ts)
+	return time.Unix(int64(int), int64(frac*(1e9)))
 }

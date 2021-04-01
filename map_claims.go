@@ -3,6 +3,7 @@ package jwt
 import (
 	"encoding/json"
 	"errors"
+	"time"
 	// "fmt"
 )
 
@@ -19,12 +20,12 @@ func (m MapClaims) VerifyAudience(cmp string, req bool) bool {
 
 // Compares the exp claim against cmp.
 // If required is false, this method will return true if the value matches or is unset
-func (m MapClaims) VerifyExpiresAt(cmp int64, req bool) bool {
+func (m MapClaims) VerifyExpiresAt(cmp time.Time, req bool) bool {
 	switch exp := m["exp"].(type) {
 	case float64:
-		return verifyExp(int64(exp), cmp, req)
+		return verifyExp(exp, cmp, req)
 	case json.Number:
-		v, _ := exp.Int64()
+		v, _ := exp.Float64()
 		return verifyExp(v, cmp, req)
 	}
 	return req == false
@@ -32,12 +33,12 @@ func (m MapClaims) VerifyExpiresAt(cmp int64, req bool) bool {
 
 // Compares the iat claim against cmp.
 // If required is false, this method will return true if the value matches or is unset
-func (m MapClaims) VerifyIssuedAt(cmp int64, req bool) bool {
+func (m MapClaims) VerifyIssuedAt(cmp time.Time, req bool) bool {
 	switch iat := m["iat"].(type) {
 	case float64:
-		return verifyIat(int64(iat), cmp, req)
+		return verifyIat(iat, cmp, req)
 	case json.Number:
-		v, _ := iat.Int64()
+		v, _ := iat.Float64()
 		return verifyIat(v, cmp, req)
 	}
 	return req == false
@@ -52,12 +53,12 @@ func (m MapClaims) VerifyIssuer(cmp string, req bool) bool {
 
 // Compares the nbf claim against cmp.
 // If required is false, this method will return true if the value matches or is unset
-func (m MapClaims) VerifyNotBefore(cmp int64, req bool) bool {
+func (m MapClaims) VerifyNotBefore(cmp time.Time, req bool) bool {
 	switch nbf := m["nbf"].(type) {
 	case float64:
-		return verifyNbf(int64(nbf), cmp, req)
+		return verifyNbf(nbf, cmp, req)
 	case json.Number:
-		v, _ := nbf.Int64()
+		v, _ := nbf.Float64()
 		return verifyNbf(v, cmp, req)
 	}
 	return req == false
@@ -69,7 +70,7 @@ func (m MapClaims) VerifyNotBefore(cmp int64, req bool) bool {
 // be considered a valid claim.
 func (m MapClaims) Valid() error {
 	vErr := new(ValidationError)
-	now := TimeFunc().Unix()
+	now := TimeFunc()
 
 	if m.VerifyExpiresAt(now, false) == false {
 		vErr.Inner = errors.New("Token is expired")
