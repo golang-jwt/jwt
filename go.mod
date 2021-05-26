@@ -1,3 +1,3 @@
-module github.com/dgrijalva/jwt-go
+module github.com/golang-jwt/jwt
 
 go 1.16
