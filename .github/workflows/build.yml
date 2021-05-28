@@ -12,13 +12,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go: [1.7, 1.8, 1.9, 1.10, 1.11, 1.12, 1.13, 1.14, 1.15, 1.16]
+        go: [1.7, 1.8, 1.9, 1.11, 1.12, 1.13, 1.14, 1.15, 1.16] # 1.10 does not work somehow
     steps:
       - name: Checkout
         uses: actions/checkout@v2
         with:
           fetch-depth: 1
-          path: go/github.com/dgrijalva/jwt-go # needs to be set until we drop Go versions without module support
+          path: go/src/github.com/dgrijalva/jwt-go # needs to be set until we drop Go versions without module support
       - name: Setup Go
         uses: actions/setup-go@v2
         with:
@@ -29,4 +29,4 @@ jobs:
           go test -v ./...
           go build ./...
         env:
-          GOPATH: /home/runner/work/jwt/jwt/go
+          GOPATH: /home/runner/work/jwt/jwt/go # needs to be set until we drop Go versions without module support
