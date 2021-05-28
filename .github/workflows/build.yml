@@ -16,6 +16,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+          path: go/github.com/dgrijalva/jwt-go # needs to be set until we drop Go versions without module support
       - name: Setup Go
         uses: actions/setup-go@v2
         with:
@@ -25,3 +28,5 @@ jobs:
           go vet ./...
           go test -v ./...
           go build ./...
+        env:
+          GOPATH: go
