@@ -11,8 +11,8 @@ import (
 // other related time fields. Furthermore, it is also the precision of times
 // when serializing.
 
-// TODO(oxisto): What would be a sensible default? Seconds? to be more backwards-compatible?
-var TimePrecision = time.Microsecond
+// TODO(oxisto): the tests seem to fail sometimes, if the precision is microseconds because the difference is literally 1 microsecond
+var TimePrecision = time.Second
 
 // NumericDate represents a JSON numeric date value, as referenced at
 // https://datatracker.ietf.org/doc/html/rfc7519#section-2.

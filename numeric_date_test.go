@@ -2,8 +2,8 @@ package jwt_test
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 )
@@ -14,6 +14,10 @@ func TestNumericDate(t *testing.T) {
 		Exp jwt.NumericDate `json:"exp"`
 	}
 
+	oldPrecision := jwt.TimePrecision
+
+	jwt.TimePrecision = time.Microsecond
+
 	raw := `{"iat":1516239022,"exp":1516239022.12345}`
 
 	err := json.Unmarshal([]byte(raw), &s)
@@ -22,14 +26,11 @@ func TestNumericDate(t *testing.T) {
 		t.Errorf("Unexpected error: %s", err)
 	}
 
-	fmt.Printf("%+v\n", s)
-
 	b, _ := json.Marshal(s)
-
-	fmt.Printf("%s\n", string(raw))
-	fmt.Printf("%s\n", string(b))
 
 	if raw != string(b) {
 		t.Errorf("Serialized format of numeric date mismatch. Expecting: %s  Got: %s", string(raw), string(b))
 	}
+
+	jwt.TimePrecision = oldPrecision
 }
