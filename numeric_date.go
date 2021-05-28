@@ -14,7 +14,7 @@ import (
 // TODO(oxisto): What would be a sensible default? Seconds? to be more backwards-compatible?
 var TimePrecision = time.Microsecond
 
-// NumericDate represents a JSON numeric value, as referenced at
+// NumericDate represents a JSON numeric date value, as referenced at
 // https://datatracker.ietf.org/doc/html/rfc7519#section-2.
 type NumericDate struct {
 	time.Time
@@ -37,10 +37,9 @@ func (date NumericDate) MarshalJSON() (b []byte, err error) {
 func (date *NumericDate) UnmarshalJSON(b []byte) (err error) {
 	var number json.Number
 
-	// since this can be a non-integer, we parse it as float and construct a time.Time object out if
 	if err = json.Unmarshal(b, &number); err != nil {
-		// TODO(oxisto): This makes use of the new errors API introduced in 1.13, might need to remove it again
-		return fmt.Errorf("could not parse NumericData: %w", err)
+		// TODO(oxisto): Once we are on Go 1.13+, we should use %w here
+		return fmt.Errorf("could not parse NumericData: %s", err)
 	}
 
 	f, _ := number.Float64()
