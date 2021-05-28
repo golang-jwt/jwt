@@ -14,7 +14,7 @@ func TestNumericDate(t *testing.T) {
 		Exp jwt.NumericDate `json:"exp"`
 	}
 
-	raw := `{"iat":1516239022,"exp":1516239022.123456}`
+	raw := `{"iat":1516239022,"exp":1516239022.12345}`
 
 	err := json.Unmarshal([]byte(raw), &s)
 
