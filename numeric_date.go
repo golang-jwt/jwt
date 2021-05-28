@@ -13,6 +13,20 @@ type NumericDate struct {
 	time.Time
 }
 
+func (date NumericDate) MarshalJSON() (b []byte, err error) {
+
+	// only serialize as float, if we actually have nanoseconds
+	if date.Nanosecond() != 0 {
+		f := float64(date.UnixNano()) / 1e9
+
+		b = []byte(strconv.FormatFloat(f, 'f', 6, 64))
+	} else {
+		b = []byte(strconv.FormatInt(date.Unix(), 10))
+	}
+
+	return
+}
+
 func (date *NumericDate) UnmarshalJSON(b []byte) (err error) {
 	var (
 		f float64

@@ -42,7 +42,7 @@ func (c RFC7519Claims) Valid() error {
 		vErr.Errors |= ValidationErrorExpired
 	}
 
-	/*if !c.VerifyIssuedAt(now, false) {
+	if !c.VerifyIssuedAt(now, false) {
 		vErr.Inner = fmt.Errorf("Token used before issued")
 		vErr.Errors |= ValidationErrorIssuedAt
 	}
@@ -54,7 +54,7 @@ func (c RFC7519Claims) Valid() error {
 
 	if vErr.valid() {
 		return nil
-	}*/
+	}
 
 	return vErr
 }
@@ -77,6 +77,16 @@ func (c *RFC7519Claims) VerifyIssuedAt(cmp time.Time, req bool) bool {
 	}
 
 	return verifyIat(&c.IssuedAt.Time, cmp, req)
+}
+
+// VerifyNotBefore compares the nbf claim against cmp.
+// If required is false, this method will return true if the value matches or is unset
+func (c *RFC7519Claims) VerifyNotBefore(cmp time.Time, req bool) bool {
+	if c.NotBefore == nil {
+		return verifyNbf(nil, cmp, req)
+	}
+
+	return verifyNbf(&c.NotBefore.Time, cmp, req)
 }
 
 // StandardClaims are a structured version of Claims Section, as referenced at

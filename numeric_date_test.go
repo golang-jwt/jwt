@@ -14,11 +14,22 @@ func TestNumericDate(t *testing.T) {
 		Exp jwt.NumericDate `json:"exp"`
 	}
 
-	err := json.Unmarshal([]byte(`{"iat": 1516239022, "exp": 1516239022.1234567}`), &s)
+	raw := `{"iat":1516239022,"exp":1516239022.123456}`
+
+	err := json.Unmarshal([]byte(raw), &s)
 
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
 
-	fmt.Printf("%+v", s)
+	fmt.Printf("%+v\n", s)
+
+	b, _ := json.Marshal(s)
+
+	fmt.Printf("%s\n", string(raw))
+	fmt.Printf("%s\n", string(b))
+
+	if raw != string(b) {
+		t.Errorf("Serialized format of numeric date mismatch. Expecting: %s  Got: %s", string(raw), string(b))
+	}
 }
