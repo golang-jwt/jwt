@@ -3,8 +3,6 @@ package jwt
 import (
 	"crypto/subtle"
 	"fmt"
-	"math"
-	"strconv"
 	"time"
 )
 
@@ -14,45 +12,71 @@ type Claims interface {
 	Valid() error
 }
 
-// NumericDate represents a JSON numeric value, as referenced at
-// https://datatracker.ietf.org/doc/html/rfc7519#section-2.
-type NumericDate struct {
-	time.Time
-}
-
-func (date *NumericDate) UnmarshalJSON(b []byte) (err error) {
-	var (
-		f       float64
-		seconds float64
-		frac    float64
-	)
-
-	// since this can be a non-integer, we parse it as float and construct a time.Time object out if
-
-	if f, err = strconv.ParseFloat(string(b), 64); err != nil {
-		// TODO(oxisto): This makes use of the new errors API introduced in 1.13, might need to remove it agian
-		return fmt.Errorf("could not parse NumericData: %w", err)
-	}
-
-	seconds, frac = math.Modf(f)
-
-	(*date).Time = time.Unix(int64(seconds), int64(frac*1e9))
-
-	return nil
-}
-
 // RFC7519Claims are a structured version of Claims Section, as referenced at
 // https://tools.ietf.org/html/rfc7519#section-4.1.
 //
 // See examples for how to use this with your own claim types
 type RFC7519Claims struct {
-	Audience  []string    `json:"aud,omitempty"`
-	ExpiresAt NumericDate `json:"exp,omitempty"`
-	Id        string      `json:"jti,omitempty"`
-	IssuedAt  NumericDate `json:"iat,omitempty"`
-	Issuer    string      `json:"iss,omitempty"`
-	NotBefore NumericDate `json:"nbf,omitempty"`
-	Subject   string      `json:"sub,omitempty"`
+	Audience  []string     `json:"aud,omitempty"`
+	ExpiresAt *NumericDate `json:"exp,omitempty"`
+	Id        string       `json:"jti,omitempty"`
+	IssuedAt  *NumericDate `json:"iat,omitempty"`
+	Issuer    string       `json:"iss,omitempty"`
+	NotBefore *NumericDate `json:"nbf,omitempty"`
+	Subject   string       `json:"sub,omitempty"`
+}
+
+// Valid validates time based claims "exp, iat, nbf".
+// There is no accounting for clock skew.
+// As well, if any of the above claims are not in the token, it will still
+// be considered a valid claim.
+func (c RFC7519Claims) Valid() error {
+	vErr := new(ValidationError)
+	now := TimeFunc()
+
+	// The claims below are optional, by default, so if they are set to the
+	// default value in Go, let's not fail the verification for them.
+	if !c.VerifyExpiresAt(now, false) {
+		delta := now.Sub(c.ExpiresAt.Time)
+		vErr.Inner = fmt.Errorf("token is expired by %v", delta)
+		vErr.Errors |= ValidationErrorExpired
+	}
+
+	/*if !c.VerifyIssuedAt(now, false) {
+		vErr.Inner = fmt.Errorf("Token used before issued")
+		vErr.Errors |= ValidationErrorIssuedAt
+	}
+
+	if !c.VerifyNotBefore(now, false) {
+		vErr.Inner = fmt.Errorf("token is not valid yet")
+		vErr.Errors |= ValidationErrorNotValidYet
+	}
+
+	if vErr.valid() {
+		return nil
+	}*/
+
+	return vErr
+}
+
+// VerifyExpiresAt compares the exp claim against cmp. If required is false, this method
+// will return true if the value matches or is unset
+func (c *RFC7519Claims) VerifyExpiresAt(cmp time.Time, req bool) bool {
+	if c.ExpiresAt == nil {
+		verifyExp(nil, cmp, req)
+	}
+
+	return verifyExp(&c.ExpiresAt.Time, cmp, req)
+}
+
+// VerifyIssuedAt compares the iat claim against cmp.
+// If required is false, this method will return true if the value matches or is unset
+func (c *RFC7519Claims) VerifyIssuedAt(cmp time.Time, req bool) bool {
+	if c.IssuedAt == nil {
+		return verifyIat(nil, cmp, req)
+	}
+
+	return verifyIat(&c.IssuedAt.Time, cmp, req)
 }
 
 // StandardClaims are a structured version of Claims Section, as referenced at
@@ -116,25 +140,40 @@ func (c *StandardClaims) VerifyAudience(cmp string, req bool) bool {
 // Compares the exp claim against cmp.
 // If required is false, this method will return true if the value matches or is unset
 func (c *StandardClaims) VerifyExpiresAt(cmp int64, req bool) bool {
-	return verifyExp(c.ExpiresAt, cmp, req)
+	if c.ExpiresAt == 0 {
+		return verifyExp(nil, time.Unix(cmp, 0), req)
+	}
+
+	t := time.Unix(c.ExpiresAt, 0)
+	return verifyExp(&t, time.Unix(cmp, 0), req)
 }
 
 // Compares the iat claim against cmp.
 // If required is false, this method will return true if the value matches or is unset
 func (c *StandardClaims) VerifyIssuedAt(cmp int64, req bool) bool {
-	return verifyIat(c.IssuedAt, cmp, req)
+	if c.IssuedAt == 0 {
+		return verifyIat(nil, time.Unix(cmp, 0), req)
+	}
+
+	t := time.Unix(c.IssuedAt, 0)
+	return verifyIat(&t, time.Unix(cmp, 0), req)
+}
+
+// Compares the nbf claim against cmp.
+// If required is false, this method will return true if the value matches or is unset
+func (c *StandardClaims) VerifyNotBefore(cmp int64, req bool) bool {
+	if c.NotBefore == 0 {
+		return verifyNbf(nil, time.Unix(cmp, 0), req)
+	}
+
+	t := time.Unix(c.NotBefore, 0)
+	return verifyNbf(&t, time.Unix(cmp, 0), req)
 }
 
 // Compares the iss claim against cmp.
 // If required is false, this method will return true if the value matches or is unset
 func (c *StandardClaims) VerifyIssuer(cmp string, req bool) bool {
 	return verifyIss(c.Issuer, cmp, req)
-}
-
-// Compares the nbf claim against cmp.
-// If required is false, this method will return true if the value matches or is unset
-func (c *StandardClaims) VerifyNotBefore(cmp int64, req bool) bool {
-	return verifyNbf(c.NotBefore, cmp, req)
 }
 
 // ----- helpers
@@ -150,18 +189,25 @@ func verifyAud(aud string, cmp string, required bool) bool {
 	}
 }
 
-func verifyExp(exp int64, now int64, required bool) bool {
-	if exp == 0 {
+func verifyExp(exp *time.Time, now time.Time, required bool) bool {
+	if exp == nil {
 		return !required
 	}
-	return now <= exp
+	return now.Before(*exp) || now.Equal(*exp)
 }
 
-func verifyIat(iat int64, now int64, required bool) bool {
-	if iat == 0 {
+func verifyIat(iat *time.Time, now time.Time, required bool) bool {
+	if iat == nil {
 		return !required
 	}
-	return now >= iat
+	return now.After(*iat) || now.Equal(*iat)
+}
+
+func verifyNbf(nbf *time.Time, now time.Time, required bool) bool {
+	if nbf == nil {
+		return !required
+	}
+	return now.After(*nbf) || now.Equal(*nbf)
 }
 
 func verifyIss(iss string, cmp string, required bool) bool {
@@ -173,11 +219,4 @@ func verifyIss(iss string, cmp string, required bool) bool {
 	} else {
 		return false
 	}
-}
-
-func verifyNbf(nbf int64, now int64, required bool) bool {
-	if nbf == 0 {
-		return !required
-	}
-	return now >= nbf
 }

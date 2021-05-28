@@ -3,6 +3,7 @@ package jwt
 import (
 	"encoding/json"
 	"errors"
+	"time"
 	// "fmt"
 )
 
@@ -20,26 +21,46 @@ func (m MapClaims) VerifyAudience(cmp string, req bool) bool {
 // Compares the exp claim against cmp.
 // If required is false, this method will return true if the value matches or is unset
 func (m MapClaims) VerifyExpiresAt(cmp int64, req bool) bool {
+	cmpTime := time.Unix(cmp, 0)
+
 	switch exp := m["exp"].(type) {
 	case float64:
-		return verifyExp(int64(exp), cmp, req)
+		if exp == 0 {
+			return verifyExp(nil, cmpTime, req)
+		}
+
+		t := timeFromFloat(exp)
+		return verifyExp(&t, cmpTime, req)
 	case json.Number:
-		v, _ := exp.Int64()
-		return verifyExp(v, cmp, req)
+		v, _ := exp.Float64()
+
+		t := timeFromFloat(v)
+		return verifyExp(&t, cmpTime, req)
 	}
+
 	return !req
 }
 
-// Compares the iat claim against cmp.
+// VerifyIssuedAt compares the iat claim against cmp.
 // If required is false, this method will return true if the value matches or is unset
 func (m MapClaims) VerifyIssuedAt(cmp int64, req bool) bool {
-	switch iat := m["iat"].(type) {
+	cmpTime := time.Unix(cmp, 0)
+
+	switch exp := m["iat"].(type) {
 	case float64:
-		return verifyIat(int64(iat), cmp, req)
+		if exp == 0 {
+			return verifyIat(nil, cmpTime, req)
+		}
+
+		t := timeFromFloat(exp)
+		return verifyIat(&t, cmpTime, req)
 	case json.Number:
-		v, _ := iat.Int64()
-		return verifyIat(v, cmp, req)
+		v, _ := exp.Float64()
+
+		t := timeFromFloat(v)
+		return verifyIat(&t, cmpTime, req)
 	}
+
 	return !req
 }
 
@@ -53,13 +74,23 @@ func (m MapClaims) VerifyIssuer(cmp string, req bool) bool {
 // Compares the nbf claim against cmp.
 // If required is false, this method will return true if the value matches or is unset
 func (m MapClaims) VerifyNotBefore(cmp int64, req bool) bool {
-	switch nbf := m["nbf"].(type) {
+	cmpTime := time.Unix(cmp, 0)
+
+	switch exp := m["nbf"].(type) {
 	case float64:
-		return verifyNbf(int64(nbf), cmp, req)
+		if exp == 0 {
+			return verifyNbf(nil, cmpTime, req)
+		}
+
+		t := timeFromFloat(exp)
+		return verifyNbf(&t, cmpTime, req)
 	case json.Number:
-		v, _ := nbf.Int64()
-		return verifyNbf(v, cmp, req)
+		v, _ := exp.Float64()
+
+		t := timeFromFloat(v)
+		return verifyNbf(&t, cmpTime, req)
 	}
+
 	return !req
 }
 
