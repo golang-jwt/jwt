@@ -29,13 +29,11 @@ func (m MapClaims) VerifyExpiresAt(cmp int64, req bool) bool {
 			return verifyExp(nil, cmpTime, req)
 		}
 
-		t := timeFromFloat(exp)
-		return verifyExp(&t, cmpTime, req)
+		return verifyExp(&NewNumericDate(exp).Time, cmpTime, req)
 	case json.Number:
 		v, _ := exp.Float64()
 
-		t := timeFromFloat(v)
-		return verifyExp(&t, cmpTime, req)
+		return verifyExp(&NewNumericDate(v).Time, cmpTime, req)
 	}
 
 	return !req
@@ -46,19 +44,38 @@ func (m MapClaims) VerifyExpiresAt(cmp int64, req bool) bool {
 func (m MapClaims) VerifyIssuedAt(cmp int64, req bool) bool {
 	cmpTime := time.Unix(cmp, 0)
 
-	switch exp := m["iat"].(type) {
+	switch iat := m["iat"].(type) {
 	case float64:
-		if exp == 0 {
+		if iat == 0 {
 			return verifyIat(nil, cmpTime, req)
 		}
 
-		t := timeFromFloat(exp)
-		return verifyIat(&t, cmpTime, req)
+		return verifyIat(&NewNumericDate(iat).Time, cmpTime, req)
 	case json.Number:
-		v, _ := exp.Float64()
+		v, _ := iat.Float64()
 
-		t := timeFromFloat(v)
-		return verifyIat(&t, cmpTime, req)
+		return verifyIat(&NewNumericDate(v).Time, cmpTime, req)
+	}
+
+	return !req
+}
+
+// Compares the nbf claim against cmp.
+// If required is false, this method will return true if the value matches or is unset
+func (m MapClaims) VerifyNotBefore(cmp int64, req bool) bool {
+	cmpTime := time.Unix(cmp, 0)
+
+	switch nbf := m["nbf"].(type) {
+	case float64:
+		if nbf == 0 {
+			return verifyNbf(nil, cmpTime, req)
+		}
+
+		return verifyNbf(&NewNumericDate(nbf).Time, cmpTime, req)
+	case json.Number:
+		v, _ := nbf.Float64()
+
+		return verifyNbf(&NewNumericDate(v).Time, cmpTime, req)
 	}
 
 	return !req
@@ -69,29 +86,6 @@ func (m MapClaims) VerifyIssuedAt(cmp int64, req bool) bool {
 func (m MapClaims) VerifyIssuer(cmp string, req bool) bool {
 	iss, _ := m["iss"].(string)
 	return verifyIss(iss, cmp, req)
-}
-
-// Compares the nbf claim against cmp.
-// If required is false, this method will return true if the value matches or is unset
-func (m MapClaims) VerifyNotBefore(cmp int64, req bool) bool {
-	cmpTime := time.Unix(cmp, 0)
-
-	switch exp := m["nbf"].(type) {
-	case float64:
-		if exp == 0 {
-			return verifyNbf(nil, cmpTime, req)
-		}
-
-		t := timeFromFloat(exp)
-		return verifyNbf(&t, cmpTime, req)
-	case json.Number:
-		v, _ := exp.Float64()
-
-		t := timeFromFloat(v)
-		return verifyNbf(&t, cmpTime, req)
-	}
-
-	return !req
 }
 
 // Validates time based claims "exp, iat, nbf".

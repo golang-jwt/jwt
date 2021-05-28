@@ -3,7 +3,6 @@ package jwt
 import (
 	"encoding/json"
 	"fmt"
-	"math"
 	"time"
 )
 
@@ -11,6 +10,8 @@ import (
 // This has an influence on the precision of times when comparing expiry or
 // other related time fields. Furthermore, it is also the precision of times
 // when serializing.
+
+// TODO(oxisto): What would be a sensible default? Seconds? to be more backwards-compatible?
 var TimePrecision = time.Microsecond
 
 // NumericDate represents a JSON numeric value, as referenced at
@@ -47,17 +48,4 @@ func (date *NumericDate) UnmarshalJSON(b []byte) (err error) {
 	*date = *n
 
 	return nil
-}
-
-func timeFromFloat(f float64) time.Time {
-	var (
-		seconds float64
-		frac    float64
-	)
-
-	seconds, frac = math.Modf(f)
-
-	fmt.Printf("f: %f, sec: %f, frac: %f, nsec: %d, converted: %d\n", f, seconds, frac, int64(frac*float64(1e9)), int64(frac))
-
-	return time.Unix(int64(seconds), int64(frac*float64(1e9)))
 }
