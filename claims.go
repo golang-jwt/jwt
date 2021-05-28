@@ -3,6 +3,8 @@ package jwt
 import (
 	"crypto/subtle"
 	"fmt"
+	"math"
+	"strconv"
 	"time"
 )
 
@@ -12,9 +14,56 @@ type Claims interface {
 	Valid() error
 }
 
-// Structured version of Claims Section, as referenced at
-// https://tools.ietf.org/html/rfc7519#section-4.1
+// NumericDate represents a JSON numeric value, as referenced at
+// https://datatracker.ietf.org/doc/html/rfc7519#section-2.
+type NumericDate struct {
+	time.Time
+}
+
+func (date *NumericDate) UnmarshalJSON(b []byte) (err error) {
+	var (
+		f       float64
+		seconds float64
+		frac    float64
+	)
+
+	// since this can be a non-integer, we parse it as float and construct a time.Time object out if
+
+	if f, err = strconv.ParseFloat(string(b), 64); err != nil {
+		// TODO(oxisto): This makes use of the new errors API introduced in 1.13, might need to remove it agian
+		return fmt.Errorf("could not parse NumericData: %w", err)
+	}
+
+	seconds, frac = math.Modf(f)
+
+	(*date).Time = time.Unix(int64(seconds), int64(frac*1e9))
+
+	return nil
+}
+
+// RFC7519Claims are a structured version of Claims Section, as referenced at
+// https://tools.ietf.org/html/rfc7519#section-4.1.
+//
 // See examples for how to use this with your own claim types
+type RFC7519Claims struct {
+	Audience  []string    `json:"aud,omitempty"`
+	ExpiresAt NumericDate `json:"exp,omitempty"`
+	Id        string      `json:"jti,omitempty"`
+	IssuedAt  NumericDate `json:"iat,omitempty"`
+	Issuer    string      `json:"iss,omitempty"`
+	NotBefore NumericDate `json:"nbf,omitempty"`
+	Subject   string      `json:"sub,omitempty"`
+}
+
+// StandardClaims are a structured version of Claims Section, as referenced at
+// https://tools.ietf.org/html/rfc7519#section-4.1. They do not follow the
+// specification exactly, since they were based on an earlier draft of the
+// specification and not updated. The main difference is that they only
+// support integer-based date fields and singular audiances.
+//
+// See examples for how to use this with your own claim types
+//
+// Deprecated: Use RFC7519Claims instead.
 type StandardClaims struct {
 	Audience  string `json:"aud,omitempty"`
 	ExpiresAt int64  `json:"exp,omitempty"`
