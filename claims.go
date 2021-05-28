@@ -94,10 +94,13 @@ func verifyAud(aud []string, cmp string, required bool) bool {
 	if len(aud) == 0 {
 		return !required
 	}
+	// use a var here to keep constant time compare when looping over a number of claims
+	result := false
+
 	var stringClaims string
 	for _, a := range aud {
 		if subtle.ConstantTimeCompare([]byte(a), []byte(cmp)) != 0 {
-			return true
+			result = true
 		}
 		stringClaims = stringClaims + a
 	}
@@ -107,7 +110,7 @@ func verifyAud(aud []string, cmp string, required bool) bool {
 		return !required
 	}
 
-	return false
+	return result
 }
 
 func verifyExp(exp int64, now int64, required bool) bool {
