@@ -1,9 +1,9 @@
 # jwt-go
 
-[![Build Status](https://travis-ci.org/dgrijalva/jwt-go.svg?branch=master)](https://travis-ci.org/dgrijalva/jwt-go)
-[![GoDoc](https://godoc.org/github.com/golang-jwt/jwt?status.svg)](https://godoc.org/github.com/golang-jwt/jwt)
+[![build](https://github.com/golang-jwt/jwt/actions/workflows/build.yml/badge.svg)](https://github.com/golang-jwt/jwt/actions/workflows/build.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/golang-jwt/jwt.svg)](https://pkg.go.dev/github.com/golang-jwt/jwt)
 
-A [go](http://www.golang.org) (or 'golang' for search engine friendliness) implementation of [JSON Web Tokens](http://self-issued.info/docs/draft-ietf-oauth-json-web-token.html)
+A [go](http://www.golang.org) (or 'golang' for search engine friendliness) implementation of [JSON Web Tokens](https://datatracker.ietf.org/doc/html/rfc7519)
 
 **NEW VERSION COMING:** There have been a lot of improvements suggested since the version 3.0.0 released in 2016. I'm working now on cutting two different releases: 3.2.0 will contain any non-breaking changes or enhancements. 4.0.0 will follow shortly which will include breaking changes. See the 4.0.0 milestone to get an idea of what's coming. If you have other ideas, or would like to participate in 4.0.0, now's the time. If you depend on this library and don't want to be interrupted, I recommend you use your dependency mangement tool to pin to version 3. 
 
@@ -19,7 +19,7 @@ In short, it's a signed JSON object that does something useful (for example, aut
 
 The first part is called the header.  It contains the necessary information for verifying the last part, the signature.  For example, which encryption method was used for signing and what key was used.
 
-The part in the middle is the interesting bit.  It's called the Claims and contains the actual stuff you care about.  Refer to [the RFC](http://self-issued.info/docs/draft-ietf-oauth-json-web-token.html) for information about reserved keys and the proper way to add your own.
+The part in the middle is the interesting bit.  It's called the Claims and contains the actual stuff you care about.  Refer to [the RFC](https://datatracker.ietf.org/doc/html/rfc7519) for information about reserved keys and the proper way to add your own.
 
 ## What's in the box?
 
@@ -27,11 +27,11 @@ This library supports the parsing and verification as well as the generation and
 
 ## Examples
 
-See [the project documentation](https://godoc.org/github.com/golang-jwt/jwt) for examples of usage:
+See [the project documentation](https://pkg.go.dev/github.com/golang-jwt/jwt) for examples of usage:
 
-* [Simple example of parsing and validating a token](https://godoc.org/github.com/golang-jwt/jwt#example-Parse--Hmac)
-* [Simple example of building and signing a token](https://godoc.org/github.com/golang-jwt/jwt#example-New--Hmac)
-* [Directory of Examples](https://godoc.org/github.com/golang-jwt/jwt#pkg-examples)
+* [Simple example of parsing and validating a token](https://pkg.go.dev/github.com/golang-jwt/jwt#example-Parse--Hmac)
+* [Simple example of building and signing a token](https://pkg.go.dev/github.com/golang-jwt/jwt#example-New--Hmac)
+* [Directory of Examples](https://pkg.go.dev/github.com/golang-jwt/jwt#pkg-examples)
 
 ## Extensions
 
@@ -41,9 +41,9 @@ Here's an example of an extension that integrates with multiple Google Cloud Pla
 
 ## Compliance
 
-This library was last reviewed to comply with [RTF 7519](http://www.rfc-editor.org/info/rfc7519) dated May 2015 with a few notable differences:
+This library was last reviewed to comply with [RTF 7519](https://datatracker.ietf.org/doc/html/rfc7519) dated May 2015 with a few notable differences:
 
-* In order to protect against accidental use of [Unsecured JWTs](http://self-issued.info/docs/draft-ietf-oauth-json-web-token.html#UnsecuredJWT), tokens using `alg=none` will only be accepted if the constant `jwt.UnsafeAllowNoneSignatureType` is provided as the key.
+* In order to protect against accidental use of [Unsecured JWTs](https://datatracker.ietf.org/doc/html/rfc7519#section-6), tokens using `alg=none` will only be accepted if the constant `jwt.UnsafeAllowNoneSignatureType` is provided as the key.
 
 ## Project Status & Versioning
 
@@ -79,9 +79,9 @@ Asymmetric signing methods, such as RSA, use different keys for signing and veri
 
 Each signing method expects a different object type for its signing keys. See the package documentation for details. Here are the most common ones:
 
-* The [HMAC signing method](https://godoc.org/github.com/golang-jwt/jwt#SigningMethodHMAC) (`HS256`,`HS384`,`HS512`) expect `[]byte` values for signing and validation
-* The [RSA signing method](https://godoc.org/github.com/golang-jwt/jwt#SigningMethodRSA) (`RS256`,`RS384`,`RS512`) expect `*rsa.PrivateKey` for signing and `*rsa.PublicKey` for validation
-* The [ECDSA signing method](https://godoc.org/github.com/golang-jwt/jwt#SigningMethodECDSA) (`ES256`,`ES384`,`ES512`) expect `*ecdsa.PrivateKey` for signing and `*ecdsa.PublicKey` for validation
+* The [HMAC signing method](https://pkg.go.dev/github.com/golang-jwt/jwt#SigningMethodHMAC) (`HS256`,`HS384`,`HS512`) expect `[]byte` values for signing and validation
+* The [RSA signing method](https://pkg.go.dev/github.com/golang-jwt/jwt#SigningMethodRSA) (`RS256`,`RS384`,`RS512`) expect `*rsa.PrivateKey` for signing and `*rsa.PublicKey` for validation
+* The [ECDSA signing method](https://pkg.go.dev/github.com/golang-jwt/jwt#SigningMethodECDSA) (`ES256`,`ES384`,`ES512`) expect `*ecdsa.PrivateKey` for signing and `*ecdsa.PublicKey` for validation
 
 ### JWT and OAuth
 
@@ -99,6 +99,6 @@ This library uses descriptive error messages whenever possible. If you are not g
 
 ## More
 
-Documentation can be found [on godoc.org](http://godoc.org/github.com/golang-jwt/jwt).
+Documentation can be found [on pkg.go.dev](https://pkg.go.dev/github.com/golang-jwt/jwt).
 
 The command line utility included in this project (cmd/jwt) provides a straightforward example of token creation and parsing as well as a useful tool for debugging your own integration. You'll also find several implementation examples in the documentation.
