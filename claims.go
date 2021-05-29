@@ -12,11 +12,16 @@ type Claims interface {
 	Valid() error
 }
 
-// RFC7519Claims are a structured version of the JWT Claims Set, as referenced at
-// https://datatracker.ietf.org/doc/html/rfc7519#section-4
+// RegisteredClaims are a structured version of the JWT Claims Set,
+// restricted to Registered Claim Names, as referenced at
+// https://datatracker.ietf.org/doc/html/rfc7519#section-4.1
 //
-// See examples for how to use this with your own claim types
-type RFC7519Claims struct {
+// This type can be used on its own, but then additional private and
+// public claims embedded in the JWT will not be parsed. The typical usecase
+// therefore is to embedded this in a user-defined claim type.
+//
+// See examples for how to use this with your own claim types.
+type RegisteredClaims struct {
 	// the `iss` (Issuer) claim. See https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.1
 	Issuer string `json:"iss,omitempty"`
 
@@ -43,7 +48,7 @@ type RFC7519Claims struct {
 // There is no accounting for clock skew.
 // As well, if any of the above claims are not in the token, it will still
 // be considered a valid claim.
-func (c RFC7519Claims) Valid() error {
+func (c RegisteredClaims) Valid() error {
 	vErr := new(ValidationError)
 	now := TimeFunc()
 
@@ -74,13 +79,13 @@ func (c RFC7519Claims) Valid() error {
 
 // VerifyAudience compares the aud claim against cmp.
 // If required is false, this method will return true if the value matches or is unset
-func (c *RFC7519Claims) VerifyAudience(cmp string, req bool) bool {
+func (c *RegisteredClaims) VerifyAudience(cmp string, req bool) bool {
 	return verifyAud(c.Audience, cmp, req)
 }
 
 // VerifyExpiresAt compares the exp claim against cmp.
 // If required is false, this method will return true if the value matches or is unset
-func (c *RFC7519Claims) VerifyExpiresAt(cmp time.Time, req bool) bool {
+func (c *RegisteredClaims) VerifyExpiresAt(cmp time.Time, req bool) bool {
 	if c.ExpiresAt == nil {
 		verifyExp(nil, cmp, req)
 	}
@@ -90,7 +95,7 @@ func (c *RFC7519Claims) VerifyExpiresAt(cmp time.Time, req bool) bool {
 
 // VerifyIssuedAt compares the iat claim against cmp.
 // If required is false, this method will return true if the value matches or is unset
-func (c *RFC7519Claims) VerifyIssuedAt(cmp time.Time, req bool) bool {
+func (c *RegisteredClaims) VerifyIssuedAt(cmp time.Time, req bool) bool {
 	if c.IssuedAt == nil {
 		return verifyIat(nil, cmp, req)
 	}
@@ -100,7 +105,7 @@ func (c *RFC7519Claims) VerifyIssuedAt(cmp time.Time, req bool) bool {
 
 // VerifyNotBefore compares the nbf claim against cmp.
 // If required is false, this method will return true if the value matches or is unset
-func (c *RFC7519Claims) VerifyNotBefore(cmp time.Time, req bool) bool {
+func (c *RegisteredClaims) VerifyNotBefore(cmp time.Time, req bool) bool {
 	if c.NotBefore == nil {
 		return verifyNbf(nil, cmp, req)
 	}
@@ -116,7 +121,7 @@ func (c *RFC7519Claims) VerifyNotBefore(cmp time.Time, req bool) bool {
 //
 // See examples for how to use this with your own claim types
 //
-// Deprecated: Use RFC7519Claims instead.
+// Deprecated: Use RegisteredClaims instead for a forward-compatible way to access claims in a struct.
 type StandardClaims struct {
 	Audience  string `json:"aud,omitempty"`
 	ExpiresAt int64  `json:"exp,omitempty"`

@@ -185,7 +185,7 @@ var jwtTestData = []struct {
 		"RFC7519 Claims",
 		"",
 		defaultKeyFunc,
-		&jwt.RFC7519Claims{
+		&jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Second * 10)),
 		},
 		true,
@@ -217,8 +217,8 @@ func TestParser_Parse(t *testing.T) {
 			token, err = parser.ParseWithClaims(data.tokenString, jwt.MapClaims{}, data.keyfunc)
 		case *jwt.StandardClaims:
 			token, err = parser.ParseWithClaims(data.tokenString, &jwt.StandardClaims{}, data.keyfunc)
-		case *jwt.RFC7519Claims:
-			token, err = parser.ParseWithClaims(data.tokenString, &jwt.RFC7519Claims{}, data.keyfunc)
+		case *jwt.RegisteredClaims:
+			token, err = parser.ParseWithClaims(data.tokenString, &jwt.RegisteredClaims{}, data.keyfunc)
 		}
 
 		// Verify result matches expectation
@@ -283,8 +283,8 @@ func TestParser_ParseUnverified(t *testing.T) {
 			token, _, err = parser.ParseUnverified(data.tokenString, jwt.MapClaims{})
 		case *jwt.StandardClaims:
 			token, _, err = parser.ParseUnverified(data.tokenString, &jwt.StandardClaims{})
-		case *jwt.RFC7519Claims:
-			token, _, err = parser.ParseUnverified(data.tokenString, &jwt.RFC7519Claims{})
+		case *jwt.RegisteredClaims:
+			token, _, err = parser.ParseUnverified(data.tokenString, &jwt.RegisteredClaims{})
 		}
 
 		if err != nil {
