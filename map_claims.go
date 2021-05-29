@@ -43,11 +43,11 @@ func (m MapClaims) VerifyExpiresAt(cmp int64, req bool) bool {
 			return verifyExp(nil, cmpTime, req)
 		}
 
-		return verifyExp(&NewNumericDate(exp).Time, cmpTime, req)
+		return verifyExp(&newNumericDateFromSeconds(exp).Time, cmpTime, req)
 	case json.Number:
 		v, _ := exp.Float64()
 
-		return verifyExp(&NewNumericDate(v).Time, cmpTime, req)
+		return verifyExp(&newNumericDateFromSeconds(v).Time, cmpTime, req)
 	}
 
 	return !req
@@ -64,11 +64,11 @@ func (m MapClaims) VerifyIssuedAt(cmp int64, req bool) bool {
 			return verifyIat(nil, cmpTime, req)
 		}
 
-		return verifyIat(&NewNumericDate(iat).Time, cmpTime, req)
+		return verifyIat(&newNumericDateFromSeconds(iat).Time, cmpTime, req)
 	case json.Number:
 		v, _ := iat.Float64()
 
-		return verifyIat(&NewNumericDate(v).Time, cmpTime, req)
+		return verifyIat(&newNumericDateFromSeconds(v).Time, cmpTime, req)
 	}
 
 	return !req
@@ -85,11 +85,11 @@ func (m MapClaims) VerifyNotBefore(cmp int64, req bool) bool {
 			return verifyNbf(nil, cmpTime, req)
 		}
 
-		return verifyNbf(&NewNumericDate(nbf).Time, cmpTime, req)
+		return verifyNbf(&newNumericDateFromSeconds(nbf).Time, cmpTime, req)
 	case json.Number:
 		v, _ := nbf.Float64()
 
-		return verifyNbf(&NewNumericDate(v).Time, cmpTime, req)
+		return verifyNbf(&newNumericDateFromSeconds(v).Time, cmpTime, req)
 	}
 
 	return !req

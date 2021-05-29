@@ -186,7 +186,7 @@ var jwtTestData = []struct {
 		"",
 		defaultKeyFunc,
 		&jwt.RFC7519Claims{
-			ExpiresAt: jwt.FromTime(time.Now().Add(time.Second * 10)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Second * 10)),
 		},
 		true,
 		0,

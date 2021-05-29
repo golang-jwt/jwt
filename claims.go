@@ -12,18 +12,31 @@ type Claims interface {
 	Valid() error
 }
 
-// RFC7519Claims are a structured version of Claims Section, as referenced at
-// https://tools.ietf.org/html/rfc7519#section-4.1.
+// RFC7519Claims are a structured version of the JWT Claims Set, as referenced at
+// https://datatracker.ietf.org/doc/html/rfc7519#section-4
 //
 // See examples for how to use this with your own claim types
 type RFC7519Claims struct {
-	Audience  []string     `json:"aud,omitempty"`
+	// the `iss` (Issuer) claim. See https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.1
+	Issuer string `json:"iss,omitempty"`
+
+	// the `sub (Subject) claim. See https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.2
+	Subject string `json:"sub,omitempty"`
+
+	// the `aud` (Audience) claim. See https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.3
+	Audience []string `json:"aud,omitempty"`
+
+	// the `exp` (Expiration Time) claim. See https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.4
 	ExpiresAt *NumericDate `json:"exp,omitempty"`
-	Id        string       `json:"jti,omitempty"`
-	IssuedAt  *NumericDate `json:"iat,omitempty"`
-	Issuer    string       `json:"iss,omitempty"`
+
+	// the `nbf` (Not Before) claim. See https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.5
 	NotBefore *NumericDate `json:"nbf,omitempty"`
-	Subject   string       `json:"sub,omitempty"`
+
+	// the `iat` (Issued At) claim. See https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.6
+	IssuedAt *NumericDate `json:"iat,omitempty"`
+
+	// the `jti` (JWT ID) claim. See https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.7
+	ID string `json:"jti,omitempty"`
 }
 
 // Valid validates time based claims "exp, iat, nbf".
@@ -59,8 +72,14 @@ func (c RFC7519Claims) Valid() error {
 	return vErr
 }
 
-// VerifyExpiresAt compares the exp claim against cmp. If required is false, this method
-// will return true if the value matches or is unset
+// VerifyAudience compares the aud claim against cmp.
+// If required is false, this method will return true if the value matches or is unset
+func (c *RFC7519Claims) VerifyAudience(cmp string, req bool) bool {
+	return verifyAud(c.Audience, cmp, req)
+}
+
+// VerifyExpiresAt compares the exp claim against cmp.
+// If required is false, this method will return true if the value matches or is unset
 func (c *RFC7519Claims) VerifyExpiresAt(cmp time.Time, req bool) bool {
 	if c.ExpiresAt == nil {
 		verifyExp(nil, cmp, req)
@@ -89,8 +108,8 @@ func (c *RFC7519Claims) VerifyNotBefore(cmp time.Time, req bool) bool {
 	return verifyNbf(&c.NotBefore.Time, cmp, req)
 }
 
-// StandardClaims are a structured version of Claims Section, as referenced at
-// https://tools.ietf.org/html/rfc7519#section-4.1. They do not follow the
+// StandardClaims are a structured version of the JWT Claims Set, as referenced at
+// https://datatracker.ietf.org/doc/html/rfc7519#section-4. They do not follow the
 // specification exactly, since they were based on an earlier draft of the
 // specification and not updated. The main difference is that they only
 // support integer-based date fields and singular audiances.
