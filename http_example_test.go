@@ -32,9 +32,9 @@ var (
 	serverPort int
 	// storing sample username/password pairs
 	// don't do this on a real server
-	users = map[string]string{
-		"test": "known",
-	}
+	//users = map[string]string{
+	//	"test": "known",
+	//}
 )
 
 // read the key files before starting http handlers
@@ -65,7 +65,7 @@ func init() {
 	}()
 }
 
-var start func()
+//var start func()
 
 func fatal(err error) {
 	if err != nil {
@@ -101,8 +101,12 @@ func Example_getTokenViaHTTP() {
 
 	// Read the token out of the response body
 	buf := new(bytes.Buffer)
-	io.Copy(buf, res.Body)
-	res.Body.Close()
+	if _, err = io.Copy(buf, res.Body); err != nil {
+		fatal(err)
+	}
+	if err = res.Body.Close(); err != nil {
+		fatal(err)
+	}
 	tokenString := strings.TrimSpace(buf.String())
 
 	// Parse the token
@@ -136,8 +140,12 @@ func Example_useTokenViaHTTP() {
 
 	// Read the response body
 	buf := new(bytes.Buffer)
-	io.Copy(buf, res.Body)
-	res.Body.Close()
+	if _, err = io.Copy(buf, res.Body); err != nil {
+		panic(err)
+	}
+	if err = res.Body.Close(); err != nil {
+		panic(err)
+	}
 	fmt.Println(buf.String())
 
 	// Output: Welcome, foo
@@ -214,5 +222,4 @@ func restrictedHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Token is valid
 	fmt.Fprintln(w, "Welcome,", token.Claims.(*CustomClaimsExample).Name)
-	return
 }

@@ -13,7 +13,7 @@ var (
 	ErrECDSAVerification = errors.New("crypto/ecdsa: verification error")
 )
 
-// Implements the ECDSA family of signing methods signing methods
+// SigningMethodECDSA Implements the ECDSA family of signing methods signing methods
 // Expects *ecdsa.PrivateKey for signing and *ecdsa.PublicKey for verification
 type SigningMethodECDSA struct {
 	Name      string
@@ -53,7 +53,7 @@ func (m *SigningMethodECDSA) Alg() string {
 	return m.Name
 }
 
-// Implements the Verify method from SigningMethod
+// Verify Implements the Verify method from SigningMethod
 // For this verify method, key must be an ecdsa.PublicKey struct
 func (m *SigningMethodECDSA) Verify(signingString, signature string, key interface{}) error {
 	var err error
@@ -85,7 +85,9 @@ func (m *SigningMethodECDSA) Verify(signingString, signature string, key interfa
 		return ErrHashUnavailable
 	}
 	hasher := m.Hash.New()
-	hasher.Write([]byte(signingString))
+	if _, err = hasher.Write([]byte(signingString)); err != nil {
+		return err
+	}
 
 	// Verify the signature
 	if verifystatus := ecdsa.Verify(ecdsaKey, hasher.Sum(nil), r, s); verifystatus {
@@ -95,7 +97,7 @@ func (m *SigningMethodECDSA) Verify(signingString, signature string, key interfa
 	return ErrECDSAVerification
 }
 
-// Implements the Sign method from SigningMethod
+// Sign Implements the Sign method from SigningMethod
 // For this signing method, key must be an ecdsa.PrivateKey struct
 func (m *SigningMethodECDSA) Sign(signingString string, key interface{}) (string, error) {
 	// Get the key
@@ -113,7 +115,9 @@ func (m *SigningMethodECDSA) Sign(signingString string, key interface{}) (string
 	}
 
 	hasher := m.Hash.New()
-	hasher.Write([]byte(signingString))
+	if _, err := hasher.Write([]byte(signingString)); err != nil {
+		return "", err
+	}
 
 	// Sign the string and return r, s
 	if r, s, err := ecdsa.Sign(rand.Reader, ecdsaKey, hasher.Sum(nil)); err == nil {
