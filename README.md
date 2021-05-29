@@ -49,7 +49,7 @@ This library was last reviewed to comply with [RTF 7519](http://www.rfc-editor.o
 
 This library is considered production ready.  Feedback and feature requests are appreciated.  The API should be considered stable.  There should be very few backwards-incompatible changes outside of major version updates (and only with good reason).
 
-This project uses [Semantic Versioning 2.0.0](http://semver.org).  Accepted pull requests will land on `master`.  Periodically, versions will be tagged from `master`.  You can find all the releases on [the project releases page](https://github.com/golang-jwt/jwt/releases).
+This project uses [Semantic Versioning 2.0.0](http://semver.org).  Accepted pull requests will land on `main`.  Periodically, versions will be tagged from `main`.  You can find all the releases on [the project releases page](https://github.com/golang-jwt/jwt/releases).
 
 While we try to make it obvious when we make breaking changes, there isn't a great mechanism for pushing announcements out to users.  You may want to use this alternative package include: `gopkg.in/dgrijalva/jwt-go.v3`.  It will do the right thing WRT semantic versioning.
 
