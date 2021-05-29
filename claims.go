@@ -87,7 +87,7 @@ func (c *RegisteredClaims) VerifyAudience(cmp string, req bool) bool {
 // If required is false, this method will return true if the value matches or is unset
 func (c *RegisteredClaims) VerifyExpiresAt(cmp time.Time, req bool) bool {
 	if c.ExpiresAt == nil {
-		verifyExp(nil, cmp, req)
+		return verifyExp(nil, cmp, req)
 	}
 
 	return verifyExp(&c.ExpiresAt.Time, cmp, req)
@@ -117,11 +117,11 @@ func (c *RegisteredClaims) VerifyNotBefore(cmp time.Time, req bool) bool {
 // https://datatracker.ietf.org/doc/html/rfc7519#section-4. They do not follow the
 // specification exactly, since they were based on an earlier draft of the
 // specification and not updated. The main difference is that they only
-// support integer-based date fields and singular audiances.
+// support integer-based date fields and singular audiances. This might lead to
+// incompatibilities with other JWT implementations. The use of this is discouraged, instead
+// the newer RegisteredClaims struct should be used.
 //
-// See examples for how to use this with your own claim types
-//
-// Deprecated: Use RegisteredClaims instead for a forward-compatible way to access claims in a struct.
+// Deprecated: Use RegisteredClaims instead for a forward-compatible way to access registered claims in a struct.
 type StandardClaims struct {
 	Audience  string `json:"aud,omitempty"`
 	ExpiresAt int64  `json:"exp,omitempty"`

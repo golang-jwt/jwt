@@ -7,41 +7,57 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
-// Example (atypical) using the StandardClaims type by itself to parse a token.
-// The StandardClaims type is designed to be embedded into your custom types
+// Example (atypical) using the RegisteredClaims type by itself to parse a token.
+// The RegisteredClaims type is designed to be embedded into your custom types
 // to provide standard validation features.  You can use it alone, but there's
 // no way to retrieve other fields after parsing.
 // See the CustomClaimsType example for intended usage.
-func ExampleNewWithClaims_standardClaims() {
+func ExampleNewWithClaims_registeredClaims() {
 	mySigningKey := []byte("AllYourBase")
 
 	// Create the Claims
-	claims := &jwt.StandardClaims{
-		ExpiresAt: 15000,
+	claims := &jwt.RegisteredClaims{
+		ExpiresAt: jwt.NewNumericDate(time.Unix(1516239022, 0)),
 		Issuer:    "test",
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	ss, err := token.SignedString(mySigningKey)
 	fmt.Printf("%v %v", ss, err)
-	//Output: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1MDAwLCJpc3MiOiJ0ZXN0In0.QsODzZu3lUZMVdhbO76u3Jv02iYCvEHcYVUI1kOWEU0 <nil>
+	//Output: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ0ZXN0IiwiZXhwIjoxNTE2MjM5MDIyfQ.0XN_1Tpp9FszFOonIBpwha0c_SfnNI22DhTnjMshPg8 <nil>
 }
 
-// Example creating a token using a custom claims type.  The StandardClaim is embedded
-// in the custom type to allow for easy encoding, parsing and validation of standard claims.
+// Example creating a token using a custom claims type. The RegisteredClaims is embedded
+// in the custom type to allow for easy encoding, parsing and validation of registered claims.
 func ExampleNewWithClaims_customClaimsType() {
 	mySigningKey := []byte("AllYourBase")
 
 	type MyCustomClaims struct {
 		Foo string `json:"foo"`
-		jwt.StandardClaims
+		jwt.RegisteredClaims
 	}
 
-	// Create the Claims
+	// Create the claims
 	claims := MyCustomClaims{
 		"bar",
-		jwt.StandardClaims{
-			ExpiresAt: 15000,
+		jwt.RegisteredClaims{
+			// A usual scenario is to set the expiration time relative to the current time
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			NotBefore: jwt.NewNumericDate(time.Now()),
+			Issuer:    "test",
+			Subject:   "somebody",
+			ID:        "1",
+			Audience:  []string{"somebody_else"},
+		},
+	}
+
+	// Create claims while leaving out some of the optional fields
+	claims = MyCustomClaims{
+		"bar",
+		jwt.RegisteredClaims{
+			// Also fixed dates can be used for the NumericDate
+			ExpiresAt: jwt.NewNumericDate(time.Unix(1516239022, 0)),
 			Issuer:    "test",
 		},
 	}
@@ -49,42 +65,31 @@ func ExampleNewWithClaims_customClaimsType() {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	ss, err := token.SignedString(mySigningKey)
 	fmt.Printf("%v %v", ss, err)
-	//Output: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJleHAiOjE1MDAwLCJpc3MiOiJ0ZXN0In0.HE7fK0xOQwFEr4WDgRWj4teRPZ6i3GLwD5YCm6Pwu_c <nil>
+
+	//Output: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJpc3MiOiJ0ZXN0IiwiZXhwIjoxNTE2MjM5MDIyfQ.xVuY2FZ_MRXMIEgVQ7J-TFtaucVFRXUzHm9LmV41goM <nil>
 }
 
 // Example creating a token using a custom claims type.  The StandardClaim is embedded
 // in the custom type to allow for easy encoding, parsing and validation of standard claims.
 func ExampleParseWithClaims_customClaimsType() {
-	tokenString := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJleHAiOjE1MDAwLCJpc3MiOiJ0ZXN0In0.HE7fK0xOQwFEr4WDgRWj4teRPZ6i3GLwD5YCm6Pwu_c"
+	tokenString := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJpc3MiOiJ0ZXN0In0.Wvm9G-ihWYR90OoEav3TpxmRQ3oTk0Diqhsgd8hZPQ4"
 
 	type MyCustomClaims struct {
 		Foo string `json:"foo"`
-		jwt.StandardClaims
+		jwt.RegisteredClaims
 	}
 
-	// sample token is expired.  override time so it parses as valid
-	at(time.Unix(0, 0), func() {
-		token, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
-			return []byte("AllYourBase"), nil
-		})
-
-		if claims, ok := token.Claims.(*MyCustomClaims); ok && token.Valid {
-			fmt.Printf("%v %v", claims.Foo, claims.StandardClaims.ExpiresAt)
-		} else {
-			fmt.Println(err)
-		}
+	token, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte("AllYourBase"), nil
 	})
 
-	// Output: bar 15000
-}
-
-// Override time value for tests.  Restore default value after.
-func at(t time.Time, f func()) {
-	jwt.TimeFunc = func() time.Time {
-		return t
+	if claims, ok := token.Claims.(*MyCustomClaims); ok && token.Valid {
+		fmt.Printf("%v %v", claims.Foo, claims.RegisteredClaims.Issuer)
+	} else {
+		fmt.Println(err)
 	}
-	f()
-	jwt.TimeFunc = time.Now
+
+	// Output: bar test
 }
 
 // An example of parsing the error types using bitfield checks

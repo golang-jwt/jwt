@@ -80,7 +80,7 @@ type CustomerInfo struct {
 }
 
 type CustomClaimsExample struct {
-	*jwt.StandardClaims
+	*jwt.RegisteredClaims
 	TokenType string
 	CustomerInfo
 }
@@ -149,10 +149,10 @@ func createToken(user string) (string, error) {
 
 	// set our claims
 	t.Claims = &CustomClaimsExample{
-		&jwt.StandardClaims{
+		&jwt.RegisteredClaims{
 			// set the expire time
-			// see http://tools.ietf.org/html/draft-ietf-oauth-json-web-token-20#section-4.1.4
-			ExpiresAt: time.Now().Add(time.Minute * 1).Unix(),
+			// see https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.4
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 1)),
 		},
 		"level1",
 		CustomerInfo{user, "human"},
