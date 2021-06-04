@@ -3,13 +3,13 @@
 [![build](https://github.com/golang-jwt/jwt/actions/workflows/build.yml/badge.svg)](https://github.com/golang-jwt/jwt/actions/workflows/build.yml)
 [![Go Reference](https://pkg.go.dev/badge/github.com/golang-jwt/jwt.svg)](https://pkg.go.dev/github.com/golang-jwt/jwt)
 
-A [go](http://www.golang.org) (or 'golang' for search engine friendliness) implementation of [JSON Web Tokens](https://datatracker.ietf.org/doc/html/rfc7519)
+A [go](http://www.golang.org) (or 'golang' for search engine friendliness) implementation of [JSON Web Tokens](https://datatracker.ietf.org/doc/html/rfc7519).
 
-**IMPORT PATH CHANGE** Starting from (v3.2.1)[https://github.com/golang-jwt/jwt/releases/tag/v3.2.1], the import path has changed from `github.com/dgrijalva/jwt-go` to `github.com/golang-jwt/jwt`. After the original author of the library suggested migrating the maintaince, a dedicated team of open source maintainers decided to clone the existing library into this repository. See https://github.com/dgrijalva/jwt-go/issues/462 for a detailed discussion.
+**IMPORT PATH CHANGE:** Starting from [v3.2.1](https://github.com/golang-jwt/jwt/releases/tag/v3.2.1), the import path has changed from `github.com/dgrijalva/jwt-go` to `github.com/golang-jwt/jwt`. After the original author of the library suggested migrating the maintenance of `jwt-go`, a dedicated team of open source maintainers decided to clone the existing library into this repository. See [dgrijalva/jwt-go#462](https://github.com/dgrijalva/jwt-go/issues/462) for a detailed discussion on this topic.
 
-Future releases will be using the `github.com/golang-jwt/jwt` import path and continue the existing versioning scheme of `v3.x.x+incompatible`. Backwards-compatbile patches and fixes will be done on the `v3` release branch, where as new build-breaking features will be developed in a `v4` release, possibly including a SIV-style import path.
+Future releases will be using the `github.com/golang-jwt/jwt` import path and continue the existing versioning scheme of `v3.x.x+incompatible`. Backwards-compatible patches and fixes will be done on the `v3` release branch, where as new build-breaking features will be developed in a `v4` release, possibly including a SIV-style import path.
 
-**SECURITY NOTICE:** Some older versions of Go have a security issue in the crypto/elliptic. Recommendation is to upgrade to at least 1.8.3. See issue #216 for more detail.
+**SECURITY NOTICE:** Some older versions of Go have a security issue in the crypto/elliptic. Recommendation is to upgrade to at least 1.8.3. See issue [dgrijalva/jwt-go#216](https://github.com/dgrijalva/jwt-go/issues/216) for more detail.
 
 **SECURITY NOTICE:** It's important that you [validate the `alg` presented is what you expect](https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/). This library attempts to make it easy to do the right thing by requiring key types match the expected alg, but you should take the extra step to verify it in your usage.  See the examples provided.
 

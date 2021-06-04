@@ -7,8 +7,8 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
-// Example (atypical) using the StandardClaims type by itself to parse a token.
-// The StandardClaims type is designed to be embedded into your custom types
+// Example (atypical) using the RegisteredClaims type by itself to parse a token.
+// The RegisteredClaims type is designed to be embedded into your custom types
 // to provide standard validation features.  You can use it alone, but there's
 // no way to retrieve other fields after parsing.
 // See the CustomClaimsType example for intended usage.
