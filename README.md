@@ -5,7 +5,9 @@
 
 A [go](http://www.golang.org) (or 'golang' for search engine friendliness) implementation of [JSON Web Tokens](https://datatracker.ietf.org/doc/html/rfc7519)
 
-**NEW VERSION COMING:** There have been a lot of improvements suggested since the version 3.0.0 released in 2016. I'm working now on cutting two different releases: 3.2.0 will contain any non-breaking changes or enhancements. 4.0.0 will follow shortly which will include breaking changes. See the 4.0.0 milestone to get an idea of what's coming. If you have other ideas, or would like to participate in 4.0.0, now's the time. If you depend on this library and don't want to be interrupted, I recommend you use your dependency mangement tool to pin to version 3. 
+**IMPORT PATH CHANGE** Starting from (v3.2.1)[https://github.com/golang-jwt/jwt/releases/tag/v3.2.1], the import path has changed from `github.com/dgrijalva/jwt-go` to `github.com/golang-jwt/jwt`. After the original author of the library suggested migrating the maintaince, a dedicated team of open source maintainers decided to clone the existing library into this repository. See https://github.com/dgrijalva/jwt-go/issues/462 for a detailed discussion.
+
+Future releases will be using the `github.com/golang-jwt/jwt` import path and continue the existing versioning scheme of `v3.x.x+incompatible`. Backwards-compatbile patches and fixes will be done on the `v3` release branch, where as new build-breaking features will be developed in a `v4` release, possibly including a SIV-style import path.
 
 **SECURITY NOTICE:** Some older versions of Go have a security issue in the crypto/elliptic. Recommendation is to upgrade to at least 1.8.3. See issue #216 for more detail.
 
