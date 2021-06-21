@@ -15,12 +15,11 @@ Future releases will be using the `github.com/golang-jwt/jwt` import path and co
 
 ### Supported Go versions
 
-Our support of Go versions is alaigned with Go's [version release policy](https://golang.org/doc/devel/release#policy).
-So we will support a major version of Go unil there are two newer major releases.
+Our support of Go versions is aligned with Go's [version release policy](https://golang.org/doc/devel/release#policy).
+So we will support a major version of Go until there are two newer major releases.
 We no longer support building jwt-go with unsupported Go versions, as these contain secruity vulnerabilities
 which will not be fixed.
-This means that currently we support Go 1.15 and 1.16. Anybody using older versions of the toolchain should upgrade
-to the latest stable release.
+This means that currently we support Go 1.15 and 1.16.
 
 ## What the heck is a JWT?
 
