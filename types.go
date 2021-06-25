@@ -3,6 +3,7 @@ package jwt
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"strconv"
 	"time"
 )
@@ -54,17 +55,39 @@ func (date *NumericDate) UnmarshalJSON(b []byte) (err error) {
 	)
 
 	if err = json.Unmarshal(b, &number); err != nil {
-		// TODO(oxisto): Once we are on Go 1.13+, we should use %w instead of %s here
-		return fmt.Errorf("could not parse NumericData: %s", err)
+		return fmt.Errorf("could not parse NumericData: %w", err)
 	}
 
 	if f, err = number.Float64(); err != nil {
-		// TODO(oxisto): Once we are on Go 1.13+, we should use %w instead of %s here
-		return fmt.Errorf("could not convert json number value to float: %s", err)
+		return fmt.Errorf("could not convert json number value to float: %w", err)
 	}
 
 	n := newNumericDateFromSeconds(f)
 	*date = *n
 
 	return nil
+}
+
+// StringArray is basically just a slice of strings, but it can be either serialized from a string array or just a string.
+// This type is necessary, since the "aud" claim can either be a single string or an array.
+type StringArray []string
+
+func (s *StringArray) UnmarshalJSON(data []byte) (err error) {
+	var value interface{}
+
+	if err = json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+
+	switch v := value.(type) {
+	case string:
+		*s = StringArray{v}
+		return
+	case []string:
+		*s = StringArray(v)
+	default:
+		err = &json.UnsupportedTypeError{Type: reflect.TypeOf(v)}
+	}
+
+	return
 }

@@ -72,7 +72,7 @@ func ExampleNewWithClaims_customClaimsType() {
 // Example creating a token using a custom claims type.  The StandardClaim is embedded
 // in the custom type to allow for easy encoding, parsing and validation of standard claims.
 func ExampleParseWithClaims_customClaimsType() {
-	tokenString := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJpc3MiOiJ0ZXN0In0.Wvm9G-ihWYR90OoEav3TpxmRQ3oTk0Diqhsgd8hZPQ4"
+	tokenString := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJpc3MiOiJ0ZXN0IiwiYXVkIjoic2luZ2xlIn0.QAWg1vGvnqRuCFTMcPkjZljXHh8U3L_qUjszOtQbeaA"
 
 	type MyCustomClaims struct {
 		Foo string `json:"foo"`
