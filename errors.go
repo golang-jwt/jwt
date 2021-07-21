@@ -27,7 +27,7 @@ const (
 	ValidationErrorClaimsInvalid // Generic claims validation error
 )
 
-// Helper for constructing a ValidationError with a string error message
+// NewValidationError constructs a ValidationError with a string error message
 func NewValidationError(errorText string, errorFlags uint32) *ValidationError {
 	return &ValidationError{
 		text:   errorText,
@@ -35,14 +35,14 @@ func NewValidationError(errorText string, errorFlags uint32) *ValidationError {
 	}
 }
 
-// The error from Parse if token is not valid
+// ValidationError is returned from Parse if the token is not valid.
 type ValidationError struct {
 	Inner  error  // stores the error returned by external dependencies, i.e.: KeyFunc
 	Errors uint32 // bitfield.  see ValidationError... constants
 	text   string // errors that do not have a valid error just have text
 }
 
-// Validation error is an error type
+// Error implements the builtin error interface.
 func (e ValidationError) Error() string {
 	if e.Inner != nil {
 		return e.Inner.Error()
@@ -53,7 +53,46 @@ func (e ValidationError) Error() string {
 	}
 }
 
-// No errors
-func (e *ValidationError) valid() bool {
+// IncludesAll tells whether an error includes all the bits provided.
+// For instance, to check whether an error matches one condition:
+//
+//     valErr.IncludesAll(ValidationErrorAudience)
+//     // will return true if ValidationErrorAudience is present in the Errors field
+//     // and false otherwise
+//
+// or to check if it matches many conditions:
+//
+//     valErr.IncludesAll(ValidationErrorIssuer, ValidationErrorAudience)
+//     // will return true only if BOTH ValidationErrorIssuer AND ValidationErrorAudience
+//     // are present on the Errors field and false otherwise.
+func (e ValidationError) IncludesAll(flags ...uint32) bool {
+	bits := uint32(0)
+	for _, flag := range flags {
+		bits |= flag
+	}
+	return (e.Errors & bits) == bits
+}
+
+// IncludesAny tells whether an error includes any of the bits provided.
+// Checking for matching of one condition is exactly as in IncludesAll.
+// To check if an error matches any of several conditions:
+//
+//     valErr.IncludesAny(ValidationErrorNotValidYet, ValidationErrorExpired)
+//     // will return true if:
+//     // - ValidationErrorNotValidYet is present
+//     // - ValidationErrorExpired is present
+//     // - ValidationErrorNotValidYet and ValidationErrorExpired
+//     //   are somehow both present
+//     // and will return false only if NEITHER NotValidYet NOR Expired are present.
+func (e ValidationError) IncludesAny(flags ...uint32) bool {
+	bits := uint32(0)
+	for _, flag := range flags {
+		bits |= flag
+	}
+	return (e.Errors & bits) != 0
+}
+
+// valid returns true if there are no errors.
+func (e ValidationError) valid() bool {
 	return e.Errors == 0
 }
