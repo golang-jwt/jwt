@@ -34,7 +34,7 @@ var ed25519TestData = []struct {
 	},
 }
 
-func TestED25519Verify(t *testing.T) {
+func TestEd25519Verify(t *testing.T) {
 	for _, data := range ed25519TestData {
 		var err error
 
@@ -42,7 +42,7 @@ func TestED25519Verify(t *testing.T) {
 
 		ed25519Key, err := jwt.ParseEdPublicKeyFromPEM(key)
 		if err != nil {
-			t.Errorf("Unable to parse ED25519 public key: %v", err)
+			t.Errorf("Unable to parse Ed25519 public key: %v", err)
 		}
 
 		parts := strings.Split(data.tokenString, ".")
@@ -59,14 +59,14 @@ func TestED25519Verify(t *testing.T) {
 	}
 }
 
-func TestED25519Sign(t *testing.T) {
+func TestEd25519Sign(t *testing.T) {
 	for _, data := range ed25519TestData {
 		var err error
 		key, _ := ioutil.ReadFile(data.keys["private"])
 
 		ed25519Key, err := jwt.ParseEdPrivateKeyFromPEM(key)
 		if err != nil {
-			t.Errorf("Unable to parse ED25519 private key: %v", err)
+			t.Errorf("Unable to parse Ed25519 private key: %v", err)
 		}
 
 		parts := strings.Split(data.tokenString, ".")

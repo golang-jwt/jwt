@@ -293,5 +293,5 @@ func isRs() bool {
 }
 
 func isEd() bool {
-	return strings.HasPrefix(strings.ToUpper(*flagAlg), "ED")
+	return strings.HasPrefix(strings.ToUpper(*flagAlg), "Ed")
 }

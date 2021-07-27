@@ -3,7 +3,7 @@ package jwt
 import (
 	"errors"
 
-	"golang.org/x/crypto/ed25519"
+	"crypto/ed25519"
 )
 
 var (
@@ -34,14 +34,14 @@ func (m *SigningMethodEd25519) Alg() string {
 // For this verify method, key must be an Ed25519.PublicKey struct
 func (m *SigningMethodEd25519) Verify(signingString, signature string, key interface{}) error {
 	var err error
-	var ed25519Key *ed25519.PublicKey
+	var ed25519Key ed25519.PublicKey
 	var ok bool
 
-	if ed25519Key, ok = key.(*ed25519.PublicKey); !ok {
+	if ed25519Key, ok = key.(ed25519.PublicKey); !ok {
 		return ErrInvalidKeyType
 	}
 
-	if len(*ed25519Key) != ed25519.PublicKeySize {
+	if len(ed25519Key) != ed25519.PublicKeySize {
 		return ErrInvalidKey
 	}
 
@@ -52,7 +52,7 @@ func (m *SigningMethodEd25519) Verify(signingString, signature string, key inter
 	}
 
 	// Verify the signature
-	if !ed25519.Verify(*ed25519Key, []byte(signingString), sig) {
+	if !ed25519.Verify(ed25519Key, []byte(signingString), sig) {
 		return ErrEd25519Verification
 	}
 
@@ -62,20 +62,20 @@ func (m *SigningMethodEd25519) Verify(signingString, signature string, key inter
 // Implements the Sign method from SigningMethod
 // For this signing method, key must be an Ed25519.PrivateKey struct
 func (m *SigningMethodEd25519) Sign(signingString string, key interface{}) (string, error) {
-	var ed25519Key *ed25519.PrivateKey
+	var ed25519Key ed25519.PrivateKey
 	var ok bool
 
-	if ed25519Key, ok = key.(*ed25519.PrivateKey); !ok {
+	if ed25519Key, ok = key.(ed25519.PrivateKey); !ok {
 		return "", ErrInvalidKeyType
 	}
 
 	// ed25519.Sign panics if private key not equal to ed25519.PrivateKeySize
 	// this allows to avoid recover usage
-	if len(*ed25519Key) != ed25519.PrivateKeySize {
+	if len(ed25519Key) != ed25519.PrivateKeySize {
 		return "", ErrInvalidKey
 	}
 
 	// Sign the string and return the encoded result
-	sig := ed25519.Sign(*ed25519Key, []byte(signingString))
+	sig := ed25519.Sign(ed25519Key, []byte(signingString))
 	return EncodeSegment(sig), nil
 }
