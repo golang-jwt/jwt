@@ -11,7 +11,7 @@ var (
 )
 
 // Implements the EdDSA family
-// Expects *ed25519.PrivateKey for signing and *ed25519.PublicKey for verification
+// Expects ed25519.PrivateKey for signing and ed25519.PublicKey for verification
 type SigningMethodEd25519 struct{}
 
 // Specific instance for EdDSA
@@ -31,7 +31,7 @@ func (m *SigningMethodEd25519) Alg() string {
 }
 
 // Implements the Verify method from SigningMethod
-// For this verify method, key must be an Ed25519.PublicKey struct
+// For this verify method, key must be an ed25519.PublicKey
 func (m *SigningMethodEd25519) Verify(signingString, signature string, key interface{}) error {
 	var err error
 	var ed25519Key ed25519.PublicKey
@@ -60,7 +60,7 @@ func (m *SigningMethodEd25519) Verify(signingString, signature string, key inter
 }
 
 // Implements the Sign method from SigningMethod
-// For this signing method, key must be an Ed25519.PrivateKey struct
+// For this signing method, key must be an ed25519.PrivateKey
 func (m *SigningMethodEd25519) Sign(signingString string, key interface{}) (string, error) {
 	var ed25519Key ed25519.PrivateKey
 	var ok bool
