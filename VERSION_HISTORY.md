@@ -1,5 +1,9 @@
 ## `jwt-go` Version History
 
+#### 4.0.0
+
+* Introduces support for Go modules. The `v4` version will be backwards compatible with `v3.x.y`.
+
 #### 3.2.1
 
 * **Import Path Change**: See MIGRATION_GUIDE.md for tips on updating your code
