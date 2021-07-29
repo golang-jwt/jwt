@@ -3,7 +3,7 @@ package request
 import (
 	"net/http"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 // Extract and parse a JWT token from an HTTP request.
