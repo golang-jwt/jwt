@@ -1,5 +1,11 @@
 ## `jwt-go` Version History
 
+#### 3.2.2
+
+* Fixed a potential issue that could occur when the verification of `exp`, `iat` or `nbf` was not required and contained invalid contents, i.e. non-numeric/date. Thanks for @thaJeztah for making us aware of that and @giorgos-f3 for originally reporting it to the formtech fork ([#40](https://github.com/golang-jwt/jwt/pull/40)).
+* Added support for EdDSA / ED25519 ([#36](https://github.com/golang-jwt/jwt/pull/36)).
+* Optimized allocations ([#33](https://github.com/golang-jwt/jwt/pull/33)).
+
 #### 3.2.1
 
 * **Import Path Change**: See MIGRATION_GUIDE.md for tips on updating your code
