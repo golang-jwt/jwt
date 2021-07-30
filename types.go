@@ -104,8 +104,7 @@ func (s *StringArray) UnmarshalJSON(data []byte) (err error) {
 			aud = append(aud, vs)
 		}
 	default:
-		err = &json.UnsupportedTypeError{Type: reflect.TypeOf(v)}
-		return
+		return &json.UnsupportedTypeError{Type: reflect.TypeOf(v)}
 	}
 
 	*s = aud
@@ -114,6 +113,10 @@ func (s *StringArray) UnmarshalJSON(data []byte) (err error) {
 }
 
 func (s StringArray) MarshalJSON() (b []byte, err error) {
+	// This handles a special case in the JWT RFC. If the string array, e.g. used by the "aud" field,
+	// only contains one element, it MAY be serialized as a single string. This may or may not be
+	// desired based on the ecosystem of other JWT library used, so we make it configurable by the
+	// variable MarshalSingleStringAsArray.
 	if len(s) == 1 && !MarshalSingleStringAsArray {
 		return json.Marshal(s[0])
 	}

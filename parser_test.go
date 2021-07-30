@@ -215,6 +215,17 @@ var jwtTestData = []struct {
 		&jwt.Parser{UseJSONNumber: true},
 	},
 	{
+		"RFC7519 Claims - single aud with wrong type",
+		"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOjF9.8mAIDUfZNQT3TGm1QFIQp91OCpJpQpbB1-m9pA2mkHc", // { "aud": 1 }
+		defaultKeyFunc,
+		&jwt.RegisteredClaims{
+			Audience: nil, // because of the unmarshal error, this will be empty
+		},
+		false,
+		jwt.ValidationErrorMalformed,
+		&jwt.Parser{UseJSONNumber: true},
+	},
+	{
 		"RFC7519 Claims - multiple aud with wrong types",
 		"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsidGVzdCIsMV19.htEBUf7BVbfSmVoTFjXf3y6DLmDUuLy1vTJ14_EX7Ws", // { "aud": ["test", 1] }
 		defaultKeyFunc,
