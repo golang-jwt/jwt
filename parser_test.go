@@ -192,6 +192,39 @@ var jwtTestData = []struct {
 		0,
 		&jwt.Parser{UseJSONNumber: true},
 	},
+	{
+		"RFC7519 Claims - single aud",
+		"",
+		defaultKeyFunc,
+		&jwt.RegisteredClaims{
+			Audience: jwt.StringArray{"test"},
+		},
+		true,
+		0,
+		&jwt.Parser{UseJSONNumber: true},
+	},
+	{
+		"RFC7519 Claims - multiple aud",
+		"",
+		defaultKeyFunc,
+		&jwt.RegisteredClaims{
+			Audience: jwt.StringArray{"test", "test"},
+		},
+		true,
+		0,
+		&jwt.Parser{UseJSONNumber: true},
+	},
+	{
+		"RFC7519 Claims - multiple aud with wrong types",
+		"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsidGVzdCIsMV19.htEBUf7BVbfSmVoTFjXf3y6DLmDUuLy1vTJ14_EX7Ws", // { "aud": ["test", 1] }
+		defaultKeyFunc,
+		&jwt.RegisteredClaims{
+			Audience: nil, // because of the unmarshal error, this will be empty
+		},
+		false,
+		jwt.ValidationErrorMalformed,
+		&jwt.Parser{UseJSONNumber: true},
+	},
 }
 
 func TestParser_Parse(t *testing.T) {
@@ -265,6 +298,11 @@ func TestParser_ParseUnverified(t *testing.T) {
 
 	// Iterate over test data set and run tests
 	for _, data := range jwtTestData {
+		// Skip test data, that intentionally contains malformed tokens, as they would lead to an error
+		if data.errors&jwt.ValidationErrorMalformed != 0 {
+			continue
+		}
+
 		// If the token string is blank, use helper function to generate string
 		if data.tokenString == "" {
 			data.tokenString = test.MakeSampleToken(data.claims, privateKey)

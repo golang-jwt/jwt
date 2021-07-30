@@ -34,3 +34,34 @@ func TestNumericDate(t *testing.T) {
 
 	jwt.TimePrecision = oldPrecision
 }
+
+func TestSingleArrayMarshal(t *testing.T) {
+	jwt.MarshalSingleStringAsArray = false
+
+	s := jwt.StringArray{"test"}
+	expected := `"test"`
+
+	b, err := json.Marshal(s)
+
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+
+	if expected != string(b) {
+		t.Errorf("Serialized format of string array mismatch. Expecting: %s  Got: %s", string(expected), string(b))
+	}
+
+	jwt.MarshalSingleStringAsArray = true
+
+	expected = `["test"]`
+
+	b, err = json.Marshal(s)
+
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+
+	if expected != string(b) {
+		t.Errorf("Serialized format of string array mismatch. Expecting: %s  Got: %s", string(expected), string(b))
+	}
+}

@@ -19,6 +19,15 @@ import (
 // TODO(oxisto): the tests seem to fail sometimes, if the precision is microseconds because the difference is literally 1 microsecond
 var TimePrecision = time.Second
 
+// MarshalSingleStringAsArray modifies the behaviour of the StringArray type, especially
+// its MarshalJSON function.
+//
+// If it is set to true (the default), it will always serialize the type as an
+// array of strings, even if it just contains one element, defaulting to the behaviour
+// of the underlying []string. If it is set to false, it will serialize to a single
+// string, if it contains one element. Otherwise, it will serialize to an array of strings.
+var MarshalSingleStringAsArray = true
+
 // NumericDate represents a JSON numeric date value, as referenced at
 // https://datatracker.ietf.org/doc/html/rfc7519#section-2.
 type NumericDate struct {
@@ -79,15 +88,35 @@ func (s *StringArray) UnmarshalJSON(data []byte) (err error) {
 		return err
 	}
 
+	var aud []string
+
 	switch v := value.(type) {
 	case string:
-		*s = StringArray{v}
-		return
+		aud = append(aud, v)
 	case []string:
-		*s = StringArray(v)
+		aud = StringArray(v)
+	case []interface{}:
+		for _, a := range v {
+			vs, ok := a.(string)
+			if !ok {
+				return &json.UnsupportedTypeError{Type: reflect.TypeOf(a)}
+			}
+			aud = append(aud, vs)
+		}
 	default:
 		err = &json.UnsupportedTypeError{Type: reflect.TypeOf(v)}
+		return
 	}
 
+	*s = aud
+
 	return
+}
+
+func (s StringArray) MarshalJSON() (b []byte, err error) {
+	if len(s) == 1 && !MarshalSingleStringAsArray {
+		return json.Marshal(s[0])
+	}
+
+	return json.Marshal([]string(s))
 }
