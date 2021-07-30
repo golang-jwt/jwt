@@ -2,6 +2,7 @@
 
 #### 3.2.2
 
+* Starting from this release, we are adopting the policy to support the most 2 recent versions of Go currently available. By the time of this release, this is Go 1.15 and 1.16 ([#28](https://github.com/golang-jwt/jwt/pull/28)).
 * Fixed a potential issue that could occur when the verification of `exp`, `iat` or `nbf` was not required and contained invalid contents, i.e. non-numeric/date. Thanks for @thaJeztah for making us aware of that and @giorgos-f3 for originally reporting it to the formtech fork ([#40](https://github.com/golang-jwt/jwt/pull/40)).
 * Added support for EdDSA / ED25519 ([#36](https://github.com/golang-jwt/jwt/pull/36)).
 * Optimized allocations ([#33](https://github.com/golang-jwt/jwt/pull/33)).
