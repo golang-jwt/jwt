@@ -243,64 +243,66 @@ func TestParser_Parse(t *testing.T) {
 
 	// Iterate over test data set and run tests
 	for _, data := range jwtTestData {
-		// If the token string is blank, use helper function to generate string
-		if data.tokenString == "" {
-			data.tokenString = test.MakeSampleToken(data.claims, privateKey)
-		}
+		t.Run(data.name, func(t *testing.T) {
+			// If the token string is blank, use helper function to generate string
+			if data.tokenString == "" {
+				data.tokenString = test.MakeSampleToken(data.claims, privateKey)
+			}
 
-		// Parse the token
-		var token *jwt.Token
-		var err error
-		var parser = data.parser
-		if parser == nil {
-			parser = new(jwt.Parser)
-		}
-		// Figure out correct claims type
-		switch data.claims.(type) {
-		case jwt.MapClaims:
-			token, err = parser.ParseWithClaims(data.tokenString, jwt.MapClaims{}, data.keyfunc)
-		case *jwt.StandardClaims:
-			token, err = parser.ParseWithClaims(data.tokenString, &jwt.StandardClaims{}, data.keyfunc)
-		case *jwt.RegisteredClaims:
-			token, err = parser.ParseWithClaims(data.tokenString, &jwt.RegisteredClaims{}, data.keyfunc)
-		}
+			// Parse the token
+			var token *jwt.Token
+			var err error
+			var parser = data.parser
+			if parser == nil {
+				parser = new(jwt.Parser)
+			}
+			// Figure out correct claims type
+			switch data.claims.(type) {
+			case jwt.MapClaims:
+				token, err = parser.ParseWithClaims(data.tokenString, jwt.MapClaims{}, data.keyfunc)
+			case *jwt.StandardClaims:
+				token, err = parser.ParseWithClaims(data.tokenString, &jwt.StandardClaims{}, data.keyfunc)
+			case *jwt.RegisteredClaims:
+				token, err = parser.ParseWithClaims(data.tokenString, &jwt.RegisteredClaims{}, data.keyfunc)
+			}
 
-		// Verify result matches expectation
-		if !reflect.DeepEqual(data.claims, token.Claims) {
-			t.Errorf("[%v] Claims mismatch. Expecting: %v  Got: %v", data.name, data.claims, token.Claims)
-		}
+			// Verify result matches expectation
+			if !reflect.DeepEqual(data.claims, token.Claims) {
+				t.Errorf("[%v] Claims mismatch. Expecting: %v  Got: %v", data.name, data.claims, token.Claims)
+			}
 
-		if data.valid && err != nil {
-			t.Errorf("[%v] Error while verifying token: %T:%v", data.name, err, err)
-		}
+			if data.valid && err != nil {
+				t.Errorf("[%v] Error while verifying token: %T:%v", data.name, err, err)
+			}
 
-		if !data.valid && err == nil {
-			t.Errorf("[%v] Invalid token passed validation", data.name)
-		}
+			if !data.valid && err == nil {
+				t.Errorf("[%v] Invalid token passed validation", data.name)
+			}
 
-		if (err == nil && !token.Valid) || (err != nil && token.Valid) {
-			t.Errorf("[%v] Inconsistent behavior between returned error and token.Valid", data.name)
-		}
+			if (err == nil && !token.Valid) || (err != nil && token.Valid) {
+				t.Errorf("[%v] Inconsistent behavior between returned error and token.Valid", data.name)
+			}
 
-		if data.errors != 0 {
-			if err == nil {
-				t.Errorf("[%v] Expecting error.  Didn't get one.", data.name)
-			} else {
+			if data.errors != 0 {
+				if err == nil {
+					t.Errorf("[%v] Expecting error.  Didn't get one.", data.name)
+				} else {
 
-				ve := err.(*jwt.ValidationError)
-				// compare the bitfield part of the error
-				if e := ve.Errors; e != data.errors {
-					t.Errorf("[%v] Errors don't match expectation.  %v != %v", data.name, e, data.errors)
-				}
+					ve := err.(*jwt.ValidationError)
+					// compare the bitfield part of the error
+					if e := ve.Errors; e != data.errors {
+						t.Errorf("[%v] Errors don't match expectation.  %v != %v", data.name, e, data.errors)
+					}
 
-				if err.Error() == keyFuncError.Error() && ve.Inner != keyFuncError {
-					t.Errorf("[%v] Inner error does not match expectation.  %v != %v", data.name, ve.Inner, keyFuncError)
+					if err.Error() == keyFuncError.Error() && ve.Inner != keyFuncError {
+						t.Errorf("[%v] Inner error does not match expectation.  %v != %v", data.name, ve.Inner, keyFuncError)
+					}
 				}
 			}
-		}
-		if data.valid && token.Signature == "" {
-			t.Errorf("[%v] Signature is left unpopulated after parsing", data.name)
-		}
+			if data.valid && token.Signature == "" {
+				t.Errorf("[%v] Signature is left unpopulated after parsing", data.name)
+			}
+		})
 	}
 }
 
@@ -314,40 +316,42 @@ func TestParser_ParseUnverified(t *testing.T) {
 			continue
 		}
 
-		// If the token string is blank, use helper function to generate string
-		if data.tokenString == "" {
-			data.tokenString = test.MakeSampleToken(data.claims, privateKey)
-		}
+		t.Run(data.name, func(t *testing.T) {
+			// If the token string is blank, use helper function to generate string
+			if data.tokenString == "" {
+				data.tokenString = test.MakeSampleToken(data.claims, privateKey)
+			}
 
-		// Parse the token
-		var token *jwt.Token
-		var err error
-		var parser = data.parser
-		if parser == nil {
-			parser = new(jwt.Parser)
-		}
-		// Figure out correct claims type
-		switch data.claims.(type) {
-		case jwt.MapClaims:
-			token, _, err = parser.ParseUnverified(data.tokenString, jwt.MapClaims{})
-		case *jwt.StandardClaims:
-			token, _, err = parser.ParseUnverified(data.tokenString, &jwt.StandardClaims{})
-		case *jwt.RegisteredClaims:
-			token, _, err = parser.ParseUnverified(data.tokenString, &jwt.RegisteredClaims{})
-		}
+			// Parse the token
+			var token *jwt.Token
+			var err error
+			var parser = data.parser
+			if parser == nil {
+				parser = new(jwt.Parser)
+			}
+			// Figure out correct claims type
+			switch data.claims.(type) {
+			case jwt.MapClaims:
+				token, _, err = parser.ParseUnverified(data.tokenString, jwt.MapClaims{})
+			case *jwt.StandardClaims:
+				token, _, err = parser.ParseUnverified(data.tokenString, &jwt.StandardClaims{})
+			case *jwt.RegisteredClaims:
+				token, _, err = parser.ParseUnverified(data.tokenString, &jwt.RegisteredClaims{})
+			}
 
-		if err != nil {
-			t.Errorf("[%v] Invalid token", data.name)
-		}
+			if err != nil {
+				t.Errorf("[%v] Invalid token", data.name)
+			}
 
-		// Verify result matches expectation
-		if !reflect.DeepEqual(data.claims, token.Claims) {
-			t.Errorf("[%v] Claims mismatch. Expecting: %v  Got: %v", data.name, data.claims, token.Claims)
-		}
+			// Verify result matches expectation
+			if !reflect.DeepEqual(data.claims, token.Claims) {
+				t.Errorf("[%v] Claims mismatch. Expecting: %v  Got: %v", data.name, data.claims, token.Claims)
+			}
 
-		if data.valid && err != nil {
-			t.Errorf("[%v] Error while verifying token: %T:%v", data.name, err, err)
-		}
+			if data.valid && err != nil {
+				t.Errorf("[%v] Error while verifying token: %T:%v", data.name, err, err)
+			}
+		})
 	}
 }
 
