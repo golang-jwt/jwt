@@ -13,10 +13,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go: [1.11, 1.12, 1.13, 1.14, 1.15, 1.16]
+        go: [1.15, 1.16]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          path: src/github.com/golang-jwt/jwt
       - name: Setup Go
         uses: actions/setup-go@v2
         with:
@@ -26,3 +28,6 @@ jobs:
           go vet ./...
           go test -v ./...
           go build ./...
+        env:
+          GO111MODULE: auto
+          GOPATH: ${{ github.workspace }}
