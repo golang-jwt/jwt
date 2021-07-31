@@ -37,7 +37,12 @@ func (m MapClaims) VerifyAudience(cmp string, req bool) bool {
 func (m MapClaims) VerifyExpiresAt(cmp int64, req bool) bool {
 	cmpTime := time.Unix(cmp, 0)
 
-	switch exp := m["exp"].(type) {
+	v, ok := m["exp"]
+	if !ok {
+		return !req
+	}
+
+	switch exp := v.(type) {
 	case float64:
 		if exp == 0 {
 			return verifyExp(nil, cmpTime, req)
@@ -50,7 +55,7 @@ func (m MapClaims) VerifyExpiresAt(cmp int64, req bool) bool {
 		return verifyExp(&newNumericDateFromSeconds(v).Time, cmpTime, req)
 	}
 
-	return !req
+	return false
 }
 
 // VerifyIssuedAt compares the iat claim against cmp.
@@ -58,7 +63,12 @@ func (m MapClaims) VerifyExpiresAt(cmp int64, req bool) bool {
 func (m MapClaims) VerifyIssuedAt(cmp int64, req bool) bool {
 	cmpTime := time.Unix(cmp, 0)
 
-	switch iat := m["iat"].(type) {
+	v, ok := m["iat"]
+	if !ok {
+		return !req
+	}
+
+	switch iat := v.(type) {
 	case float64:
 		if iat == 0 {
 			return verifyIat(nil, cmpTime, req)
@@ -71,7 +81,7 @@ func (m MapClaims) VerifyIssuedAt(cmp int64, req bool) bool {
 		return verifyIat(&newNumericDateFromSeconds(v).Time, cmpTime, req)
 	}
 
-	return !req
+	return false
 }
 
 // Compares the nbf claim against cmp.
@@ -79,7 +89,12 @@ func (m MapClaims) VerifyIssuedAt(cmp int64, req bool) bool {
 func (m MapClaims) VerifyNotBefore(cmp int64, req bool) bool {
 	cmpTime := time.Unix(cmp, 0)
 
-	switch nbf := m["nbf"].(type) {
+	v, ok := m["nbf"]
+	if !ok {
+		return !req
+	}
+
+	switch nbf := v.(type) {
 	case float64:
 		if nbf == 0 {
 			return verifyNbf(nil, cmpTime, req)
@@ -92,7 +107,7 @@ func (m MapClaims) VerifyNotBefore(cmp int64, req bool) bool {
 		return verifyNbf(&newNumericDateFromSeconds(v).Time, cmpTime, req)
 	}
 
-	return !req
+	return false
 }
 
 // Compares the iss claim against cmp.
