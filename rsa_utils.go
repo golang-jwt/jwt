@@ -40,6 +40,10 @@ func ParseRSAPrivateKeyFromPEM(key []byte) (*rsa.PrivateKey, error) {
 }
 
 // Parse PEM encoded PKCS1 or PKCS8 private key protected with password
+
+// Deprecated: This function is deprecated and should not be used anymore. It uses the deprecated x509.DecryptPEMBlock
+// function, which was deprecated since RFC 1423 is regarded insecure by design. Unfortunately, there is no alternative
+// in the Go standard library for now. See https://github.com/golang/go/issues/8860.
 func ParseRSAPrivateKeyFromPEMWithPassword(key []byte, password string) (*rsa.PrivateKey, error) {
 	var err error
 
