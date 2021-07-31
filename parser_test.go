@@ -197,7 +197,7 @@ var jwtTestData = []struct {
 		"",
 		defaultKeyFunc,
 		&jwt.RegisteredClaims{
-			Audience: jwt.StringArray{"test"},
+			Audience: jwt.ClaimStrings{"test"},
 		},
 		true,
 		0,
@@ -208,7 +208,7 @@ var jwtTestData = []struct {
 		"",
 		defaultKeyFunc,
 		&jwt.RegisteredClaims{
-			Audience: jwt.StringArray{"test", "test"},
+			Audience: jwt.ClaimStrings{"test", "test"},
 		},
 		true,
 		0,

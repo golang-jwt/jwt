@@ -38,7 +38,7 @@ func TestNumericDate(t *testing.T) {
 func TestSingleArrayMarshal(t *testing.T) {
 	jwt.MarshalSingleStringAsArray = false
 
-	s := jwt.StringArray{"test"}
+	s := jwt.ClaimStrings{"test"}
 	expected := `"test"`
 
 	b, err := json.Marshal(s)

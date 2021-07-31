@@ -29,7 +29,7 @@ type RegisteredClaims struct {
 	Subject string `json:"sub,omitempty"`
 
 	// the `aud` (Audience) claim. See https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.3
-	Audience StringArray `json:"aud,omitempty"`
+	Audience ClaimStrings `json:"aud,omitempty"`
 
 	// the `exp` (Expiration Time) claim. See https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.4
 	ExpiresAt *NumericDate `json:"exp,omitempty"`

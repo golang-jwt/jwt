@@ -19,7 +19,7 @@ import (
 // TODO(oxisto): the tests seem to fail sometimes, if the precision is microseconds because the difference is literally 1 microsecond
 var TimePrecision = time.Second
 
-// MarshalSingleStringAsArray modifies the behaviour of the StringArray type, especially
+// MarshalSingleStringAsArray modifies the behaviour of the ClaimStrings type, especially
 // its MarshalJSON function.
 //
 // If it is set to true (the default), it will always serialize the type as an
@@ -77,11 +77,11 @@ func (date *NumericDate) UnmarshalJSON(b []byte) (err error) {
 	return nil
 }
 
-// StringArray is basically just a slice of strings, but it can be either serialized from a string array or just a string.
+// ClaimStrings is basically just a slice of strings, but it can be either serialized from a string array or just a string.
 // This type is necessary, since the "aud" claim can either be a single string or an array.
-type StringArray []string
+type ClaimStrings []string
 
-func (s *StringArray) UnmarshalJSON(data []byte) (err error) {
+func (s *ClaimStrings) UnmarshalJSON(data []byte) (err error) {
 	var value interface{}
 
 	if err = json.Unmarshal(data, &value); err != nil {
@@ -94,15 +94,17 @@ func (s *StringArray) UnmarshalJSON(data []byte) (err error) {
 	case string:
 		aud = append(aud, v)
 	case []string:
-		aud = StringArray(v)
+		aud = ClaimStrings(v)
 	case []interface{}:
-		for _, a := range v {
-			vs, ok := a.(string)
+		for _, vv := range v {
+			vs, ok := vv.(string)
 			if !ok {
-				return &json.UnsupportedTypeError{Type: reflect.TypeOf(a)}
+				return &json.UnsupportedTypeError{Type: reflect.TypeOf(vv)}
 			}
 			aud = append(aud, vs)
 		}
+	case nil:
+		return nil
 	default:
 		return &json.UnsupportedTypeError{Type: reflect.TypeOf(v)}
 	}
@@ -112,7 +114,7 @@ func (s *StringArray) UnmarshalJSON(data []byte) (err error) {
 	return
 }
 
-func (s StringArray) MarshalJSON() (b []byte, err error) {
+func (s ClaimStrings) MarshalJSON() (b []byte, err error) {
 	// This handles a special case in the JWT RFC. If the string array, e.g. used by the "aud" field,
 	// only contains one element, it MAY be serialized as a single string. This may or may not be
 	// desired based on the ecosystem of other JWT library used, so we make it configurable by the
