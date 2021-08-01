@@ -60,15 +60,24 @@ func fillBytesInt(x *big.Int, buf []byte) []byte {
 	for i := range buf {
 		buf[i] = 0
 	}
+	// The following is mostly copied from the original go source code - however it is the only way of doing this.
+
+	// Start at the end of the buffer as x.Bits() is a little endian and work for wards
 	i := len(buf)
+
+	// Walk the words from x.Bits()
 	for _, d := range x.Bits() {
+		// Now each word is Uintsize (usually 64 bits) in length - but a byte is 8 bits so each byte must be split in Uintsize/8 slices
 		for j := 0; j < (bits.UintSize / 8); j++ {
+			// Move forward one step
 			i--
 			if i >= 0 {
+				// set the value of the current buf[i] to the byte value of
 				buf[i] = byte(d)
 			} else if byte(d) != 0 {
-				panic("math/big: buffer too small to fit value")
+				panic("math/big: buffer too small to fit value") // use the same panic string for complete compatibility
 			}
+			// shift the word 8 bits and reloop.
 			d >>= 8
 		}
 	}
