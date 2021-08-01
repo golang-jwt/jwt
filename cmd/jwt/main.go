@@ -67,14 +67,14 @@ func start() error {
 		return showToken()
 	} else {
 		flag.Usage()
-		return fmt.Errorf("None of the required flags are present.  What do you want me to do?")
+		return fmt.Errorf("none of the required flags are present.  What do you want me to do?")
 	}
 }
 
 // Helper func:  Read input from specified file or stdin
 func loadData(p string) ([]byte, error) {
 	if p == "" {
-		return nil, fmt.Errorf("No path specified")
+		return nil, fmt.Errorf("no path specified")
 	}
 
 	var rdr io.Reader
@@ -117,7 +117,7 @@ func verifyToken() error {
 	// get the token
 	tokData, err := loadData(*flagVerify)
 	if err != nil {
-		return fmt.Errorf("Couldn't read token: %v", err)
+		return fmt.Errorf("couldn't read token: %w", err)
 	}
 
 	// trim possible whitespace from token
@@ -150,17 +150,17 @@ func verifyToken() error {
 
 	// Print an error if we can't parse for some reason
 	if err != nil {
-		return fmt.Errorf("Couldn't parse token: %v", err)
+		return fmt.Errorf("couldn't parse token: %w", err)
 	}
 
 	// Is token invalid?
 	if !token.Valid {
-		return fmt.Errorf("Token is invalid")
+		return fmt.Errorf("token is invalid")
 	}
 
 	// Print the token details
 	if err := printJSON(token.Claims); err != nil {
-		return fmt.Errorf("Failed to output claims: %v", err)
+		return fmt.Errorf("failed to output claims: %w", err)
 	}
 
 	return nil
@@ -172,7 +172,7 @@ func signToken() error {
 	// get the token data from command line arguments
 	tokData, err := loadData(*flagSign)
 	if err != nil {
-		return fmt.Errorf("Couldn't read token: %v", err)
+		return fmt.Errorf("couldn't read token: %w", err)
 	} else if *flagDebug {
 		fmt.Fprintf(os.Stderr, "Token: %v bytes", len(tokData))
 	}
@@ -180,7 +180,7 @@ func signToken() error {
 	// parse the JSON of the claims
 	var claims jwt.MapClaims
 	if err := json.Unmarshal(tokData, &claims); err != nil {
-		return fmt.Errorf("Couldn't parse claims JSON: %v", err)
+		return fmt.Errorf("couldn't parse claims JSON: %w", err)
 	}
 
 	// add command line claims
@@ -194,13 +194,13 @@ func signToken() error {
 	var key interface{}
 	key, err = loadData(*flagKey)
 	if err != nil {
-		return fmt.Errorf("Couldn't read key: %v", err)
+		return fmt.Errorf("couldn't read key: %w", err)
 	}
 
 	// get the signing alg
 	alg := jwt.GetSigningMethod(*flagAlg)
 	if alg == nil {
-		return fmt.Errorf("Couldn't find signing method: %v", *flagAlg)
+		return fmt.Errorf("couldn't find signing method: %v", *flagAlg)
 	}
 
 	// create a new token
@@ -215,7 +215,7 @@ func signToken() error {
 
 	if isEs() {
 		if k, ok := key.([]byte); !ok {
-			return fmt.Errorf("Couldn't convert key data to key")
+			return fmt.Errorf("couldn't convert key data to key")
 		} else {
 			key, err = jwt.ParseECPrivateKeyFromPEM(k)
 			if err != nil {
@@ -224,7 +224,7 @@ func signToken() error {
 		}
 	} else if isRs() {
 		if k, ok := key.([]byte); !ok {
-			return fmt.Errorf("Couldn't convert key data to key")
+			return fmt.Errorf("couldn't convert key data to key")
 		} else {
 			key, err = jwt.ParseRSAPrivateKeyFromPEM(k)
 			if err != nil {
@@ -233,7 +233,7 @@ func signToken() error {
 		}
 	} else if isEd() {
 		if k, ok := key.([]byte); !ok {
-			return fmt.Errorf("Couldn't convert key data to key")
+			return fmt.Errorf("couldn't convert key data to key")
 		} else {
 			key, err = jwt.ParseEdPrivateKeyFromPEM(k)
 			if err != nil {
@@ -245,7 +245,7 @@ func signToken() error {
 	if out, err := token.SignedString(key); err == nil {
 		fmt.Println(out)
 	} else {
-		return fmt.Errorf("Error signing token: %v", err)
+		return fmt.Errorf("error signing token: %w", err)
 	}
 
 	return nil
@@ -256,7 +256,7 @@ func showToken() error {
 	// get the token
 	tokData, err := loadData(*flagShow)
 	if err != nil {
-		return fmt.Errorf("Couldn't read token: %v", err)
+		return fmt.Errorf("couldn't read token: %w", err)
 	}
 
 	// trim possible whitespace from token
@@ -267,18 +267,18 @@ func showToken() error {
 
 	token, err := jwt.Parse(string(tokData), nil)
 	if token == nil {
-		return fmt.Errorf("malformed token: %v", err)
+		return fmt.Errorf("malformed token: %w", err)
 	}
 
 	// Print the token details
 	fmt.Println("Header:")
 	if err := printJSON(token.Header); err != nil {
-		return fmt.Errorf("Failed to output header: %v", err)
+		return fmt.Errorf("failed to output header: %w", err)
 	}
 
 	fmt.Println("Claims:")
 	if err := printJSON(token.Claims); err != nil {
-		return fmt.Errorf("Failed to output claims: %v", err)
+		return fmt.Errorf("failed to output claims: %w", err)
 	}
 
 	return nil
@@ -306,7 +306,7 @@ func (l ArgList) String() string {
 func (l ArgList) Set(arg string) error {
 	parts := strings.SplitN(arg, "=", 2)
 	if len(parts) != 2 {
-		return fmt.Errorf("Invalid argument '%v'.  Must use format 'key=value'. %v", arg, parts)
+		return fmt.Errorf("invalid argument '%v'.  Must use format 'key=value'. %v", arg, parts)
 	}
 	l[parts[0]] = parts[1]
 	return nil
