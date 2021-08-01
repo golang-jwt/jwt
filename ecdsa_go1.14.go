@@ -60,6 +60,9 @@ func fillBytesInt(x *big.Int, buf []byte) []byte {
 	for i := range buf {
 		buf[i] = 0
 	}
+
+	// This code is deeply inspired by go's own implementation but rewritten.
+
 	// Although this function is called bits it returns words
 	words := x.Bits()
 
