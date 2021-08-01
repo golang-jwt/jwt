@@ -60,26 +60,35 @@ func fillBytesInt(x *big.Int, buf []byte) []byte {
 	for i := range buf {
 		buf[i] = 0
 	}
-	// The following is mostly copied from the original go source code - however it is the only way of doing this.
+	// Although this function is called bits it returns words
+	words := x.Bits()
 
-	// Start at the end of the buffer as x.Bits() is a little endian and work for wards
-	i := len(buf)
+	// Words are uints as per the definition of bits.Word and thus there are usually (64) /8 bytes per word
+	bytesPerWord := bits.UintSize / 8
 
-	// Walk the words from x.Bits()
-	for _, d := range x.Bits() {
-		// Now each word is Uintsize (usually 64 bits) in length - but a byte is 8 bits so each byte must be split in Uintsize/8 slices
-		for j := 0; j < (bits.UintSize / 8); j++ {
-			// Move forward one step
-			i--
-			if i >= 0 {
-				// set the value of the current buf[i] to the byte value of
-				buf[i] = byte(d)
-			} else if byte(d) != 0 {
-				panic("math/big: buffer too small to fit value") // use the same panic string for complete compatibility
-			}
+	// If our buffer is longer than the expected number of words start mid-way
+	pos := len(buf) - len(words)*bytesPerWord
+
+	// if our position is less than 0 then panic
+	if pos < 0 {
+		panic("math/big: buffer too small to fit value") // have to use the same panic string for complete compatibility
+	}
+
+	// Now iterate across the words (backwards)
+	for i := range words {
+		// Grab the last word (Which is the biggest number)
+		word := words[len(words)-1-i]
+
+		// Now for each byte in the word
+		// [abcd...] we want buf[0] = a, buf[1] = b ...
+
+		for j := bytesPerWord; j > 0; j-- {
+			// set the value of the byte to the byte
+			buf[pos+j-1] = byte(word)
 			// shift the word 8 bits and reloop.
-			d >>= 8
+			word >>= 8
 		}
+		pos += bytesPerWord
 	}
 
 	return buf
