@@ -30,11 +30,6 @@ var (
 	verifyKey  *rsa.PublicKey
 	signKey    *rsa.PrivateKey
 	serverPort int
-	// storing sample username/password pairs
-	// don't do this on a real server
-	users = map[string]string{
-		"test": "known",
-	}
 )
 
 // read the key files before starting http handlers
@@ -64,8 +59,6 @@ func init() {
 		fatal(http.Serve(listener, nil))
 	}()
 }
-
-var start func()
 
 func fatal(err error) {
 	if err != nil {
@@ -214,5 +207,4 @@ func restrictedHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Token is valid
 	fmt.Fprintln(w, "Welcome,", token.Claims.(*CustomClaimsExample).Name)
-	return
 }
