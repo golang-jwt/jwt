@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang-jwt/jwt"
-	"github.com/golang-jwt/jwt/test"
+	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v4/test"
 )
 
 var rsaPSSTestData = []struct {

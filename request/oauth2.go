@@ -13,14 +13,14 @@ func stripBearerPrefixFromTokenString(tok string) (string, error) {
 	return tok, nil
 }
 
-// Extract bearer token from Authorization header
+// AuthorizationHeaderExtractor extracts a bearer token from Authorization header
 // Uses PostExtractionFilter to strip "Bearer " prefix from header
 var AuthorizationHeaderExtractor = &PostExtractionFilter{
 	HeaderExtractor{"Authorization"},
 	stripBearerPrefixFromTokenString,
 }
 
-// Extractor for OAuth2 access tokens.  Looks in 'Authorization'
+// OAuth2Extractor is an Extractor for OAuth2 access tokens.  Looks in 'Authorization'
 // header then 'access_token' argument for a token.
 var OAuth2Extractor = &MultiExtractor{
 	AuthorizationHeaderExtractor,

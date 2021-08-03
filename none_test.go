@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 var noneTestData = []struct {

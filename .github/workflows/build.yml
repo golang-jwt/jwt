@@ -8,6 +8,18 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - uses: reviewdog/action-staticcheck@v1
+        with:
+          github_token: ${{ secrets.github_token }}
+          reporter: github-pr-review
+          filter_mode: nofilter
+          fail_on_error: true
+
   build:
     runs-on: ubuntu-latest
     strategy:
@@ -17,8 +29,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        with:
-          path: src/github.com/golang-jwt/jwt
       - name: Setup Go
         uses: actions/setup-go@v2
         with:
@@ -28,6 +38,3 @@ jobs:
           go vet ./...
           go test -v ./...
           go build ./...
-        env:
-          GO111MODULE: auto
-          GOPATH: ${{ github.workspace }}

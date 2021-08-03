@@ -8,17 +8,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang-jwt/jwt"
-	"github.com/golang-jwt/jwt/test"
+	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v4/test"
 )
 
-var keyFuncError error = fmt.Errorf("error loading key")
+var errKeyFuncError error = fmt.Errorf("error loading key")
 
 var (
 	jwtTestDefaultKey *rsa.PublicKey
 	defaultKeyFunc    jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return jwtTestDefaultKey, nil }
 	emptyKeyFunc      jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return nil, nil }
-	errorKeyFunc      jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return nil, keyFuncError }
+	errorKeyFunc      jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return nil, errKeyFuncError }
 	nilKeyFunc        jwt.Keyfunc = nil
 )
 
@@ -236,8 +236,8 @@ func TestParser_Parse(t *testing.T) {
 					t.Errorf("[%v] Errors don't match expectation.  %v != %v", data.name, e, data.errors)
 				}
 
-				if err.Error() == keyFuncError.Error() && ve.Inner != keyFuncError {
-					t.Errorf("[%v] Inner error does not match expectation.  %v != %v", data.name, ve.Inner, keyFuncError)
+				if err.Error() == errKeyFuncError.Error() && ve.Inner != errKeyFuncError {
+					t.Errorf("[%v] Inner error does not match expectation.  %v != %v", data.name, ve.Inner, errKeyFuncError)
 				}
 			}
 		}
