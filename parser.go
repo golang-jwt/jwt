@@ -107,10 +107,10 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 		if strings.HasPrefix(strings.ToLower(tokenString), "bearer ") {
 			return token, parts, NewValidationError("tokenstring should not contain 'bearer '", ValidationErrorMalformed)
 		}
-		return token, parts, &ValidationError{Inner: err, Errors: ValidationErrorMalformed}
+		return token, parts, &ValidationError{Inner: fmt.Errorf("malformed token header: %w", err), Errors: ValidationErrorMalformed}
 	}
 	if err = json.Unmarshal(headerBytes, &token.Header); err != nil {
-		return token, parts, &ValidationError{Inner: err, Errors: ValidationErrorMalformed}
+		return token, parts, &ValidationError{Inner: fmt.Errorf("malformed token header: %w", err), Errors: ValidationErrorMalformed}
 	}
 
 	// parse Claims
@@ -118,7 +118,7 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 	token.Claims = claims
 
 	if claimBytes, err = DecodeSegment(parts[1]); err != nil {
-		return token, parts, &ValidationError{Inner: err, Errors: ValidationErrorMalformed}
+		return token, parts, &ValidationError{Inner: fmt.Errorf("malformed token claims: %w", err), Errors: ValidationErrorMalformed}
 	}
 	dec := json.NewDecoder(bytes.NewBuffer(claimBytes))
 	if p.UseJSONNumber {
@@ -132,7 +132,7 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 	}
 	// Handle decode error
 	if err != nil {
-		return token, parts, &ValidationError{Inner: err, Errors: ValidationErrorMalformed}
+		return token, parts, &ValidationError{Inner: fmt.Errorf("malformed token payload: %w", err), Errors: ValidationErrorMalformed}
 	}
 
 	// Lookup signature method
