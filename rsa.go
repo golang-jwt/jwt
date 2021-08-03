@@ -15,29 +15,17 @@ type SigningMethodRSA struct {
 
 // Specific instances for RS256 and company
 var (
-	SigningMethodRS256 *SigningMethodRSA
-	SigningMethodRS384 *SigningMethodRSA
-	SigningMethodRS512 *SigningMethodRSA
+	SigningMethodRS256 = NewSigningMethodRSA("RS256", crypto.SHA256)
+	SigningMethodRS384 = NewSigningMethodRSA("RS384", crypto.SHA384)
+	SigningMethodRS512 = NewSigningMethodRSA("RS512", crypto.SHA512)
 )
 
-func init() {
-	// RS256
-	SigningMethodRS256 = &SigningMethodRSA{"RS256", crypto.SHA256}
-	RegisterSigningMethod(SigningMethodRS256.Alg(), func() SigningMethod {
-		return SigningMethodRS256
-	})
-
-	// RS384
-	SigningMethodRS384 = &SigningMethodRSA{"RS384", crypto.SHA384}
-	RegisterSigningMethod(SigningMethodRS384.Alg(), func() SigningMethod {
-		return SigningMethodRS384
-	})
-
-	// RS512
-	SigningMethodRS512 = &SigningMethodRSA{"RS512", crypto.SHA512}
-	RegisterSigningMethod(SigningMethodRS512.Alg(), func() SigningMethod {
-		return SigningMethodRS512
-	})
+// NewSigningMethodRSA creates a new SigningMethodRSA struct and
+// registers it with RegisterSigningMethod.
+func NewSigningMethodRSA(name string, hash crypto.Hash) *SigningMethodRSA {
+	m := &SigningMethodRSA{name, hash}
+	Register(m)
+	return m
 }
 
 func (m *SigningMethodRSA) Alg() string {

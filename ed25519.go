@@ -14,16 +14,15 @@ var (
 // Expects ed25519.PrivateKey for signing and ed25519.PublicKey for verification
 type SigningMethodEd25519 struct{}
 
-// Specific instance for EdDSA
-var (
-	SigningMethodEdDSA *SigningMethodEd25519
-)
+// SigningMethodEdDSA is a specific instance of SigningMethodEd25519 for EdDSA
+var SigningMethodEdDSA = NewSigningMethodEd25519()
 
-func init() {
-	SigningMethodEdDSA = &SigningMethodEd25519{}
-	RegisterSigningMethod(SigningMethodEdDSA.Alg(), func() SigningMethod {
-		return SigningMethodEdDSA
-	})
+// NewSigningMethodEd25519 creates a new SigningMethodEd25519 struct and
+// registers it with RegisterSigningMethod.
+func NewSigningMethodEd25519() *SigningMethodEd25519 {
+	m := &SigningMethodEd25519{}
+	Register(m)
+	return m
 }
 
 func (m *SigningMethodEd25519) Alg() string {

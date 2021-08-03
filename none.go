@@ -1,23 +1,24 @@
 package jwt
 
-// SigningMethodNone implements the none signing method.  This is required by the spec
-// but you probably should never use it.
-var SigningMethodNone *signingMethodNone
+type (
+	signingMethodNone       struct{}
+	unsafeNoneMagicConstant string
+)
 
 const UnsafeAllowNoneSignatureType unsafeNoneMagicConstant = "none signing method allowed"
 
-var NoneSignatureTypeDisallowedError error
-
-type signingMethodNone struct{}
-type unsafeNoneMagicConstant string
-
-func init() {
-	SigningMethodNone = &signingMethodNone{}
+var (
+	// The none signing method is required by the spec, but you should probably never use it.
+	SigningMethodNone                = NewSigningMethodNone()
 	NoneSignatureTypeDisallowedError = NewValidationError("'none' signature type is not allowed", ValidationErrorSignatureInvalid)
+)
 
-	RegisterSigningMethod(SigningMethodNone.Alg(), func() SigningMethod {
-		return SigningMethodNone
-	})
+// NewSigningMethodNone creates a new SigningMethodNone struct and
+// registers it with RegisterSigningMethod.
+func NewSigningMethodNone() *signingMethodNone {
+	m := &signingMethodNone{}
+	Register(m)
+	return m
 }
 
 func (m *signingMethodNone) Alg() string {
