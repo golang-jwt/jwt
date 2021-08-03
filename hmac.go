@@ -15,34 +15,26 @@ type SigningMethodHMAC struct {
 
 // Specific instances for HS256 and company
 var (
-	SigningMethodHS256  *SigningMethodHMAC
-	SigningMethodHS384  *SigningMethodHMAC
-	SigningMethodHS512  *SigningMethodHMAC
+	SigningMethodHS256  = NewSigningMethodHMAC("HS256", crypto.SHA256)
+	SigningMethodHS384  = NewSigningMethodHMAC("HS384", crypto.SHA384)
+	SigningMethodHS512  = NewSigningMethodHMAC("HS512", crypto.SHA512)
 	ErrSignatureInvalid = errors.New("signature is invalid")
 )
 
-func init() {
-	// HS256
-	SigningMethodHS256 = &SigningMethodHMAC{"HS256", crypto.SHA256}
-	RegisterSigningMethod(SigningMethodHS256.Alg(), func() SigningMethod {
-		return SigningMethodHS256
-	})
-
-	// HS384
-	SigningMethodHS384 = &SigningMethodHMAC{"HS384", crypto.SHA384}
-	RegisterSigningMethod(SigningMethodHS384.Alg(), func() SigningMethod {
-		return SigningMethodHS384
-	})
-
-	// HS512
-	SigningMethodHS512 = &SigningMethodHMAC{"HS512", crypto.SHA512}
-	RegisterSigningMethod(SigningMethodHS512.Alg(), func() SigningMethod {
-		return SigningMethodHS512
-	})
+// NewSigningMethodHMAC creates a new SigningMethodHMAC struct and also calls .Register()
+func NewSigningMethodHMAC(name string, hash crypto.Hash) *SigningMethodHMAC {
+	m := &SigningMethodHMAC{name, hash}
+	m.Register()
+	return m
 }
 
 func (m *SigningMethodHMAC) Alg() string {
 	return m.Name
+}
+
+// Register the signing method
+func (m *SigningMethodHMAC) Register() {
+	RegisterSigningMethod(m.Name, func() SigningMethod { return m })
 }
 
 // Verify the signature of HSXXX tokens.  Returns nil if the signature is valid.
