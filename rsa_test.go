@@ -155,6 +155,20 @@ func TestRSAKeyParsing(t *testing.T) {
 
 }
 
+func BenchmarkRSAParsing(b *testing.B) {
+	key, _ := ioutil.ReadFile("test/sample_key")
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			if _, err := jwt.ParseRSAPrivateKeyFromPEM(key); err != nil {
+				b.Fatalf("Unable to parse RSA private key: %v", err)
+			}
+		}
+	})
+}
+
 func BenchmarkRS256Signing(b *testing.B) {
 	key, _ := ioutil.ReadFile("test/sample_key")
 	parsedKey, err := jwt.ParseRSAPrivateKeyFromPEM(key)
