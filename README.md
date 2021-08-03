@@ -1,7 +1,7 @@
 # jwt-go
 
 [![build](https://github.com/golang-jwt/jwt/actions/workflows/build.yml/badge.svg)](https://github.com/golang-jwt/jwt/actions/workflows/build.yml)
-[![Go Reference](https://pkg.go.dev/badge/github.com/golang-jwt/jwt/v4.svg)](https://pkg.go.dev/github.com/golang-jwt/jwt/v4)
+[![Go Reference](https://pkg.go.dev/badge/github.com/golang-jwt/wt/v4.svg)](https://pkg.go.dev/github.com/golang-jwt/wt/v4)
 
 A [go](http://www.golang.org) (or 'golang' for search engine friendliness) implementation of [JSON Web Tokens](https://datatracker.ietf.org/doc/html/rfc7519).
 
