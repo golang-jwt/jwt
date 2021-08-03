@@ -16,8 +16,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang-jwt/jwt"
-	"github.com/golang-jwt/jwt/request"
+	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v4/request"
 )
 
 // location of the files used for signing and verification
@@ -30,11 +30,6 @@ var (
 	verifyKey  *rsa.PublicKey
 	signKey    *rsa.PrivateKey
 	serverPort int
-	// storing sample username/password pairs
-	// don't do this on a real server
-	users = map[string]string{
-		"test": "known",
-	}
 )
 
 // read the key files before starting http handlers
@@ -64,8 +59,6 @@ func init() {
 		fatal(http.Serve(listener, nil))
 	}()
 }
-
-var start func()
 
 func fatal(err error) {
 	if err != nil {
@@ -199,11 +192,11 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 // only accessible with a valid token
 func restrictedHandler(w http.ResponseWriter, r *http.Request) {
 	// Get token from request
-	token, err := request.ParseFromRequestWithClaims(r, request.OAuth2Extractor, &CustomClaimsExample{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := request.ParseFromRequest(r, request.OAuth2Extractor, func(token *jwt.Token) (interface{}, error) {
 		// since we only use the one private key to sign the tokens,
 		// we also only use its public counter part to verify
 		return verifyKey, nil
-	})
+	}, request.WithClaims(&CustomClaimsExample{}))
 
 	// If the token is missing or invalid, return error
 	if err != nil {
@@ -214,5 +207,4 @@ func restrictedHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Token is valid
 	fmt.Fprintln(w, "Welcome,", token.Claims.(*CustomClaimsExample).Name)
-	return
 }

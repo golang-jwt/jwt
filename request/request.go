@@ -3,10 +3,10 @@ package request
 import (
 	"net/http"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v4"
 )
 
-// Extract and parse a JWT token from an HTTP request.
+// ParseFromRequest extracts and parses a JWT token from an HTTP request.
 // This behaves the same as Parse, but accepts a request and an extractor
 // instead of a token string.  The Extractor interface allows you to define
 // the logic for extracting a token.  Several useful implementations are provided.
@@ -39,8 +39,9 @@ func ParseFromRequest(req *http.Request, extractor Extractor, keyFunc jwt.Keyfun
 	return p.parser.ParseWithClaims(tokenString, p.claims, keyFunc)
 }
 
-// ParseFromRequest but with custom Claims type
-// DEPRECATED: use ParseFromRequest and the WithClaims option
+// ParseFromRequestWithClaims is an alias for ParseFromRequest but with custom Claims type.
+//
+// Deprecated: use ParseFromRequest and the WithClaims option
 func ParseFromRequestWithClaims(req *http.Request, extractor Extractor, claims jwt.Claims, keyFunc jwt.Keyfunc) (token *jwt.Token, err error) {
 	return ParseFromRequest(req, extractor, keyFunc, WithClaims(claims))
 }
@@ -54,14 +55,14 @@ type fromRequestParser struct {
 
 type ParseFromRequestOption func(*fromRequestParser)
 
-// Parse with custom claims
+// WithClaims parses with custom claims
 func WithClaims(claims jwt.Claims) ParseFromRequestOption {
 	return func(p *fromRequestParser) {
 		p.claims = claims
 	}
 }
 
-// Parse using a custom parser
+// WithParser parses using a custom parser
 func WithParser(parser *jwt.Parser) ParseFromRequestOption {
 	return func(p *fromRequestParser) {
 		p.parser = parser
