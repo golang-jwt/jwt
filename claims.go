@@ -116,7 +116,7 @@ func verifyExp(exp int64, now int64, required bool) bool {
 	if exp == 0 {
 		return !required
 	}
-	return now <= exp
+	return now < exp
 }
 
 func verifyIat(iat int64, now int64, required bool) bool {

@@ -2,6 +2,7 @@ package jwt
 
 import (
 	"testing"
+	"time"
 )
 
 func TestVerifyAud(t *testing.T) {
@@ -96,6 +97,29 @@ func TestMapclaimsVerifyExpiresAtInvalidTypeString(t *testing.T) {
 	want := false
 	got := mapClaims.VerifyExpiresAt(0, false)
 
+	if want != got {
+		t.Fatalf("Failed to verify claims, wanted: %v got %v", want, got)
+	}
+}
+
+func TestMapclaimsVerifyExpiresAtExpire(t *testing.T) {
+	exp := time.Now().Unix()
+	mapClaims := MapClaims{
+		"exp": float64(exp),
+	}
+	want := false
+	got := mapClaims.VerifyExpiresAt(exp, true)
+	if want != got {
+		t.Fatalf("Failed to verify claims, wanted: %v got %v", want, got)
+	}
+
+	got = mapClaims.VerifyExpiresAt(exp + 1, true)
+	if want != got {
+		t.Fatalf("Failed to verify claims, wanted: %v got %v", want, got)
+	}
+
+	want = true
+	got = mapClaims.VerifyExpiresAt(exp - 1, true)
 	if want != got {
 		t.Fatalf("Failed to verify claims, wanted: %v got %v", want, got)
 	}
