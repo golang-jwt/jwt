@@ -170,8 +170,8 @@ func (c *StandardClaims) VerifyAudience(cmp string, req bool) bool {
 	return verifyAud([]string{c.Audience}, cmp, req)
 }
 
-// VerifyExpiresAt compares the exp claim against cmp.
-// If required is false, this method will return true if the value matches or is unset
+// VerifyExpiresAt compares the exp claim against cmp (cmp <= exp).
+// If req is false, it will return true, if exp is unset.
 func (c *StandardClaims) VerifyExpiresAt(cmp int64, req bool) bool {
 	if c.ExpiresAt == 0 {
 		return verifyExp(nil, time.Unix(cmp, 0), req)
@@ -181,8 +181,8 @@ func (c *StandardClaims) VerifyExpiresAt(cmp int64, req bool) bool {
 	return verifyExp(&t, time.Unix(cmp, 0), req)
 }
 
-// VerifyIssuedAt compares the iat claim against cmp.
-// If required is false, this method will return true if the value matches or is unset
+// VerifyIssuedAt compares the iat claim against cmp (cmp >= iat).
+// If req is false, it will return true, if iat is unset.
 func (c *StandardClaims) VerifyIssuedAt(cmp int64, req bool) bool {
 	if c.IssuedAt == 0 {
 		return verifyIat(nil, time.Unix(cmp, 0), req)
@@ -192,8 +192,8 @@ func (c *StandardClaims) VerifyIssuedAt(cmp int64, req bool) bool {
 	return verifyIat(&t, time.Unix(cmp, 0), req)
 }
 
-// VerifyNotBefore compares the nbf claim against cmp.
-// If required is false, this method will return true if the value matches or is unset
+// VerifyNotBefore compares the nbf claim against cmp (cmp >= nbf).
+// If req is false, it will return true, if nbf is unset.
 func (c *StandardClaims) VerifyNotBefore(cmp int64, req bool) bool {
 	if c.NotBefore == 0 {
 		return verifyNbf(nil, time.Unix(cmp, 0), req)
