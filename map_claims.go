@@ -48,7 +48,7 @@ func (m MapClaims) VerifyExpiresAt(cmp int64, req bool) bool {
 	return false
 }
 
-// VerifyIssuedAt compares the exp claim against cmp (cpp >= iat).
+// VerifyIssuedAt compares the exp claim against cmp (cmp >= iat).
 // If req is false, it will return true, if iat is unset.
 func (m MapClaims) VerifyIssuedAt(cmp int64, req bool) bool {
 	iat, ok := m["iat"]
@@ -72,7 +72,7 @@ func (m MapClaims) VerifyIssuer(cmp string, req bool) bool {
 	return verifyIss(iss, cmp, req)
 }
 
-// VerifyNotBefore compares the exp claim against cmp (cpp >= nbf).
+// VerifyNotBefore compares the nbf claim against cmp (cmp >= nbf).
 // If req is false, it will return true, if nbf is unset.
 func (m MapClaims) VerifyNotBefore(cmp int64, req bool) bool {
 	nbf, ok := m["nbf"]
