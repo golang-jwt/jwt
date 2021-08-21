@@ -69,7 +69,7 @@ func (c *StandardClaims) VerifyExpiresAt(cmp int64, req bool) bool {
 	return verifyExp(c.ExpiresAt, cmp, req)
 }
 
-// VerifyIssuedAt compares the exp claim against cmp (cpp >= iat).
+// VerifyIssuedAt compares the iat claim against cmp (cmp >= iat).
 // If req is false, it will return true, if iat is unset.
 func (c *StandardClaims) VerifyIssuedAt(cmp int64, req bool) bool {
 	return verifyIat(c.IssuedAt, cmp, req)
