@@ -31,7 +31,7 @@ func (m MapClaims) VerifyAudience(cmp string, req bool) bool {
 	return verifyAud(aud, cmp, req)
 }
 
-// VerifyExpiresAt compares the exp claim against cmp (cpp <= exp).
+// VerifyExpiresAt compares the exp claim against cmp (cmp <= exp).
 // If req is false, it will return true, if exp is unset.
 func (m MapClaims) VerifyExpiresAt(cmp int64, req bool) bool {
 	exp, ok := m["exp"]
