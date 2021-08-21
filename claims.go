@@ -63,7 +63,7 @@ func (c *StandardClaims) VerifyAudience(cmp string, req bool) bool {
 	return verifyAud([]string{c.Audience}, cmp, req)
 }
 
-// VerifyExpiresAt compares the exp claim against cmp (cpp <= exp).
+// VerifyExpiresAt compares the exp claim against cmp (cmp <= exp).
 // If req is false, it will return true, if exp is unset.
 func (c *StandardClaims) VerifyExpiresAt(cmp int64, req bool) bool {
 	return verifyExp(c.ExpiresAt, cmp, req)
