@@ -15,8 +15,6 @@ import (
 //
 // For backwards compatibility the default precision is set to seconds, so that
 // no fractional timestamps are generated.
-//
-// TODO(oxisto): the tests seem to fail sometimes, if the precision is microseconds because the difference is literally 1 microsecond
 var TimePrecision = time.Second
 
 // MarshalSingleStringAsArray modifies the behaviour of the ClaimStrings type, especially
