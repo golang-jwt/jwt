@@ -52,7 +52,7 @@ Here's an example of an extension that integrates with multiple Google Cloud Pla
 
 ## Compliance
 
-This library was last reviewed to comply with [RTF 7519](https://datatracker.ietf.org/doc/html/rfc7519) dated May 2015 with a few notable differences:
+This library was last reviewed to comply with [RFC 7519](https://datatracker.ietf.org/doc/html/rfc7519) dated May 2015 with a few notable differences:
 
 * In order to protect against accidental use of [Unsecured JWTs](https://datatracker.ietf.org/doc/html/rfc7519#section-6), tokens using `alg=none` will only be accepted if the constant `jwt.UnsafeAllowNoneSignatureType` is provided as the key.
 
