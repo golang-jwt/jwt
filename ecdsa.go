@@ -24,14 +24,14 @@ type SigningMethodECDSA struct {
 
 // Specific instances for EC256 and company
 var (
-	SigningMethodES256 = NewSigningMethodECDSA("ES256", crypto.SHA256, 32, 256)
-	SigningMethodES384 = NewSigningMethodECDSA("ES384", crypto.SHA384, 48, 384)
-	SigningMethodES512 = NewSigningMethodECDSA("ES512", crypto.SHA512, 66, 521)
+	SigningMethodES256 = newSigningMethodECDSA("ES256", crypto.SHA256, 32, 256)
+	SigningMethodES384 = newSigningMethodECDSA("ES384", crypto.SHA384, 48, 384)
+	SigningMethodES512 = newSigningMethodECDSA("ES512", crypto.SHA512, 66, 521)
 )
 
-// NewSigningMethodECDSA creates a new SigningMethodECDSA struct and
+// newSigningMethodECDSA creates a new SigningMethodECDSA struct and
 // registers it as a signing method.
-func NewSigningMethodECDSA(name string, hash crypto.Hash, keySize, curveBits int) *SigningMethodECDSA {
+func newSigningMethodECDSA(name string, hash crypto.Hash, keySize, curveBits int) *SigningMethodECDSA {
 	m := &SigningMethodECDSA{name, hash, keySize, curveBits}
 	Register(m)
 	return m

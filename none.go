@@ -9,13 +9,13 @@ const UnsafeAllowNoneSignatureType unsafeNoneMagicConstant = "none signing metho
 
 var (
 	// The none signing method is required by the spec, but you should probably never use it.
-	SigningMethodNone                = NewSigningMethodNone()
+	SigningMethodNone                = newSigningMethodNone()
 	NoneSignatureTypeDisallowedError = NewValidationError("'none' signature type is not allowed", ValidationErrorSignatureInvalid)
 )
 
-// NewSigningMethodNone creates a new SigningMethodNone struct and
+// newSigningMethodNone creates a new SigningMethodNone struct and
 // registers it as a signing method.
-func NewSigningMethodNone() *signingMethodNone {
+func newSigningMethodNone() *signingMethodNone {
 	m := &signingMethodNone{}
 	Register(m)
 	return m

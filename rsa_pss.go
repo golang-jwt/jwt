@@ -23,7 +23,7 @@ type SigningMethodRSAPSS struct {
 var (
 
 	// PS256
-	SigningMethodPS256 = NewSigningMethodRSAPSS(
+	SigningMethodPS256 = newSigningMethodRSAPSS(
 		&SigningMethodRSA{
 			Name: "PS256",
 			Hash: crypto.SHA256,
@@ -37,7 +37,7 @@ var (
 	)
 
 	// PS384
-	SigningMethodPS384 = NewSigningMethodRSAPSS(
+	SigningMethodPS384 = newSigningMethodRSAPSS(
 		&SigningMethodRSA{
 			Name: "PS384",
 			Hash: crypto.SHA384,
@@ -51,7 +51,7 @@ var (
 	)
 
 	// PS512
-	SigningMethodPS512 = NewSigningMethodRSAPSS(
+	SigningMethodPS512 = newSigningMethodRSAPSS(
 		&SigningMethodRSA{
 			Name: "PS512",
 			Hash: crypto.SHA512,
@@ -65,9 +65,9 @@ var (
 	)
 )
 
-// NewSigningMethodRSAPSS creates a new SigningMethodRSAPSS struct and
+// newSigningMethodRSAPSS creates a new SigningMethodRSAPSS struct and
 // registers it as a signing method.
-func NewSigningMethodRSAPSS(smRSA *SigningMethodRSA, options *rsa.PSSOptions, verifyOptions ...*rsa.PSSOptions) *SigningMethodRSAPSS {
+func newSigningMethodRSAPSS(smRSA *SigningMethodRSA, options *rsa.PSSOptions, verifyOptions ...*rsa.PSSOptions) *SigningMethodRSAPSS {
 	m := &SigningMethodRSAPSS{
 		SigningMethodRSA: smRSA,
 		Options:          options,

@@ -15,15 +15,15 @@ type SigningMethodHMAC struct {
 
 // Specific instances for HS256 and company
 var (
-	SigningMethodHS256  = NewSigningMethodHMAC("HS256", crypto.SHA256)
-	SigningMethodHS384  = NewSigningMethodHMAC("HS384", crypto.SHA384)
-	SigningMethodHS512  = NewSigningMethodHMAC("HS512", crypto.SHA512)
+	SigningMethodHS256  = newSigningMethodHMAC("HS256", crypto.SHA256)
+	SigningMethodHS384  = newSigningMethodHMAC("HS384", crypto.SHA384)
+	SigningMethodHS512  = newSigningMethodHMAC("HS512", crypto.SHA512)
 	ErrSignatureInvalid = errors.New("signature is invalid")
 )
 
-// NewSigningMethodHMAC creates a new SigningMethodHMAC struct and
+// newSigningMethodHMAC creates a new SigningMethodHMAC struct and
 // registers it as a signing method.
-func NewSigningMethodHMAC(name string, hash crypto.Hash) *SigningMethodHMAC {
+func newSigningMethodHMAC(name string, hash crypto.Hash) *SigningMethodHMAC {
 	m := &SigningMethodHMAC{name, hash}
 	Register(m)
 	return m

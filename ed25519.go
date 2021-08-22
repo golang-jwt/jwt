@@ -15,11 +15,11 @@ var (
 type SigningMethodEd25519 struct{}
 
 // SigningMethodEdDSA is a specific instance of SigningMethodEd25519 for EdDSA
-var SigningMethodEdDSA = NewSigningMethodEd25519()
+var SigningMethodEdDSA = newSigningMethodEd25519()
 
-// NewSigningMethodEd25519 creates a new SigningMethodEd25519 struct and
+// newSigningMethodEd25519 creates a new SigningMethodEd25519 struct and
 // registers it as a signing method.
-func NewSigningMethodEd25519() *SigningMethodEd25519 {
+func newSigningMethodEd25519() *SigningMethodEd25519 {
 	m := &SigningMethodEd25519{}
 	Register(m)
 	return m
