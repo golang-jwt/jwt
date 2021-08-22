@@ -32,8 +32,8 @@ func (m MapClaims) VerifyAudience(cmp string, req bool) bool {
 	return verifyAud(aud, cmp, req)
 }
 
-// VerifyExpiresAt compares the exp claim against cmp.
-// If required is false, this method will return true if the value matches or is unset
+// VerifyExpiresAt compares the exp claim against cmp (cmp <= exp).
+// If req is false, it will return true, if exp is unset.
 func (m MapClaims) VerifyExpiresAt(cmp int64, req bool) bool {
 	cmpTime := time.Unix(cmp, 0)
 
@@ -58,8 +58,8 @@ func (m MapClaims) VerifyExpiresAt(cmp int64, req bool) bool {
 	return false
 }
 
-// VerifyIssuedAt compares the iat claim against cmp.
-// If required is false, this method will return true if the value matches or is unset
+// VerifyIssuedAt compares the exp claim against cmp (cmp >= iat).
+// If req is false, it will return true, if iat is unset.
 func (m MapClaims) VerifyIssuedAt(cmp int64, req bool) bool {
 	cmpTime := time.Unix(cmp, 0)
 
@@ -84,8 +84,8 @@ func (m MapClaims) VerifyIssuedAt(cmp int64, req bool) bool {
 	return false
 }
 
-// VerifyNotBefore compares the nbf claim against cmp.
-// If required is false, this method will return true if the value matches or is unset
+// VerifyNotBefore compares the nbf claim against cmp (cmp >= nbf).
+// If req is false, it will return true, if nbf is unset.
 func (m MapClaims) VerifyNotBefore(cmp int64, req bool) bool {
 	cmpTime := time.Unix(cmp, 0)
 

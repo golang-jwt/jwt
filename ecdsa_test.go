@@ -106,6 +106,24 @@ func TestECDSASign(t *testing.T) {
 	}
 }
 
+func BenchmarkECDSAParsing(b *testing.B) {
+	for _, data := range ecdsaTestData {
+		key, _ := ioutil.ReadFile(data.keys["private"])
+
+		b.Run(data.name, func(b *testing.B) {
+			b.ReportAllocs()
+			b.ResetTimer()
+			b.RunParallel(func(pb *testing.PB) {
+				for pb.Next() {
+					if _, err := jwt.ParseECPrivateKeyFromPEM(key); err != nil {
+						b.Fatalf("Unable to parse ECDSA private key: %v", err)
+					}
+				}
+			})
+		})
+	}
+}
+
 func BenchmarkECDSASigning(b *testing.B) {
 	for _, data := range ecdsaTestData {
 		key, _ := ioutil.ReadFile(data.keys["private"])

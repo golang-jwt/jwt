@@ -355,8 +355,53 @@ func TestParser_ParseUnverified(t *testing.T) {
 	}
 }
 
-// Helper method for benchmarking various methods
+func BenchmarkParseUnverified(b *testing.B) {
+	privateKey := test.LoadRSAPrivateKeyFromDisk("test/sample_key")
+
+	// Iterate over test data set and run tests
+	for _, data := range jwtTestData {
+		// If the token string is blank, use helper function to generate string
+		if data.tokenString == "" {
+			data.tokenString = test.MakeSampleToken(data.claims, privateKey)
+		}
+
+		// Parse the token
+		var parser = data.parser
+		if parser == nil {
+			parser = new(jwt.Parser)
+		}
+		// Figure out correct claims type
+		switch data.claims.(type) {
+		case jwt.MapClaims:
+			b.Run("map_claims", func(b *testing.B) {
+				benchmarkParsing(b, parser, data.tokenString, jwt.MapClaims{})
+			})
+		case *jwt.StandardClaims:
+			b.Run("standard_claims", func(b *testing.B) {
+				benchmarkParsing(b, parser, data.tokenString, &jwt.StandardClaims{})
+			})
+		}
+	}
+}
+
+// Helper method for benchmarking various parsing methods
+func benchmarkParsing(b *testing.B, parser *jwt.Parser, tokenString string, claims jwt.Claims) {
+	b.Helper()
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			_, _, err := parser.ParseUnverified(tokenString, jwt.MapClaims{})
+			if err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+}
+
+// Helper method for benchmarking various signing methods
 func benchmarkSigning(b *testing.B, method jwt.SigningMethod, key interface{}) {
+	b.Helper()
 	t := jwt.New(method)
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -367,5 +412,4 @@ func benchmarkSigning(b *testing.B, method jwt.SigningMethod, key interface{}) {
 			}
 		}
 	})
-
 }
