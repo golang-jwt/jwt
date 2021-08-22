@@ -18,7 +18,7 @@ type SigningMethodEd25519 struct{}
 var SigningMethodEdDSA = NewSigningMethodEd25519()
 
 // NewSigningMethodEd25519 creates a new SigningMethodEd25519 struct and
-// registers it with RegisterSigningMethod.
+// registers it as a signing method.
 func NewSigningMethodEd25519() *SigningMethodEd25519 {
 	m := &SigningMethodEd25519{}
 	Register(m)

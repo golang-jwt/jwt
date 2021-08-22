@@ -22,7 +22,7 @@ var (
 )
 
 // NewSigningMethodHMAC creates a new SigningMethodHMAC struct and
-// registers it with RegisterSigningMethod.
+// registers it as a signing method.
 func NewSigningMethodHMAC(name string, hash crypto.Hash) *SigningMethodHMAC {
 	m := &SigningMethodHMAC{name, hash}
 	Register(m)

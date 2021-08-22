@@ -66,7 +66,7 @@ var (
 )
 
 // NewSigningMethodRSAPSS creates a new SigningMethodRSAPSS struct and
-// registers it with RegisterSigningMethod.
+// registers it as a signing method.
 func NewSigningMethodRSAPSS(smRSA *SigningMethodRSA, options *rsa.PSSOptions, verifyOptions ...*rsa.PSSOptions) *SigningMethodRSAPSS {
 	m := &SigningMethodRSAPSS{
 		SigningMethodRSA: smRSA,

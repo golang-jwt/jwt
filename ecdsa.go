@@ -30,7 +30,7 @@ var (
 )
 
 // NewSigningMethodECDSA creates a new SigningMethodECDSA struct and
-// registers it with RegisterSigningMethod.
+// registers it as a signing method.
 func NewSigningMethodECDSA(name string, hash crypto.Hash, keySize, curveBits int) *SigningMethodECDSA {
 	m := &SigningMethodECDSA{name, hash, keySize, curveBits}
 	Register(m)

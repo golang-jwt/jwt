@@ -14,7 +14,7 @@ var (
 )
 
 // NewSigningMethodNone creates a new SigningMethodNone struct and
-// registers it with RegisterSigningMethod.
+// registers it as a signing method.
 func NewSigningMethodNone() *signingMethodNone {
 	m := &signingMethodNone{}
 	Register(m)

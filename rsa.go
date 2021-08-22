@@ -21,7 +21,7 @@ var (
 )
 
 // NewSigningMethodRSA creates a new SigningMethodRSA struct and
-// registers it with RegisterSigningMethod.
+// registers it as a signing method.
 func NewSigningMethodRSA(name string, hash crypto.Hash) *SigningMethodRSA {
 	m := &SigningMethodRSA{name, hash}
 	Register(m)
