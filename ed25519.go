@@ -71,6 +71,10 @@ func (m *SigningMethodEd25519) Sign(signingString string, key interface{}) (stri
 		return "", ErrInvalidKeyType
 	}
 
+	if _, ok := ed25519Key.Public().(ed25519.PublicKey); !ok {
+		return "", ErrInvalidKey
+	}
+
 	// Sign the string and return the encoded result
 	sig, err := ed25519Key.Sign(rand.Reader, []byte(signingString), crypto.Hash(0))
 	if err != nil {
