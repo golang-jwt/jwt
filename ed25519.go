@@ -76,6 +76,7 @@ func (m *SigningMethodEd25519) Sign(signingString string, key interface{}) (stri
 	}
 
 	// Sign the string and return the encoded result
+	// ed25519 does not using any hash algorithm, which is what crypto.Hash(0) stands for
 	sig, err := ed25519Key.Sign(rand.Reader, []byte(signingString), crypto.Hash(0))
 	if err != nil {
 		return "", err
