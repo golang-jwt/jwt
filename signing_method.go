@@ -33,3 +33,14 @@ func GetSigningMethod(alg string) (method SigningMethod) {
 	}
 	return
 }
+
+// GetSigningMethods retrieves all registered signing methods
+func GetSigningMethods() (methods []SigningMethod) {
+	signingMethodLock.RLock()
+	defer signingMethodLock.RUnlock()
+
+	for _, method := range signingMethods {
+		methods = append(methods, method())
+	}
+	return methods
+}
