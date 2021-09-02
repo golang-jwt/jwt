@@ -21,12 +21,12 @@ type SigningMethod interface {
 func RegisterSigningMethod(alg string, f func() SigningMethod) {
 	signingMethodsMutex.Lock()
 	defer signingMethodsMutex.Unlock()
-	clone := map[string]signingMethodFunc{}
+	copy := map[string]signingMethodFunc{}
 	for k, sm := range signingMethods {
-		clone[k] = sm
+		copy[k] = sm
 	}
-	clone[alg] = f
-	signingMethods = clone
+	copy[alg] = f
+	signingMethods = copy
 }
 
 // GetSigningMethod retrieves a signing method from an "alg" string

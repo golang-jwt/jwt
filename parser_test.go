@@ -3,6 +3,7 @@ package jwt_test
 import (
 	"crypto/rsa"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 	"testing"
@@ -13,6 +14,21 @@ import (
 )
 
 var errKeyFuncError error = fmt.Errorf("error loading key")
+
+var errMap = map[error]string{
+	jwt.ErrMalformedToken:              "ErrMalformedToken",
+	jwt.ErrTokenContainsBearer:         "ErrTokenContainsBearer",
+	jwt.ErrInvalidSigningMethod:        "ErrInvalidSigningMethod",
+	jwt.ErrUnregisteredSigningMethod:   "ErrUnregisteredSigningMethod",
+	jwt.ErrInvalidKey:                  "ErrInvalidKey",
+	jwt.ErrInvalidKeyType:              "ErrInvalidKeyType",
+	jwt.ErrHashUnavailable:             "ErrHashUnavailable",
+	jwt.ErrTokenNotYetValid:            "ErrTokenNotYetValid",
+	jwt.ErrTokenExpired:                "ErrTokenExpired",
+	jwt.ErrTokenUsedBeforeIssued:       "ErrTokenUsedBeforeIssued",
+	jwt.ErrNoneSignatureTypeDisallowed: "ErrNoneSignatureTypeDisallowed",
+	jwt.ErrMissingKeyFunc:              "ErrMissingKeyFunc",
+}
 
 var (
 	jwtTestDefaultKey *rsa.PublicKey
@@ -26,7 +42,16 @@ func init() {
 	jwtTestDefaultKey = test.LoadRSAPublicKeyFromDisk("test/sample_key.pub")
 }
 
-type errors []error
+type Errors []error
+
+func (errs Errors) Contains(error error) bool {
+	for _, err := range errs {
+		if errors.Is(err, error) {
+			return true
+		}
+	}
+	return false
+}
 
 var jwtTestData = []struct {
 	name        string
@@ -34,7 +59,7 @@ var jwtTestData = []struct {
 	keyfunc     jwt.Keyfunc
 	claims      jwt.Claims
 	valid       bool
-	errors      errors
+	errors      Errors
 	parser      *jwt.Parser
 }{
 	{
@@ -52,7 +77,7 @@ var jwtTestData = []struct {
 		defaultKeyFunc,
 		jwt.MapClaims{"foo": "bar", "exp": float64(time.Now().Unix() - 100)},
 		false,
-		errors{jwt.ErrTokenExpired},
+		Errors{jwt.ErrTokenExpired},
 		nil,
 	},
 	{
@@ -61,7 +86,7 @@ var jwtTestData = []struct {
 		defaultKeyFunc,
 		jwt.MapClaims{"foo": "bar", "nbf": float64(time.Now().Unix() + 100)},
 		false,
-		errors{jwt.ErrTokenNotYetValid},
+		Errors{jwt.ErrTokenNotYetValid},
 		nil,
 	},
 	{
@@ -70,7 +95,7 @@ var jwtTestData = []struct {
 		defaultKeyFunc,
 		jwt.MapClaims{"foo": "bar", "nbf": float64(time.Now().Unix() + 100), "exp": float64(time.Now().Unix() - 100)},
 		false,
-		errors{jwt.ErrTokenNotYetValid, jwt.ErrTokenExpired},
+		Errors{jwt.ErrTokenNotYetValid, jwt.ErrTokenExpired},
 		nil,
 	},
 	{
@@ -79,7 +104,7 @@ var jwtTestData = []struct {
 		defaultKeyFunc,
 		jwt.MapClaims{"foo": "bar"},
 		false,
-		errors{jwt.ErrSignatureInvalid},
+		Errors{jwt.ErrSignatureInvalid},
 		nil,
 	},
 	{
@@ -88,7 +113,7 @@ var jwtTestData = []struct {
 		nilKeyFunc,
 		jwt.MapClaims{"foo": "bar"},
 		false,
-		errors{jwt.ErrUnregisteredSigningMethod},
+		Errors{jwt.ErrUnregisteredSigningMethod},
 		nil,
 	},
 	{
@@ -97,7 +122,7 @@ var jwtTestData = []struct {
 		emptyKeyFunc,
 		jwt.MapClaims{"foo": "bar"},
 		false,
-		errors{jwt.ErrSignatureInvalid},
+		Errors{jwt.ErrSignatureInvalid},
 		nil,
 	},
 	{
@@ -106,7 +131,7 @@ var jwtTestData = []struct {
 		errorKeyFunc,
 		jwt.MapClaims{"foo": "bar"},
 		false,
-		errors{jwt.ErrSignatureInvalid},
+		Errors{jwt.ErrSignatureInvalid},
 		nil,
 	},
 	{
@@ -115,7 +140,7 @@ var jwtTestData = []struct {
 		defaultKeyFunc,
 		jwt.MapClaims{"foo": "bar"},
 		false,
-		jwt.ValidationErrorSignatureInvalid,
+		Errors{jwt.ErrInvalidSigningMethod},
 		&jwt.Parser{ValidMethods: []string{"HS256"}},
 	},
 	{
@@ -124,7 +149,7 @@ var jwtTestData = []struct {
 		defaultKeyFunc,
 		jwt.MapClaims{"foo": "bar"},
 		true,
-		0,
+		nil,
 		&jwt.Parser{ValidMethods: []string{"RS256", "HS256"}},
 	},
 	{
@@ -133,7 +158,7 @@ var jwtTestData = []struct {
 		defaultKeyFunc,
 		jwt.MapClaims{"foo": json.Number("123.4")},
 		true,
-		0,
+		nil,
 		&jwt.Parser{UseJSONNumber: true},
 	},
 	{
@@ -144,7 +169,7 @@ var jwtTestData = []struct {
 			ExpiresAt: time.Now().Add(time.Second * 10).Unix(),
 		},
 		true,
-		0,
+		nil,
 		&jwt.Parser{UseJSONNumber: true},
 	},
 	{
@@ -153,7 +178,7 @@ var jwtTestData = []struct {
 		defaultKeyFunc,
 		jwt.MapClaims{"foo": "bar", "exp": json.Number(fmt.Sprintf("%v", time.Now().Unix()-100))},
 		false,
-		jwt.ValidationErrorExpired,
+		Errors{jwt.ErrTokenExpired},
 		&jwt.Parser{UseJSONNumber: true},
 	},
 	{
@@ -162,7 +187,7 @@ var jwtTestData = []struct {
 		defaultKeyFunc,
 		jwt.MapClaims{"foo": "bar", "nbf": json.Number(fmt.Sprintf("%v", time.Now().Unix()+100))},
 		false,
-		jwt.ValidationErrorNotValidYet,
+		Errors{jwt.ErrTokenNotYetValid},
 		&jwt.Parser{UseJSONNumber: true},
 	},
 	{
@@ -171,7 +196,7 @@ var jwtTestData = []struct {
 		defaultKeyFunc,
 		jwt.MapClaims{"foo": "bar", "nbf": json.Number(fmt.Sprintf("%v", time.Now().Unix()+100)), "exp": json.Number(fmt.Sprintf("%v", time.Now().Unix()-100))},
 		false,
-		jwt.ValidationErrorNotValidYet | jwt.ValidationErrorExpired,
+		Errors{jwt.ErrTokenNotYetValid, jwt.ErrTokenExpired},
 		&jwt.Parser{UseJSONNumber: true},
 	},
 	{
@@ -180,7 +205,7 @@ var jwtTestData = []struct {
 		defaultKeyFunc,
 		jwt.MapClaims{"foo": "bar", "nbf": json.Number(fmt.Sprintf("%v", time.Now().Unix()+100))},
 		true,
-		0,
+		nil,
 		&jwt.Parser{UseJSONNumber: true, SkipClaimsValidation: true},
 	},
 	{
@@ -191,7 +216,7 @@ var jwtTestData = []struct {
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Second * 10)),
 		},
 		true,
-		0,
+		nil,
 		&jwt.Parser{UseJSONNumber: true},
 	},
 	{
@@ -202,7 +227,7 @@ var jwtTestData = []struct {
 			Audience: jwt.ClaimStrings{"test"},
 		},
 		true,
-		0,
+		nil,
 		&jwt.Parser{UseJSONNumber: true},
 	},
 	{
@@ -213,7 +238,7 @@ var jwtTestData = []struct {
 			Audience: jwt.ClaimStrings{"test", "test"},
 		},
 		true,
-		0,
+		nil,
 		&jwt.Parser{UseJSONNumber: true},
 	},
 	{
@@ -224,7 +249,7 @@ var jwtTestData = []struct {
 			Audience: nil, // because of the unmarshal error, this will be empty
 		},
 		false,
-		jwt.ValidationErrorMalformed,
+		Errors{jwt.ErrMalformedToken},
 		&jwt.Parser{UseJSONNumber: true},
 	},
 	{
@@ -235,7 +260,7 @@ var jwtTestData = []struct {
 			Audience: nil, // because of the unmarshal error, this will be empty
 		},
 		false,
-		jwt.ValidationErrorMalformed,
+		Errors{jwt.ErrMalformedToken},
 		&jwt.Parser{UseJSONNumber: true},
 	},
 }
@@ -285,19 +310,14 @@ func TestParser_Parse(t *testing.T) {
 				t.Errorf("[%v] Inconsistent behavior between returned error and token.Valid", data.name)
 			}
 
-			if data.errors != 0 {
+			if len(data.errors) != 0 {
 				if err == nil {
 					t.Errorf("[%v] Expecting error.  Didn't get one.", data.name)
 				} else {
-
-					ve := err.(*jwt.ValidationError)
-					// compare the bitfield part of the error
-					if e := ve.Errors; e != data.errors {
-						t.Errorf("[%v] Errors don't match expectation.  %v != %v", data.name, e, data.errors)
-					}
-
-					if err.Error() == errKeyFuncError.Error() && ve.Inner != errKeyFuncError {
-						t.Errorf("[%v] Inner error does not match expectation.  %v != %v", data.name, ve.Inner, errKeyFuncError)
+					for _, expectedError := range data.errors {
+						if !errors.Is(expectedError, err) {
+							t.Errorf("[%v] Expected %v, received: %v", data.name, errMap[expectedError], err)
+						}
 					}
 				}
 			}
@@ -314,7 +334,7 @@ func TestParser_ParseUnverified(t *testing.T) {
 	// Iterate over test data set and run tests
 	for _, data := range jwtTestData {
 		// Skip test data, that intentionally contains malformed tokens, as they would lead to an error
-		if data.errors&jwt.ValidationErrorMalformed != 0 {
+		if data.errors.Contains(jwt.ErrMalformedToken) {
 			continue
 		}
 

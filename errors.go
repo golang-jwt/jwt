@@ -82,7 +82,7 @@ func (err *NotYetValidError) Delta() time.Duration {
 	return err.AttemptedAt.Sub(err.ValidAt)
 }
 func (err *NotYetValidError) Error() string {
-	return fmt.Sprintf("token is not valid for another %v", err.Delta)
+	return fmt.Sprintf("token is not valid for another %v", err.Delta())
 }
 func (err *NotYetValidError) Unwrap() error {
 	return ErrTokenNotYetValid
@@ -98,7 +98,7 @@ func (err *UsedBeforeIssuedError) Delta() time.Duration {
 }
 
 func (err *UsedBeforeIssuedError) Error() string {
-	return fmt.Sprintf("token is not valid for another %v", err.Delta)
+	return fmt.Sprintf("token is not valid for another %v", err.Delta())
 }
 func (err *UsedBeforeIssuedError) Unwrap() error {
 	return ErrTokenUsedBeforeIssued
@@ -114,7 +114,7 @@ func (err *ExpiredError) Delta() time.Duration {
 }
 
 func (err *ExpiredError) Error() string {
-	return fmt.Sprintf("token is expired by %v", err.Delta)
+	return fmt.Sprintf("token is expired by %v", err.Delta())
 }
 func (err *ExpiredError) Unwrap() error {
 	return ErrTokenNotYetValid
