@@ -34,7 +34,30 @@ var (
 	ErrNoneSignatureTypeDisallowed = errors.New(`jwt: "none" signature type is not allowed`)
 	ErrMissingKeyFunc              = errors.New("jwt: KeyFunc not provided")
 	ErrSignatureInvalid            = errors.New("jwt: signature is invalid")
+	ErrKeyFuncError                = errors.New("jwt: KeyFunc returned an error")
 )
+
+type KeyFuncError struct {
+	Err error
+}
+
+func (err *KeyFuncError) Error() string {
+	return ErrKeyFuncError.Error() + "\n\t" + err.Err.Error()
+}
+
+func (err *KeyFuncError) Unwrap() error {
+	return err.Err
+}
+
+func (err *KeyFuncError) Is(target error) bool {
+	if _, ok := target.(*KeyFuncError); ok {
+		return true
+	}
+	if errors.Is(err.Err, target) {
+		return true
+	}
+	return errors.Is(target, ErrKeyFuncError)
+}
 
 type SignatureVerificationError struct {
 	Algorithm string

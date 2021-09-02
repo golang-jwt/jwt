@@ -50,7 +50,7 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 
 	key, err = keyFunc(token)
 	if err != nil {
-		return token, err
+		return token, &KeyFuncError{Err: err}
 	}
 
 	// Validate Claims

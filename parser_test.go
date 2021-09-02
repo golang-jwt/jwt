@@ -29,6 +29,7 @@ var errMap = map[error]string{
 	jwt.ErrNoneSignatureTypeDisallowed: "ErrNoneSignatureTypeDisallowed",
 	jwt.ErrMissingKeyFunc:              "ErrMissingKeyFunc",
 	jwt.ErrSignatureInvalid:            "ErrSignatureInvalid",
+	jwt.ErrKeyFuncError:                "ErrKeyFuncError",
 }
 
 var (
@@ -132,7 +133,7 @@ var jwtTestData = []struct {
 		errorKeyFunc,
 		jwt.MapClaims{"foo": "bar"},
 		false,
-		Errors{jwt.ErrInvalidKeyType},
+		Errors{jwt.ErrKeyFuncError, errKeyFuncError},
 		nil,
 	},
 	{
