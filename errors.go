@@ -82,7 +82,11 @@ func (err *NotYetValidError) Delta() time.Duration {
 	return err.AttemptedAt.Sub(err.ValidAt)
 }
 func (err *NotYetValidError) Error() string {
-	return fmt.Sprintf("token is not valid for another %v", err.Delta())
+	if !err.ValidAt.IsZero() {
+		return fmt.Sprintf("token is not valid for another %v", err.Delta())
+	} else {
+		return ErrTokenNotYetValid.Error()
+	}
 }
 func (err *NotYetValidError) Unwrap() error {
 	return ErrTokenNotYetValid
