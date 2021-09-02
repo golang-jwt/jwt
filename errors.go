@@ -114,14 +114,14 @@ type ExpiredError struct {
 }
 
 func (err *ExpiredError) Delta() time.Duration {
-	return err.ExpiredAt.Sub(err.AttemptedAt)
+	return err.AttemptedAt.Sub(err.ExpiredAt)
 }
 
 func (err *ExpiredError) Error() string {
 	return fmt.Sprintf("token is expired by %v", err.Delta())
 }
 func (err *ExpiredError) Unwrap() error {
-	return ErrTokenNotYetValid
+	return ErrTokenExpired
 }
 
 // The errors that might occur when parsing and validating a token

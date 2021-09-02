@@ -293,7 +293,7 @@ func TestParser_Parse(t *testing.T) {
 				token, err = parser.ParseWithClaims(data.tokenString, &jwt.RegisteredClaims{}, data.keyfunc)
 			}
 			if token == nil {
-				fmt.Println("token is nil")
+				panic("token is nil")
 			}
 			// Verify result matches expectation
 			if !reflect.DeepEqual(data.claims, token.Claims) {
@@ -317,8 +317,8 @@ func TestParser_Parse(t *testing.T) {
 					t.Errorf("[%v] Expecting error.  Didn't get one.", data.name)
 				} else {
 					for _, expectedError := range data.errors {
-						if !errors.Is(expectedError, err) {
-							t.Errorf("[%v] Expected %v, received: %v", data.name, errMap[expectedError], err)
+						if !errors.Is(err, expectedError) {
+							t.Errorf(`[%v] Expected "%v", received: %v`, data.name, errMap[expectedError], err)
 						}
 					}
 				}
