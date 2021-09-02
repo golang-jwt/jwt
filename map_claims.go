@@ -67,17 +67,17 @@ func (m MapClaims) NotBefore() interface{} {
 		}
 		return newNumericDateFromSeconds(v).Time
 	default:
-		return m["nbf"]
+		return v
 	}
 }
 
 // Issuer returns the iss field of the MapClaims
-func (m MapClaims) Issuer() string {
+func (m MapClaims) Issuer() interface{} {
 	iss := m["iss"]
 	if str, ok := iss.(string); ok {
 		return str
 	}
-	return ""
+	return iss
 }
 
 func (m MapClaims) Audience() ([]string, error) {
@@ -164,7 +164,13 @@ func (m MapClaims) VerifyNotBefore(cmp int64, req bool) bool {
 // VerifyIssuer compares the iss claim against cmp.
 // If required is false, this method will return true if the value matches or is unset
 func (m MapClaims) VerifyIssuer(cmp string, req bool) bool {
-	return verifyIss(m.Issuer(), cmp, req)
+	iss := m.Issuer()
+	if str, ok := iss.(string); ok {
+		return verifyIss(str, cmp, req)
+	} else if iss == nil {
+		return verifyIss("", cmp, req)
+	}
+	return false
 }
 
 // Valid validates time based claims "exp, iat, nbf".
