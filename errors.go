@@ -22,7 +22,7 @@ var ValidationErrorFormat = func(errs []error) string {
 // Error constants
 var (
 	ErrMalformedToken              = errors.New("jwt: token is malformed")
-	ErrTokenContainsBearer         = errors.New(`token may not contain "bearer"`)
+	ErrTokenContainsBearer         = errors.New(`jwt: token may not contain "bearer "`)
 	ErrInvalidSigningMethod        = errors.New("jwt: invalid signing method")
 	ErrUnregisteredSigningMethod   = errors.New("jwt: signing method not registered")
 	ErrInvalidKey                  = errors.New("jwt: key is invalid")

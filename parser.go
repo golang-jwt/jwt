@@ -124,7 +124,7 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 	// Lookup signature method
 
 	alg, ok := token.Header["alg"].(string)
-	if !ok {
+	if !ok || len(alg) == 0 {
 		return token, parts, MalformedTokenError("signing method (alg) not specified")
 	}
 	token.Method = GetSigningMethod(alg)
