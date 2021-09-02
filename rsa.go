@@ -70,7 +70,11 @@ func (m *SigningMethodRSA) Verify(signingString, signature string, key interface
 	hasher.Write([]byte(signingString))
 
 	// Verify the signature
-	return rsa.VerifyPKCS1v15(rsaKey, m.Hash, hasher.Sum(nil), sig)
+	err = rsa.VerifyPKCS1v15(rsaKey, m.Hash, hasher.Sum(nil), sig)
+	if err != nil {
+		return &SignatureVerificationError{err: err, Algorithm: "RSA"}
+	}
+	return nil
 }
 
 // Sign implements token signing for the SigningMethod

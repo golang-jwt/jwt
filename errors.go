@@ -26,14 +26,38 @@ var (
 	ErrInvalidSigningMethod        = errors.New("jwt: invalid signing method")
 	ErrUnregisteredSigningMethod   = errors.New("jwt: signing method not registered")
 	ErrInvalidKey                  = errors.New("jwt: key is invalid")
-	ErrInvalidKeyType              = errors.New("jwt: key is of invalid type")
+	ErrInvalidKeyType              = errors.New("jwt: invalid key type")
 	ErrHashUnavailable             = errors.New("jwt: the requested hash function is unavailable")
 	ErrTokenNotYetValid            = errors.New("jwt: the token is not yet valid")
 	ErrTokenExpired                = errors.New("jwt: the token is expired")
 	ErrTokenUsedBeforeIssued       = errors.New("jwt: the token was used before issued")
 	ErrNoneSignatureTypeDisallowed = errors.New(`jwt: "none" signature type is not allowed`)
 	ErrMissingKeyFunc              = errors.New("jwt: KeyFunc not provided")
+	ErrSignatureInvalid            = errors.New("jwt: signature is invalid")
 )
+
+type SignatureVerificationError struct {
+	Algorithm string
+	err       error
+}
+
+func (err *SignatureVerificationError) Error() string {
+	return ErrSignatureInvalid.Error() + " [" + err.Algorithm + "]"
+}
+
+func (err *SignatureVerificationError) Is(cmp error) bool {
+	if _, ok := cmp.(*SignatureVerificationError); ok {
+		return true
+	}
+	if errors.Is(err.err, cmp) {
+		return true
+	}
+	return errors.Is(err.Unwrap(), cmp)
+}
+
+func (err *SignatureVerificationError) Unwrap() error {
+	return ErrSignatureInvalid
+}
 
 type MalformedTokenError string
 

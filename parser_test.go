@@ -28,6 +28,7 @@ var errMap = map[error]string{
 	jwt.ErrTokenUsedBeforeIssued:       "ErrTokenUsedBeforeIssued",
 	jwt.ErrNoneSignatureTypeDisallowed: "ErrNoneSignatureTypeDisallowed",
 	jwt.ErrMissingKeyFunc:              "ErrMissingKeyFunc",
+	jwt.ErrSignatureInvalid:            "ErrSignatureInvalid",
 }
 
 var (
@@ -113,7 +114,7 @@ var jwtTestData = []struct {
 		nilKeyFunc,
 		jwt.MapClaims{"foo": "bar"},
 		false,
-		Errors{jwt.ErrUnregisteredSigningMethod},
+		Errors{jwt.ErrMissingKeyFunc},
 		nil,
 	},
 	{
@@ -122,7 +123,7 @@ var jwtTestData = []struct {
 		emptyKeyFunc,
 		jwt.MapClaims{"foo": "bar"},
 		false,
-		Errors{jwt.ErrSignatureInvalid},
+		Errors{jwt.ErrInvalidKeyType},
 		nil,
 	},
 	{
@@ -131,7 +132,7 @@ var jwtTestData = []struct {
 		errorKeyFunc,
 		jwt.MapClaims{"foo": "bar"},
 		false,
-		Errors{jwt.ErrSignatureInvalid},
+		Errors{jwt.ErrInvalidKeyType},
 		nil,
 	},
 	{
