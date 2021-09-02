@@ -26,13 +26,15 @@ func init() {
 	jwtTestDefaultKey = test.LoadRSAPublicKeyFromDisk("test/sample_key.pub")
 }
 
+type errors []error
+
 var jwtTestData = []struct {
 	name        string
 	tokenString string
 	keyfunc     jwt.Keyfunc
 	claims      jwt.Claims
 	valid       bool
-	errors      uint32
+	errors      errors
 	parser      *jwt.Parser
 }{
 	{
@@ -41,7 +43,7 @@ var jwtTestData = []struct {
 		defaultKeyFunc,
 		jwt.MapClaims{"foo": "bar"},
 		true,
-		0,
+		nil,
 		nil,
 	},
 	{
@@ -50,7 +52,7 @@ var jwtTestData = []struct {
 		defaultKeyFunc,
 		jwt.MapClaims{"foo": "bar", "exp": float64(time.Now().Unix() - 100)},
 		false,
-		jwt.ValidationErrorExpired,
+		errors{jwt.ErrTokenExpired},
 		nil,
 	},
 	{
@@ -59,7 +61,7 @@ var jwtTestData = []struct {
 		defaultKeyFunc,
 		jwt.MapClaims{"foo": "bar", "nbf": float64(time.Now().Unix() + 100)},
 		false,
-		jwt.ValidationErrorNotValidYet,
+		errors{jwt.ErrTokenNotYetValid},
 		nil,
 	},
 	{
@@ -68,7 +70,7 @@ var jwtTestData = []struct {
 		defaultKeyFunc,
 		jwt.MapClaims{"foo": "bar", "nbf": float64(time.Now().Unix() + 100), "exp": float64(time.Now().Unix() - 100)},
 		false,
-		jwt.ValidationErrorNotValidYet | jwt.ValidationErrorExpired,
+		errors{jwt.ErrTokenNotYetValid, jwt.ErrTokenExpired},
 		nil,
 	},
 	{
@@ -77,7 +79,7 @@ var jwtTestData = []struct {
 		defaultKeyFunc,
 		jwt.MapClaims{"foo": "bar"},
 		false,
-		jwt.ValidationErrorSignatureInvalid,
+		errors{jwt.ErrSignatureInvalid},
 		nil,
 	},
 	{
@@ -86,7 +88,7 @@ var jwtTestData = []struct {
 		nilKeyFunc,
 		jwt.MapClaims{"foo": "bar"},
 		false,
-		jwt.ValidationErrorUnverifiable,
+		errors{jwt.ErrUnregisteredSigningMethod},
 		nil,
 	},
 	{
@@ -95,7 +97,7 @@ var jwtTestData = []struct {
 		emptyKeyFunc,
 		jwt.MapClaims{"foo": "bar"},
 		false,
-		jwt.ValidationErrorSignatureInvalid,
+		errors{jwt.ErrSignatureInvalid},
 		nil,
 	},
 	{
@@ -104,7 +106,7 @@ var jwtTestData = []struct {
 		errorKeyFunc,
 		jwt.MapClaims{"foo": "bar"},
 		false,
-		jwt.ValidationErrorUnverifiable,
+		errors{jwt.ErrSignatureInvalid},
 		nil,
 	},
 	{
