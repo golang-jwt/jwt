@@ -50,7 +50,7 @@ type RegisteredClaims struct {
 // As well, if any of the above claims are not in the token, it will still
 // be considered a valid claim.
 func (c RegisteredClaims) Valid() error {
-	var result *multierror.Error
+	result := &multierror.Error{}
 	result.ErrorFormat = ValidationErrorFormat
 
 	now := TimeFunc()
@@ -137,7 +137,7 @@ type StandardClaims struct {
 // As well, if any of the above claims are not in the token, it will still
 // be considered a valid claim.
 func (c StandardClaims) Valid() error {
-	var result *multierror.Error
+	result := &multierror.Error{}
 	result.ErrorFormat = ValidationErrorFormat
 
 	now := TimeFunc()

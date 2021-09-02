@@ -27,7 +27,7 @@ func (m MapClaims) ExpiresAt() interface{} {
 		}
 		return newNumericDateFromSeconds(v).Time
 	default:
-		return nil
+		return exp
 	}
 }
 
@@ -178,7 +178,8 @@ func (m MapClaims) VerifyIssuer(cmp string, req bool) bool {
 // As well, if any of the above claims are not in the token, it will still
 // be considered a valid claim.
 func (m MapClaims) Valid() error {
-	var result *multierror.Error
+	result := &multierror.Error{}
+	result.ErrorFormat = ValidationErrorFormat
 	now := TimeFunc()
 	nowUnix := now.Unix()
 	exp, _ := m.ExpiresAt().(time.Time)

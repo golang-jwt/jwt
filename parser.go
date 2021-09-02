@@ -22,7 +22,7 @@ func (p *Parser) Parse(tokenString string, keyFunc Keyfunc) (*Token, error) {
 func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyfunc) (*Token, error) {
 	token, parts, err := p.ParseUnverified(tokenString, claims)
 	if err != nil {
-		return nil, err
+		return token, err
 	}
 
 	// Verify signing method is in the required set
@@ -37,7 +37,7 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 		}
 		if !signingMethodValid {
 			// signing method is not in the listed set
-			return nil, &InvalidSigningMethodError{Alg: alg}
+			return token, &InvalidSigningMethodError{Alg: alg}
 		}
 	}
 
@@ -45,18 +45,18 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 	var key interface{}
 	if keyFunc == nil {
 		// keyFunc was not provided.  short circuiting validation
-		return nil, ErrMissingKeyFunc
+		return token, ErrMissingKeyFunc
 	}
 
 	key, err = keyFunc(token)
 	if err != nil {
-		return nil, err
+		return token, err
 	}
 
 	// Validate Claims
 	if !p.SkipClaimsValidation {
 		if err := token.Claims.Valid(); err != nil {
-			return nil, err
+			return token, err
 		}
 	}
 

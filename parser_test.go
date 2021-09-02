@@ -292,7 +292,9 @@ func TestParser_Parse(t *testing.T) {
 			case *jwt.RegisteredClaims:
 				token, err = parser.ParseWithClaims(data.tokenString, &jwt.RegisteredClaims{}, data.keyfunc)
 			}
-
+			if token == nil {
+				fmt.Println("token is nil")
+			}
 			// Verify result matches expectation
 			if !reflect.DeepEqual(data.claims, token.Claims) {
 				t.Errorf("[%v] Claims mismatch. Expecting: %v  Got: %v", data.name, data.claims, token.Claims)
