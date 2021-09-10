@@ -6,7 +6,7 @@
 A [go](http://www.golang.org) (or 'golang' for search engine friendliness) implementation of [JSON Web Tokens](https://datatracker.ietf.org/doc/html/rfc7519).
 
 Starting with [v4.0.0](https://github.com/golang-jwt/jwt/releases/tag/v4.0.0) this project adds Go module support, but maintains backwards compatibility with older `v3.x.y` tags and upstream `github.com/dgrijalva/jwt-go`.
-See the `MIGRATION_GUIDE.md` for more information.
+See the [`MIGRATION_GUIDE.md`](./MIGRATION_GUIDE.md) for more information.
 
 > After the original author of the library suggested migrating the maintenance of `jwt-go`, a dedicated team of open source maintainers decided to clone the existing library into this repository. See [dgrijalva/jwt-go#462](https://github.com/dgrijalva/jwt-go/issues/462) for a detailed discussion on this topic.
 
@@ -52,7 +52,7 @@ Here's an example of an extension that integrates with multiple Google Cloud Pla
 
 ## Compliance
 
-This library was last reviewed to comply with [RTF 7519](https://datatracker.ietf.org/doc/html/rfc7519) dated May 2015 with a few notable differences:
+This library was last reviewed to comply with [RFC 7519](https://datatracker.ietf.org/doc/html/rfc7519) dated May 2015 with a few notable differences:
 
 * In order to protect against accidental use of [Unsecured JWTs](https://datatracker.ietf.org/doc/html/rfc7519#section-6), tokens using `alg=none` will only be accepted if the constant `jwt.UnsafeAllowNoneSignatureType` is provided as the key.
 
