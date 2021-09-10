@@ -99,7 +99,7 @@ func TestMapclaimsVerifyExpiresAtInvalidTypeString(t *testing.T) {
 	}
 }
 
-func TestMapclaimsVerifyExpiresAtExpire(t *testing.T) {
+func TestMapClaimsVerifyExpiresAtExpire(t *testing.T) {
 	exp := time.Now().Unix()
 	mapClaims := MapClaims{
 		"exp": float64(exp),
