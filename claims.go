@@ -238,7 +238,7 @@ func verifyExp(exp *time.Time, now time.Time, required bool) bool {
 	if exp == nil {
 		return !required
 	}
-	return now.Before(*exp) || now.Equal(*exp)
+	return now.Before(*exp)
 }
 
 func verifyIat(iat *time.Time, now time.Time, required bool) bool {
