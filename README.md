@@ -91,6 +91,7 @@ Each signing method expects a different object type for its signing keys. See th
 * The [HMAC signing method](https://pkg.go.dev/github.com/golang-jwt/jwt#SigningMethodHMAC) (`HS256`,`HS384`,`HS512`) expect `[]byte` values for signing and validation
 * The [RSA signing method](https://pkg.go.dev/github.com/golang-jwt/jwt#SigningMethodRSA) (`RS256`,`RS384`,`RS512`) expect `*rsa.PrivateKey` for signing and `*rsa.PublicKey` for validation
 * The [ECDSA signing method](https://pkg.go.dev/github.com/golang-jwt/jwt#SigningMethodECDSA) (`ES256`,`ES384`,`ES512`) expect `*ecdsa.PrivateKey` for signing and `*ecdsa.PublicKey` for validation
+* The [EdDSA signing method](https://pkg.go.dev/github.com/golang-jwt/jwt#SigningMethodEd25519) (`Ed25519`) expect `ed25519.PrivateKey` for signing and `ed25519.PublicKey` for validation
 
 ### JWT and OAuth
 
