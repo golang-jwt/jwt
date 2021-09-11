@@ -3,7 +3,6 @@ package jwt
 import (
 	"crypto"
 	"crypto/hmac"
-	"errors"
 )
 
 // SigningMethodHMAC implements the HMAC-SHA family of signing methods.
@@ -15,10 +14,9 @@ type SigningMethodHMAC struct {
 
 // Specific instances for HS256 and company
 var (
-	SigningMethodHS256  *SigningMethodHMAC
-	SigningMethodHS384  *SigningMethodHMAC
-	SigningMethodHS512  *SigningMethodHMAC
-	ErrSignatureInvalid = errors.New("signature is invalid")
+	SigningMethodHS256 *SigningMethodHMAC
+	SigningMethodHS384 *SigningMethodHMAC
+	SigningMethodHS512 *SigningMethodHMAC
 )
 
 func init() {
@@ -70,7 +68,9 @@ func (m *SigningMethodHMAC) Verify(signingString, signature string, key interfac
 	hasher := hmac.New(m.Hash.New, keyBytes)
 	hasher.Write([]byte(signingString))
 	if !hmac.Equal(sig, hasher.Sum(nil)) {
-		return ErrSignatureInvalid
+		return &SignatureVerificationError{
+			Algorithm: "HMAC",
+		}
 	}
 
 	// No validation errors.  Signature is good.

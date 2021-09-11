@@ -4,13 +4,11 @@ import (
 	"crypto"
 	"crypto/ecdsa"
 	"crypto/rand"
-	"errors"
 	"math/big"
 )
 
 var (
-	// Sadly this is missing from crypto/ecdsa compared to crypto/rsa
-	ErrECDSAVerification = errors.New("crypto/ecdsa: verification error")
+// Sadly this is missing from crypto/ecdsa compared to crypto/rsa
 )
 
 // SigningMethodECDSA implements the ECDSA family of signing methods.
@@ -74,7 +72,9 @@ func (m *SigningMethodECDSA) Verify(signingString, signature string, key interfa
 	}
 
 	if len(sig) != 2*m.KeySize {
-		return ErrECDSAVerification
+		return &SignatureVerificationError{
+			Algorithm: m.Name,
+		}
 	}
 
 	r := big.NewInt(0).SetBytes(sig[:m.KeySize])
@@ -92,7 +92,9 @@ func (m *SigningMethodECDSA) Verify(signingString, signature string, key interfa
 		return nil
 	}
 
-	return ErrECDSAVerification
+	return &SignatureVerificationError{
+		Algorithm: m.Name,
+	}
 }
 
 // Sign implements token signing for the SigningMethod.

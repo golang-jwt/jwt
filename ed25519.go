@@ -1,16 +1,12 @@
 package jwt
 
 import (
-	"errors"
-
 	"crypto"
 	"crypto/ed25519"
 	"crypto/rand"
 )
 
-var (
-	ErrEd25519Verification = errors.New("ed25519: verification error")
-)
+var ()
 
 // SigningMethodEd25519 implements the EdDSA family.
 // Expects ed25519.PrivateKey for signing and ed25519.PublicKey for verification
@@ -55,7 +51,7 @@ func (m *SigningMethodEd25519) Verify(signingString, signature string, key inter
 
 	// Verify the signature
 	if !ed25519.Verify(ed25519Key, []byte(signingString), sig) {
-		return ErrEd25519Verification
+		return &SignatureVerificationError{Algorithm: "EdDSA"}
 	}
 
 	return nil

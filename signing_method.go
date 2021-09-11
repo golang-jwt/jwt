@@ -4,8 +4,10 @@ import (
 	"sync"
 )
 
-var signingMethods = map[string]func() SigningMethod{}
-var signingMethodLock = new(sync.RWMutex)
+type signingMethodFunc = func() SigningMethod
+
+var signingMethods = map[string]signingMethodFunc{}
+var signingMethodsMutex = new(sync.Mutex)
 
 // SigningMethod can be used add new methods for signing or verifying tokens.
 type SigningMethod interface {
@@ -17,19 +19,20 @@ type SigningMethod interface {
 // RegisterSigningMethod registers the "alg" name and a factory function for signing method.
 // This is typically done during init() in the method's implementation
 func RegisterSigningMethod(alg string, f func() SigningMethod) {
-	signingMethodLock.Lock()
-	defer signingMethodLock.Unlock()
-
-	signingMethods[alg] = f
+	signingMethodsMutex.Lock()
+	defer signingMethodsMutex.Unlock()
+	copy := map[string]signingMethodFunc{}
+	for k, sm := range signingMethods {
+		copy[k] = sm
+	}
+	copy[alg] = f
+	signingMethods = copy
 }
 
 // GetSigningMethod retrieves a signing method from an "alg" string
-func GetSigningMethod(alg string) (method SigningMethod) {
-	signingMethodLock.RLock()
-	defer signingMethodLock.RUnlock()
-
+func GetSigningMethod(alg string) SigningMethod {
 	if methodF, ok := signingMethods[alg]; ok {
-		method = methodF()
+		return methodF()
 	}
-	return
+	return nil
 }

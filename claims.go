@@ -2,8 +2,9 @@ package jwt
 
 import (
 	"crypto/subtle"
-	"fmt"
 	"time"
+
+	"github.com/hashicorp/go-multierror"
 )
 
 // Claims must just have a Valid method that determines
@@ -49,32 +50,32 @@ type RegisteredClaims struct {
 // As well, if any of the above claims are not in the token, it will still
 // be considered a valid claim.
 func (c RegisteredClaims) Valid() error {
-	vErr := new(ValidationError)
-	now := TimeFunc()
+	result := &multierror.Error{}
+	result.ErrorFormat = ValidationErrorFormat
 
+	now := TimeFunc()
 	// The claims below are optional, by default, so if they are set to the
 	// default value in Go, let's not fail the verification for them.
 	if !c.VerifyExpiresAt(now, false) {
-		delta := now.Sub(c.ExpiresAt.Time)
-		vErr.Inner = fmt.Errorf("token is expired by %v", delta)
-		vErr.Errors |= ValidationErrorExpired
+		result = multierror.Append(result, &ExpiredError{
+			ExpiredAt:   c.ExpiresAt.Time,
+			AttemptedAt: now,
+		})
 	}
-
 	if !c.VerifyIssuedAt(now, false) {
-		vErr.Inner = fmt.Errorf("token used before issued")
-		vErr.Errors |= ValidationErrorIssuedAt
+		result = multierror.Append(result, &UsedBeforeIssuedError{
+			IssuedAt:    c.IssuedAt.Time,
+			AttemptedAt: now,
+		})
 	}
-
 	if !c.VerifyNotBefore(now, false) {
-		vErr.Inner = fmt.Errorf("token is not valid yet")
-		vErr.Errors |= ValidationErrorNotValidYet
+		result = multierror.Append(result, &NotYetValidError{
+			ValidAt:     c.NotBefore.Time,
+			AttemptedAt: now,
+		})
 	}
 
-	if vErr.valid() {
-		return nil
-	}
-
-	return vErr
+	return result.ErrorOrNil()
 }
 
 // VerifyAudience compares the aud claim against cmp.
@@ -136,32 +137,33 @@ type StandardClaims struct {
 // As well, if any of the above claims are not in the token, it will still
 // be considered a valid claim.
 func (c StandardClaims) Valid() error {
-	vErr := new(ValidationError)
-	now := TimeFunc().Unix()
+	result := &multierror.Error{}
+	result.ErrorFormat = ValidationErrorFormat
 
+	now := TimeFunc()
+	nowUnix := now.Unix()
 	// The claims below are optional, by default, so if they are set to the
 	// default value in Go, let's not fail the verification for them.
-	if !c.VerifyExpiresAt(now, false) {
-		delta := time.Unix(now, 0).Sub(time.Unix(c.ExpiresAt, 0))
-		vErr.Inner = fmt.Errorf("token is expired by %v", delta)
-		vErr.Errors |= ValidationErrorExpired
-	}
 
-	if !c.VerifyIssuedAt(now, false) {
-		vErr.Inner = fmt.Errorf("token used before issued")
-		vErr.Errors |= ValidationErrorIssuedAt
+	if !c.VerifyExpiresAt(nowUnix, false) {
+		result = multierror.Append(result, &ExpiredError{
+			ExpiredAt:   time.Unix(c.ExpiresAt, 0),
+			AttemptedAt: now,
+		})
 	}
-
-	if !c.VerifyNotBefore(now, false) {
-		vErr.Inner = fmt.Errorf("token is not valid yet")
-		vErr.Errors |= ValidationErrorNotValidYet
+	if !c.VerifyIssuedAt(nowUnix, false) {
+		result = multierror.Append(result, &UsedBeforeIssuedError{
+			IssuedAt:    time.Unix(c.IssuedAt, 0),
+			AttemptedAt: now,
+		})
 	}
-
-	if vErr.valid() {
-		return nil
+	if !c.VerifyNotBefore(nowUnix, false) {
+		result = multierror.Append(result, &NotYetValidError{
+			ValidAt:     time.Unix(c.NotBefore, 0),
+			AttemptedAt: now,
+		})
 	}
-
-	return vErr
+	return result.ErrorOrNil()
 }
 
 // VerifyAudience compares the aud claim against cmp.
