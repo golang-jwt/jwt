@@ -14,11 +14,8 @@ import (
 	"testing"
 	"time"
 
-	jwtLegacy "github.com/dgrijalva/jwt-go"
-	jwtF3T "github.com/form3tech-oss/jwt-go"
 	"github.com/golang-jwt/jwt/v4"
-
-	"github.com/MicahParks/keyfunc"
+	"github.com/golang-jwt/jwt/v4/keyfunc"
 )
 
 const (
@@ -173,20 +170,6 @@ func TestJWKs(t *testing.T) {
 				if _, err = jwt.Parse(tc.token, jwks.Keyfunc); err != nil {
 					if errors.Is(err, jwt.ErrInvalidKeyType) {
 						t.Errorf("Invaild key type selected.\nError: %s", err.Error())
-						t.FailNow()
-					}
-				}
-
-				// Use the JWKs jwt.Keyfunc to parse the token for supported forks.
-				if _, err = jwtLegacy.Parse(tc.token, jwks.KeyfuncLegacy); err != nil {
-					if errors.Is(err, jwt.ErrInvalidKeyType) {
-						t.Errorf("Invaild key type selected for legacy.\nError: %s", err.Error())
-						t.FailNow()
-					}
-				}
-				if _, err = jwtF3T.Parse(tc.token, jwks.KeyfuncF3T); err != nil {
-					if errors.Is(err, jwt.ErrInvalidKeyType) {
-						t.Errorf("Invaild key type selected for F3T.\nError: %s", err.Error())
 						t.FailNow()
 					}
 				}
