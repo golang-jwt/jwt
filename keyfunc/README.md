@@ -45,7 +45,7 @@ For complete examples, please see the `examples` directory.
 import "github.com/golang-jwt/jwt/v4/keyfunc"
 ```
 
-### Preconditions: Acquire the JWKs URL or JSON
+### Preconditions: Acquire the JWKs URL, JSON, or gather cryptographic keys (given keys)
 
 A JWKs URL is not required, one can be created directly from JSON with the
 [`keyfunc.New`](https://pkg.go.dev/github.com/golang-jwt/jwt/v4/keyfunc#NewJSON) function.
