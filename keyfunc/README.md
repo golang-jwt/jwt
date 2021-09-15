@@ -5,6 +5,7 @@ The purpose of this package is to provide a
 JWTs.
 
 This package can consume a JSON Web Key Set (JWKs) and or a given set of key ID, `kid` to cryptographic key mappings.
+This package can additionally use a given mapping of key IDs, `kid`, to cryptographic keys parse and validate JWTs.
 
 It's common for an identity provider, such as [Keycloak](https://www.keycloak.org/)
 or [Amazon Cognito (AWS)](https://aws.amazon.com/cognito/) to expose a JWKs via an HTTPS endpoint. It is important that
