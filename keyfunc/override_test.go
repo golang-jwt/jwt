@@ -29,7 +29,7 @@ const (
 	remoteKID = "remoteKID"
 )
 
-// pseudoJWKs is a data structure used to JSON marshal a JWKs but is not fullyfeatured.
+// pseudoJWKs is a data structure used to JSON marshal a JWKs but is not fully featured.
 type pseudoJWKs struct {
 	Keys []pseudoJSONKey `json:"keys"`
 }

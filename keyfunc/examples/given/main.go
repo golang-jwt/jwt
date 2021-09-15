@@ -26,7 +26,7 @@ func main() {
 		givenKID: keyfunc.NewGivenHMAC(hmacSecret),
 	}
 
-	// Do not override keys with the same key ID, `kid`, in the remote JWKs. This is the default behavoir.
+	// Do not override keys with the same key ID, `kid`, in the remote JWKs. This is the default behavior.
 	//
 	// For a more complex example where remote keys are overwritten by given keys, see override_test.go.
 	givenKIDOverride := false

@@ -113,7 +113,7 @@ func (j *JWKs) getKey(kid string) (jsonKey *jsonKey, err error) {
 				return nil, ErrKIDNotFound
 			}
 
-			// Wait for the JWKs refresh to done.
+			// Wait for the JWKs refresh to finish.
 			<-ctx.Done()
 
 			// Lock the JWKs for async safe use.

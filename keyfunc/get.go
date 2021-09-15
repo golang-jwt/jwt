@@ -90,7 +90,7 @@ func (j *JWKs) backgroundRefresh() {
 			case <-j.ctx.Done():
 				return
 			case j.refreshRequests <- func() {}:
-			default: // If the j.refreshRequests channel is full, don't don't send another request.
+			default: // If the j.refreshRequests channel is full, don't send another request.
 			}
 
 		// Accept refresh requests.
