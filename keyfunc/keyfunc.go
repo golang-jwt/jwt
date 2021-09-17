@@ -1,3 +1,8 @@
+// Package keyfunc provides a set of utilities for creating a `jwt.Keyfunc`. This function is used as a callback when
+// parsing and validating JWTs. This package can create a `jwt.Keyfunc` from a set of given cryptographic keys and or a
+// local/remote JSON Web Key Set (JWK Set or JWKs). Remote JWKs should only be hosted via an HTTPS service.
+//
+// This package has a directory of examples and separate README.md.
 package keyfunc
 
 import (

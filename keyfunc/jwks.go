@@ -32,8 +32,8 @@ type jsonKey struct {
 	precomputed interface{}
 }
 
-// JWKs represents a JSON Web Key Set.
-type JWKs struct { // It's JWKs, not JWKS https://datatracker.ietf.org/doc/html/rfc7517#section-2
+// JWKs represents a JSON Web Key Set (JWK Set).
+type JWKs struct {
 	cancel              context.CancelFunc
 	client              *http.Client
 	ctx                 context.Context

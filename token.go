@@ -16,6 +16,10 @@ var TimeFunc = time.Now
 // the key for verification.  The function receives the parsed,
 // but unverified Token.  This allows you to use properties in the
 // Header of the token (such as `kid`) to identify which key to use.
+//
+// Check out the `github.com/golang-jwt/jwt/v4/keyfunc` package for utilities
+// on creating a Keyfunc using a mapping of key IDs to given cryptography keys
+// and or a JSON Web Key Set (JWK Set or JWKs).
 type Keyfunc func(*Token) (interface{}, error)
 
 // Token represents a JWT Token.  Different fields will be used depending on whether you're
