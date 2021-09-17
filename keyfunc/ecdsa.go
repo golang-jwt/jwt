@@ -64,16 +64,14 @@ func (j *jsonKey) ECDSA() (publicKey *ecdsa.PublicKey, err error) {
 	publicKey = &ecdsa.PublicKey{}
 
 	// Set the curve type.
-	var curve elliptic.Curve
 	switch j.Curve {
 	case p256:
-		curve = elliptic.P256()
+		publicKey.Curve = elliptic.P256()
 	case p384:
-		curve = elliptic.P384()
+		publicKey.Curve = elliptic.P384()
 	case p521:
-		curve = elliptic.P521()
+		publicKey.Curve = elliptic.P521()
 	}
-	publicKey.Curve = curve
 
 	// Turn the X coordinate into *big.Int.
 	//
