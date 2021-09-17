@@ -32,12 +32,15 @@ const (
 func (j *jsonKey) RSA() (publicKey *rsa.PublicKey, err error) {
 
 	// Check if the key has already been computed.
+	j.precomputedMux.RLock()
 	if j.precomputed != nil {
 		var ok bool
 		if publicKey, ok = j.precomputed.(*rsa.PublicKey); ok {
+			j.precomputedMux.RUnlock()
 			return publicKey, nil
 		}
 	}
+	j.precomputedMux.RUnlock()
 
 	// Confirm everything needed is present.
 	if j.Exponent == "" || j.Modulus == "" {
@@ -72,7 +75,9 @@ func (j *jsonKey) RSA() (publicKey *rsa.PublicKey, err error) {
 	publicKey.N = big.NewInt(0).SetBytes(modulus)
 
 	// Keep the public key so it won't have to be computed every time.
+	j.precomputedMux.Lock()
 	j.precomputed = publicKey
+	j.precomputedMux.Unlock()
 
 	return publicKey, nil
 }

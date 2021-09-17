@@ -22,6 +22,8 @@ const (
 func (j *jsonKey) HMAC() (key []byte, err error) {
 
 	// Confirm the key is already present as expected.
+	j.precomputedMux.RLock()
+	defer j.precomputedMux.RUnlock()
 	if j.precomputed != nil {
 		var ok bool
 		if key, ok = j.precomputed.([]byte); ok {

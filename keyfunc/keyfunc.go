@@ -52,6 +52,8 @@ func (j *JWKs) Keyfunc(token *jwt.Token) (interface{}, error) {
 	default:
 
 		// Assume there's a given key for a custom algorithm.
+		key.precomputedMux.RLock()
+		defer key.precomputedMux.RUnlock()
 		if key.precomputed != nil {
 			return key.precomputed, nil
 		}

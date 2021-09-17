@@ -23,13 +23,14 @@ type ErrorHandler func(err error)
 
 // jsonKey represents a raw key inside a JWKs.
 type jsonKey struct {
-	Curve       string `json:"crv"`
-	Exponent    string `json:"e"`
-	ID          string `json:"kid"`
-	Modulus     string `json:"n"`
-	X           string `json:"x"`
-	Y           string `json:"y"`
-	precomputed interface{}
+	Curve          string `json:"crv"`
+	Exponent       string `json:"e"`
+	ID             string `json:"kid"`
+	Modulus        string `json:"n"`
+	X              string `json:"x"`
+	Y              string `json:"y"`
+	precomputed    interface{}
+	precomputedMux sync.RWMutex
 }
 
 // JWKs represents a JSON Web Key Set (JWK Set).
