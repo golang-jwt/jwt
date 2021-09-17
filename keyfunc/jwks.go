@@ -85,6 +85,19 @@ func (j *JWKs) EndBackground() {
 	}
 }
 
+// KIDs returns the key IDs (`kid`) for all keys in the JWKs.
+func (j *JWKs) KIDs() (kids []string) {
+	j.mux.RLock()
+	defer j.mux.RUnlock()
+	kids = make([]string, len(j.keys))
+	index := 0
+	for kid := range j.keys {
+		kids[index] = kid
+		index++
+	}
+	return kids
+}
+
 // getKey gets the jsonKey from the given KID from the JWKs. It may refresh the JWKs if configured to.
 func (j *JWKs) getKey(kid string) (jsonKey *jsonKey, err error) {
 
