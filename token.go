@@ -29,11 +29,12 @@ type Token struct {
 	Valid     bool                   // Is the token valid?  Populated when you Parse/Verify a token
 }
 
-// New creates a new Token.  Takes a signing method
+// New creates a new Token with the specified a signing method and an empty map of claims.
 func New(method SigningMethod) *Token {
 	return NewWithClaims(method, MapClaims{})
 }
 
+// NewWithClaims creates a new Token with the specified signing method and claims.
 func NewWithClaims(method SigningMethod, claims Claims) *Token {
 	return &Token{
 		Header: map[string]interface{}{
@@ -45,7 +46,8 @@ func NewWithClaims(method SigningMethod, claims Claims) *Token {
 	}
 }
 
-// SignedString retrieves the complete, signed token
+// SignedString creates and returns a complete, signed JWT token.
+// The token is signed using the SigningMethod specified in the token.
 func (t *Token) SignedString(key interface{}) (string, error) {
 	var sig, sstr string
 	var err error
@@ -82,9 +84,11 @@ func (t *Token) SigningString() (string, error) {
 	return strings.Join(parts, "."), nil
 }
 
-// Parse parses, validates, and returns a token.
-// keyFunc will receive the parsed token and should return the key for validating.
-// If everything is kosher, err will be nil
+// Parse parses, validates, verifies the signature and returns the parsed token.
+// keyFunc will receive the parsed token and should return the cryptographic key
+// for verifying the signature.
+// keyFunc should validate the 'alg' claim in the token matches the expected algorithm.
+// If everything is kosher, err will be nil.
 func Parse(tokenString string, keyFunc Keyfunc) (*Token, error) {
 	return new(Parser).Parse(tokenString, keyFunc)
 }
