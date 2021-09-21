@@ -53,7 +53,7 @@ type JWKs struct {
 
 // rawJWKs represents a JWKs in JSON format.
 type rawJWKs struct {
-	Keys []jsonKey `json:"keys"`
+	Keys []*jsonKey `json:"keys"`
 }
 
 // NewJSON creates a new JWKs from a raw JSON message.
@@ -71,7 +71,7 @@ func NewJSON(jwksBytes json.RawMessage) (jwks *JWKs, err error) {
 	}
 	for _, key := range rawKS.Keys {
 		key := key
-		jwks.keys[key.ID] = &key
+		jwks.keys[key.ID] = key
 	}
 
 	return jwks, nil
