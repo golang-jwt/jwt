@@ -65,7 +65,7 @@ func TestParseRequest(t *testing.T) {
 	// Bearer token request
 	for _, data := range requestTestData {
 		// Make token from claims
-		tokenString := test.MakeSampleToken(data.claims, privateKey)
+		tokenString := test.MakeSampleToken(data.claims, jwt.SigningMethodRS256, privateKey)
 
 		// Make query string
 		for k, vv := range data.query {
