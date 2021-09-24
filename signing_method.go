@@ -14,7 +14,7 @@ type SigningMethod interface {
 	Alg() string                                                   // returns the alg identifier for this method (example: 'HS256')
 }
 
-// Register create a new function that returns the given
+// Register internally creates a new function that returns the given
 // SigningMethod. The function will be stored as a value in a thread safe map,
 // where the algorithm name is the key.
 func Register(m SigningMethod) {
