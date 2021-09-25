@@ -46,7 +46,7 @@ func NewWithClaims(method SigningMethod, claims Claims) *Token {
 	}
 }
 
-// SignedString creates and returns a complete, signed JWT token.
+// SignedString creates and returns a complete, signed JWT.
 // The token is signed using the SigningMethod specified in the token.
 func (t *Token) SignedString(key interface{}) (string, error) {
 	var sig, sstr string
