@@ -85,14 +85,12 @@ func (t *Token) SigningString() (string, error) {
 // Parse parses, validates, and returns a token.
 // keyFunc will receive the parsed token and should return the key for validating.
 // If everything is kosher, err will be nil
-//
-// Deprecated: Use NewParser to create and configure a Parser instead
-func Parse(tokenString string, keyFunc Keyfunc) (*Token, error) {
-	return new(Parser).Parse(tokenString, keyFunc)
+func Parse(tokenString string, keyFunc Keyfunc, options ...ParserOption) (*Token, error) {
+	return NewParser(options...).Parse(tokenString, keyFunc)
 }
 
-func ParseWithClaims(tokenString string, claims Claims, keyFunc Keyfunc) (*Token, error) {
-	return new(Parser).ParseWithClaims(tokenString, claims, keyFunc)
+func ParseWithClaims(tokenString string, claims Claims, keyFunc Keyfunc, options ...ParserOption) (*Token, error) {
+	return NewParser(options...).ParseWithClaims(tokenString, claims, keyFunc)
 }
 
 // EncodeSegment encodes a JWT specific base64url encoding with padding stripped
