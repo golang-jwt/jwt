@@ -85,6 +85,8 @@ func (t *Token) SigningString() (string, error) {
 // Parse parses, validates, and returns a token.
 // keyFunc will receive the parsed token and should return the key for validating.
 // If everything is kosher, err will be nil
+//
+// Deprecated: Use NewParser to create and configure a Parser instead
 func Parse(tokenString string, keyFunc Keyfunc) (*Token, error) {
 	return new(Parser).Parse(tokenString, keyFunc)
 }
