@@ -25,6 +25,7 @@ func Register(m SigningMethod) {
 
 // RegisterSigningMethod will use the given algorithm name as the key
 // and store the given function as the value.
+// Deprecated: use the Register function instead
 func RegisterSigningMethod(alg string, f func() SigningMethod) {
 	signingMethodLock.Lock()
 	defer signingMethodLock.Unlock()
