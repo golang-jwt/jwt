@@ -114,7 +114,7 @@ select the key with the matching `kid` (if present) and return its public key as
 
 ## Test coverage
 
-Test coverage is currently at `90.8%`.
+Test coverage is currently `>90%`.
 
 Testing could be improved by signing all JWTs during the tests themselves. Alternatively, using JWTs that do not expire
 would accomplish the same purpose. There are some hard-coded JWTs which are expired. This means the tests with hard
