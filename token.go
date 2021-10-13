@@ -87,9 +87,10 @@ func (t *Token) SigningString() (string, error) {
 // Parse parses, validates, verifies the signature and returns the parsed token.
 // keyFunc will receive the parsed token and should return the cryptographic key
 // for verifying the signature.
-// keyFunc should validate the 'alg' claim in the token matches the expected algorithm.
+// The caller is strongly encouraged to set the WithValidMethods option to
+// validate the 'alg' claim in the token matches the expected algorithm.
 // For more details about the importance of validating the 'alg' claim,
-// see https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/ 
+// see https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/
 func Parse(tokenString string, keyFunc Keyfunc) (*Token, error) {
 	return new(Parser).Parse(tokenString, keyFunc)
 }
