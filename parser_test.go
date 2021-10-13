@@ -1,6 +1,7 @@
 package jwt_test
 
 import (
+	"crypto"
 	"crypto/rsa"
 	"encoding/json"
 	"fmt"
@@ -15,25 +16,36 @@ import (
 var errKeyFuncError error = fmt.Errorf("error loading key")
 
 var (
-	jwtTestDefaultKey *rsa.PublicKey
-	defaultKeyFunc    jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return jwtTestDefaultKey, nil }
-	emptyKeyFunc      jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return nil, nil }
-	errorKeyFunc      jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return nil, errKeyFuncError }
-	nilKeyFunc        jwt.Keyfunc = nil
+	jwtTestDefaultKey      *rsa.PublicKey
+	jwtTestRSAPrivateKey   *rsa.PrivateKey
+	jwtTestEC256PublicKey  crypto.PublicKey
+	jwtTestEC256PrivateKey crypto.PrivateKey
+	defaultKeyFunc         jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return jwtTestDefaultKey, nil }
+	ecdsaKeyFunc           jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return jwtTestEC256PublicKey, nil }
+	emptyKeyFunc           jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return nil, nil }
+	errorKeyFunc           jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return nil, errKeyFuncError }
+	nilKeyFunc             jwt.Keyfunc = nil
 )
 
 func init() {
+	// Load public keys
 	jwtTestDefaultKey = test.LoadRSAPublicKeyFromDisk("test/sample_key.pub")
+	jwtTestEC256PublicKey = test.LoadECPublicKeyFromDisk("test/ec256-public.pem")
+
+	// Load private keys
+	jwtTestRSAPrivateKey = test.LoadRSAPrivateKeyFromDisk("test/sample_key")
+	jwtTestEC256PrivateKey = test.LoadECPrivateKeyFromDisk("test/ec256-private.pem")
 }
 
 var jwtTestData = []struct {
-	name        string
-	tokenString string
-	keyfunc     jwt.Keyfunc
-	claims      jwt.Claims
-	valid       bool
-	errors      uint32
-	parser      *jwt.Parser
+	name          string
+	tokenString   string
+	keyfunc       jwt.Keyfunc
+	claims        jwt.Claims
+	valid         bool
+	errors        uint32
+	parser        *jwt.Parser
+	signingMethod jwt.SigningMethod // The method to sign the JWT token for test purpose
 }{
 	{
 		"basic",
@@ -43,6 +55,7 @@ var jwtTestData = []struct {
 		true,
 		0,
 		nil,
+		jwt.SigningMethodRS256,
 	},
 	{
 		"basic expired",
@@ -52,6 +65,7 @@ var jwtTestData = []struct {
 		false,
 		jwt.ValidationErrorExpired,
 		nil,
+		jwt.SigningMethodRS256,
 	},
 	{
 		"basic nbf",
@@ -61,6 +75,7 @@ var jwtTestData = []struct {
 		false,
 		jwt.ValidationErrorNotValidYet,
 		nil,
+		jwt.SigningMethodRS256,
 	},
 	{
 		"expired and nbf",
@@ -70,6 +85,7 @@ var jwtTestData = []struct {
 		false,
 		jwt.ValidationErrorNotValidYet | jwt.ValidationErrorExpired,
 		nil,
+		jwt.SigningMethodRS256,
 	},
 	{
 		"basic invalid",
@@ -79,6 +95,7 @@ var jwtTestData = []struct {
 		false,
 		jwt.ValidationErrorSignatureInvalid,
 		nil,
+		jwt.SigningMethodRS256,
 	},
 	{
 		"basic nokeyfunc",
@@ -88,6 +105,7 @@ var jwtTestData = []struct {
 		false,
 		jwt.ValidationErrorUnverifiable,
 		nil,
+		jwt.SigningMethodRS256,
 	},
 	{
 		"basic nokey",
@@ -97,6 +115,7 @@ var jwtTestData = []struct {
 		false,
 		jwt.ValidationErrorSignatureInvalid,
 		nil,
+		jwt.SigningMethodRS256,
 	},
 	{
 		"basic errorkey",
@@ -106,6 +125,7 @@ var jwtTestData = []struct {
 		false,
 		jwt.ValidationErrorUnverifiable,
 		nil,
+		jwt.SigningMethodRS256,
 	},
 	{
 		"invalid signing method",
@@ -115,15 +135,37 @@ var jwtTestData = []struct {
 		false,
 		jwt.ValidationErrorSignatureInvalid,
 		&jwt.Parser{ValidMethods: []string{"HS256"}},
+		jwt.SigningMethodRS256,
 	},
 	{
-		"valid signing method",
+		"valid RSA signing method",
 		"",
 		defaultKeyFunc,
 		jwt.MapClaims{"foo": "bar"},
 		true,
 		0,
 		&jwt.Parser{ValidMethods: []string{"RS256", "HS256"}},
+		jwt.SigningMethodRS256,
+	},
+	{
+		"ECDSA signing method not accepted",
+		"",
+		ecdsaKeyFunc,
+		jwt.MapClaims{"foo": "bar"},
+		false,
+		jwt.ValidationErrorSignatureInvalid,
+		&jwt.Parser{ValidMethods: []string{"RS256", "HS256"}},
+		jwt.SigningMethodES256,
+	},
+	{
+		"valid ECDSA signing method",
+		"",
+		ecdsaKeyFunc,
+		jwt.MapClaims{"foo": "bar"},
+		true,
+		0,
+		&jwt.Parser{ValidMethods: []string{"HS256", "ES256"}},
+		jwt.SigningMethodES256,
 	},
 	{
 		"JSON Number",
@@ -133,6 +175,7 @@ var jwtTestData = []struct {
 		true,
 		0,
 		&jwt.Parser{UseJSONNumber: true},
+		jwt.SigningMethodRS256,
 	},
 	{
 		"Standard Claims",
@@ -144,6 +187,7 @@ var jwtTestData = []struct {
 		true,
 		0,
 		&jwt.Parser{UseJSONNumber: true},
+		jwt.SigningMethodRS256,
 	},
 	{
 		"JSON Number - basic expired",
@@ -153,6 +197,7 @@ var jwtTestData = []struct {
 		false,
 		jwt.ValidationErrorExpired,
 		&jwt.Parser{UseJSONNumber: true},
+		jwt.SigningMethodRS256,
 	},
 	{
 		"JSON Number - basic nbf",
@@ -162,6 +207,7 @@ var jwtTestData = []struct {
 		false,
 		jwt.ValidationErrorNotValidYet,
 		&jwt.Parser{UseJSONNumber: true},
+		jwt.SigningMethodRS256,
 	},
 	{
 		"JSON Number - expired and nbf",
@@ -171,6 +217,7 @@ var jwtTestData = []struct {
 		false,
 		jwt.ValidationErrorNotValidYet | jwt.ValidationErrorExpired,
 		&jwt.Parser{UseJSONNumber: true},
+		jwt.SigningMethodRS256,
 	},
 	{
 		"SkipClaimsValidation during token parsing",
@@ -180,6 +227,7 @@ var jwtTestData = []struct {
 		true,
 		0,
 		&jwt.Parser{UseJSONNumber: true, SkipClaimsValidation: true},
+		jwt.SigningMethodRS256,
 	},
 	{
 		"RFC7519 Claims",
@@ -191,6 +239,7 @@ var jwtTestData = []struct {
 		true,
 		0,
 		&jwt.Parser{UseJSONNumber: true},
+		jwt.SigningMethodRS256,
 	},
 	{
 		"RFC7519 Claims - single aud",
@@ -202,6 +251,7 @@ var jwtTestData = []struct {
 		true,
 		0,
 		&jwt.Parser{UseJSONNumber: true},
+		jwt.SigningMethodRS256,
 	},
 	{
 		"RFC7519 Claims - multiple aud",
@@ -213,6 +263,7 @@ var jwtTestData = []struct {
 		true,
 		0,
 		&jwt.Parser{UseJSONNumber: true},
+		jwt.SigningMethodRS256,
 	},
 	{
 		"RFC7519 Claims - single aud with wrong type",
@@ -224,6 +275,7 @@ var jwtTestData = []struct {
 		false,
 		jwt.ValidationErrorMalformed,
 		&jwt.Parser{UseJSONNumber: true},
+		jwt.SigningMethodRS256,
 	},
 	{
 		"RFC7519 Claims - multiple aud with wrong types",
@@ -235,18 +287,33 @@ var jwtTestData = []struct {
 		false,
 		jwt.ValidationErrorMalformed,
 		&jwt.Parser{UseJSONNumber: true},
+		jwt.SigningMethodRS256,
 	},
 }
 
+// signToken creates and returns a signed JWT token using signingMethod.
+func signToken(claims jwt.Claims, signingMethod jwt.SigningMethod) string {
+	var privateKey interface{}
+	switch signingMethod {
+	case jwt.SigningMethodRS256:
+		privateKey = jwtTestRSAPrivateKey
+	case jwt.SigningMethodES256:
+		privateKey = jwtTestEC256PrivateKey
+	default:
+		return ""
+	}
+	return test.MakeSampleToken(claims, signingMethod, privateKey)
+}
+
 func TestParser_Parse(t *testing.T) {
-	privateKey := test.LoadRSAPrivateKeyFromDisk("test/sample_key")
 
 	// Iterate over test data set and run tests
 	for _, data := range jwtTestData {
 		t.Run(data.name, func(t *testing.T) {
+
 			// If the token string is blank, use helper function to generate string
 			if data.tokenString == "" {
-				data.tokenString = test.MakeSampleToken(data.claims, privateKey)
+				data.tokenString = signToken(data.claims, data.signingMethod)
 			}
 
 			// Parse the token
@@ -285,7 +352,7 @@ func TestParser_Parse(t *testing.T) {
 
 			if data.errors != 0 {
 				if err == nil {
-					t.Errorf("[%v] Expecting error.  Didn't get one.", data.name)
+					t.Errorf("[%v] Expecting error. Didn't get one.", data.name)
 				} else {
 
 					ve := err.(*jwt.ValidationError)
@@ -299,15 +366,20 @@ func TestParser_Parse(t *testing.T) {
 					}
 				}
 			}
-			if data.valid && token.Signature == "" {
-				t.Errorf("[%v] Signature is left unpopulated after parsing", data.name)
+			if data.valid {
+				if token.Signature == "" {
+					t.Errorf("[%v] Signature is left unpopulated after parsing", data.name)
+				}
+				if !token.Valid {
+					// The 'Valid' field should be set to true when invoking Parse()
+					t.Errorf("[%v] Token.Valid field mismatch. Expecting true, got %v", data.name, token.Valid)
+				}
 			}
 		})
 	}
 }
 
 func TestParser_ParseUnverified(t *testing.T) {
-	privateKey := test.LoadRSAPrivateKeyFromDisk("test/sample_key")
 
 	// Iterate over test data set and run tests
 	for _, data := range jwtTestData {
@@ -319,7 +391,7 @@ func TestParser_ParseUnverified(t *testing.T) {
 		t.Run(data.name, func(t *testing.T) {
 			// If the token string is blank, use helper function to generate string
 			if data.tokenString == "" {
-				data.tokenString = test.MakeSampleToken(data.claims, privateKey)
+				data.tokenString = signToken(data.claims, data.signingMethod)
 			}
 
 			// Parse the token
@@ -351,18 +423,25 @@ func TestParser_ParseUnverified(t *testing.T) {
 			if data.valid && err != nil {
 				t.Errorf("[%v] Error while verifying token: %T:%v", data.name, err, err)
 			}
+			if token.Valid {
+				// The 'Valid' field should not be set to true when invoking ParseUnverified()
+				t.Errorf("[%v] Token.Valid field mismatch. Expecting false, got %v", data.name, token.Valid)
+			}
+			if token.Signature != "" {
+				// The signature was not validated, hence the 'Signature' field is not populated.
+				t.Errorf("[%v] Token.Signature field mismatch. Expecting '', got %v", data.name, token.Signature)
+			}
 		})
 	}
 }
 
 func BenchmarkParseUnverified(b *testing.B) {
-	privateKey := test.LoadRSAPrivateKeyFromDisk("test/sample_key")
 
 	// Iterate over test data set and run tests
 	for _, data := range jwtTestData {
 		// If the token string is blank, use helper function to generate string
 		if data.tokenString == "" {
-			data.tokenString = test.MakeSampleToken(data.claims, privateKey)
+			data.tokenString = signToken(data.claims, data.signingMethod)
 		}
 
 		// Parse the token

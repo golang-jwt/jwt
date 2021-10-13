@@ -8,9 +8,32 @@ import (
 )
 
 type Parser struct {
-	ValidMethods         []string // If populated, only these methods will be considered valid
-	UseJSONNumber        bool     // Use JSON Number format in JSON decoder
-	SkipClaimsValidation bool     // Skip claims validation during token parsing
+	// If populated, only these methods will be considered valid.
+	//
+	// Deprecated: In future releases, this field will not be exported anymore and should be set with an option to NewParser instead.
+	ValidMethods []string
+
+	// Use JSON Number format in JSON decoder.
+	//
+	// Deprecated: In future releases, this field will not be exported anymore and should be set with an option to NewParser instead.
+	UseJSONNumber bool
+
+	// Skip claims validation during token parsing.
+	//
+	// Deprecated: In future releases, this field will not be exported anymore and should be set with an option to NewParser instead.
+	SkipClaimsValidation bool
+}
+
+// NewParser creates a new Parser with the specified options
+func NewParser(options ...ParserOption) *Parser {
+	p := &Parser{}
+
+	// loop through our parsing options and apply them
+	for _, option := range options {
+		option(p)
+	}
+
+	return p
 }
 
 // Parse parses, validates, verifies the signature and returns the parsed token.

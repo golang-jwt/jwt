@@ -91,12 +91,12 @@ func (t *Token) SigningString() (string, error) {
 // validate the 'alg' claim in the token matches the expected algorithm.
 // For more details about the importance of validating the 'alg' claim,
 // see https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/
-func Parse(tokenString string, keyFunc Keyfunc) (*Token, error) {
-	return new(Parser).Parse(tokenString, keyFunc)
+func Parse(tokenString string, keyFunc Keyfunc, options ...ParserOption) (*Token, error) {
+	return NewParser(options...).Parse(tokenString, keyFunc)
 }
 
-func ParseWithClaims(tokenString string, claims Claims, keyFunc Keyfunc) (*Token, error) {
-	return new(Parser).ParseWithClaims(tokenString, claims, keyFunc)
+func ParseWithClaims(tokenString string, claims Claims, keyFunc Keyfunc, options ...ParserOption) (*Token, error) {
+	return NewParser(options...).ParseWithClaims(tokenString, claims, keyFunc)
 }
 
 // EncodeSegment encodes a JWT specific base64url encoding with padding stripped
