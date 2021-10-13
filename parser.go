@@ -10,17 +10,17 @@ import (
 type Parser struct {
 	// If populated, only these methods will be considered valid.
 	//
-	// In future releases, this field will not be exported anymore and should be set with an option to NewParser instead.
+	// Deprecated: In future releases, this field will not be exported anymore and should be set with an option to NewParser instead.
 	ValidMethods []string
 
 	// Use JSON Number format in JSON decoder.
 	//
-	// In future releases, this field will not be exported anymore and should be set with an option to NewParser instead.
+	// Deprecated: In future releases, this field will not be exported anymore and should be set with an option to NewParser instead.
 	UseJSONNumber bool
 
 	// Skip claims validation during token parsing.
 	//
-	// In future releases, this field will not be exported anymore and should be set with an option to NewParser instead.
+	// Deprecated: In future releases, this field will not be exported anymore and should be set with an option to NewParser instead.
 	SkipClaimsValidation bool
 }
 
