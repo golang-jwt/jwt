@@ -36,9 +36,8 @@ func NewParser(options ...ParserOption) *Parser {
 	return p
 }
 
-// Parse parses, validates, and returns a token.
+// Parse parses, validates, verifies the signature and returns the parsed token.
 // keyFunc will receive the parsed token and should return the key for validating.
-// If everything is kosher, err will be nil
 func (p *Parser) Parse(tokenString string, keyFunc Keyfunc) (*Token, error) {
 	return p.ParseWithClaims(tokenString, MapClaims{}, keyFunc)
 }
