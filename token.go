@@ -3,7 +3,6 @@ package jwt
 import (
 	"encoding/base64"
 	"encoding/json"
-	"strings"
 	"time"
 )
 
@@ -49,15 +48,17 @@ func NewWithClaims(method SigningMethod, claims Claims) *Token {
 // SignedString creates and returns a complete, signed JWT.
 // The token is signed using the SigningMethod specified in the token.
 func (t *Token) SignedString(key interface{}) (string, error) {
-	var sig, sstr string
-	var err error
-	if sstr, err = t.SigningString(); err != nil {
+	sstr, err := t.SigningString()
+	if err != nil {
 		return "", err
 	}
-	if sig, err = t.Method.Sign(sstr, key); err != nil {
+
+	sig, err := t.Method.Sign(sstr, key)
+	if err != nil {
 		return "", err
 	}
-	return strings.Join([]string{sstr, sig}, "."), nil
+
+	return sstr + "." + sig, nil
 }
 
 // SigningString generates the signing string.  This is the
@@ -65,23 +66,17 @@ func (t *Token) SignedString(key interface{}) (string, error) {
 // need this for something special, just go straight for
 // the SignedString.
 func (t *Token) SigningString() (string, error) {
-	var err error
-	parts := make([]string, 2)
-	for i := range parts {
-		var jsonValue []byte
-		if i == 0 {
-			if jsonValue, err = json.Marshal(t.Header); err != nil {
-				return "", err
-			}
-		} else {
-			if jsonValue, err = json.Marshal(t.Claims); err != nil {
-				return "", err
-			}
-		}
-
-		parts[i] = EncodeSegment(jsonValue)
+	h, err := json.Marshal(t.Header)
+	if err != nil {
+		return "", err
 	}
-	return strings.Join(parts, "."), nil
+
+	c, err := json.Marshal(t.Claims)
+	if err != nil {
+		return "", err
+	}
+
+	return EncodeSegment(h) + "." + EncodeSegment(c), nil
 }
 
 // Parse parses, validates, verifies the signature and returns the parsed token.
