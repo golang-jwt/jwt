@@ -104,7 +104,7 @@ func ParseWithClaims(tokenString string, claims Claims, keyFunc Keyfunc, options
 // Deprecated: In a future release, we will demote this function to a non-exported function, since it
 // should only be used internally
 func EncodeSegment(seg []byte) string {
-	return strings.TrimRight(base64.URLEncoding.EncodeToString(seg), "=")
+	return strings.TrimRight(base64.RawURLEncoding.EncodeToString(seg), "=")
 }
 
 // DecodeSegment decodes a JWT specific base64url encoding with padding stripped
