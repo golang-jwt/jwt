@@ -488,7 +488,7 @@ func TestSetPadding(t *testing.T) {
 		t.Run(data.name, func(t *testing.T) {
 
 			// If the token string is blank, use helper function to generate string
-			jwt.SetDecodePadding(data.paddedDecode)
+			jwt.DecodePaddingAllowed = data.paddedDecode
 
 			if data.tokenString == "" {
 				data.tokenString = signToken(data.claims, data.signingMethod)
@@ -512,7 +512,7 @@ func TestSetPadding(t *testing.T) {
 			}
 
 		})
-		jwt.SetDecodePadding(false)
+		jwt.DecodePaddingAllowed = false
 
 	}
 }
