@@ -494,7 +494,6 @@ func TestSetPadding(t *testing.T) {
 				data.tokenString = signToken(data.claims, data.signingMethod)
 
 			}
-			fmt.Println(data.tokenString)
 
 			// Parse the token
 			var token *jwt.Token
