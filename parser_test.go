@@ -58,16 +58,6 @@ var jwtTestData = []struct {
 		jwt.SigningMethodRS256,
 	},
 	{
-		"basic with padding",
-		"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJwYWRkZWRiYXIifQ==.20kGGJaYekGTRFf8b0TwhuETcR8lv5z2363X5jf7G1yTWVTwOmte5Ii8L8_OQbYwPoiVHmZY6iJPbt_DhCN42AeFY74BcsUhR-BVrYUVhKK0RppuzEcSlILDNeQsJDLEL035CPm1VO6Jrgk7enQPIctVxUesRgswP71OpGvJxy3j1k_J8p0WzZvRZTe1D_2Misa0UDGwnEIHhmr97fIpMSZjFxlcygQw8QN34IHLHIXMaTY1eiCf4CCr6rOS9wUeu7P3CPkmFq9XhxBT_LLCmIMhHnxP5x27FUJE_JZlfek0MmARcrhpsZS2sFhHAiWrjxjOE27jkDtv1nEwn65wMw==",
-		defaultKeyFunc,
-		jwt.MapClaims{"foo": "paddedbar"},
-		true,
-		0,
-		nil,
-		jwt.SigningMethodRS256,
-	},
-	{
 		"basic expired",
 		"", // autogen
 		defaultKeyFunc,
@@ -442,6 +432,89 @@ func TestParser_ParseUnverified(t *testing.T) {
 				t.Errorf("[%v] Token.Signature field mismatch. Expecting '', got %v", data.name, token.Signature)
 			}
 		})
+	}
+}
+
+var setPaddingTestData = []struct {
+	name    string
+	tokenString string
+	claims jwt.Claims
+	paddedDecode uint64
+	signingMethod jwt.SigningMethod
+	keyfunc jwt.Keyfunc
+	valid   bool
+}{
+	{
+		name:    "Validated non-padded token with padding disabled",
+		tokenString: "",
+		claims:  jwt.MapClaims{"foo": "paddedbar"},
+		paddedDecode: jwt.DisablePadding,
+		signingMethod: jwt.SigningMethodRS256,
+		keyfunc: defaultKeyFunc,
+		valid:   true,
+	},
+	{
+		name:    "Validated non-padded token with padding enabled",
+		tokenString: "",
+		claims:  jwt.MapClaims{"foo": "paddedbar"},
+		paddedDecode: jwt.AllowPadding,
+		signingMethod: jwt.SigningMethodRS256,
+		keyfunc: defaultKeyFunc,
+		valid:   true,
+	},
+	{
+		name:    "Error for padded token with padding disabled",
+		tokenString: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJwYWRkZWRiYXIifQ==.20kGGJaYekGTRFf8b0TwhuETcR8lv5z2363X5jf7G1yTWVTwOmte5Ii8L8_OQbYwPoiVHmZY6iJPbt_DhCN42AeFY74BcsUhR-BVrYUVhKK0RppuzEcSlILDNeQsJDLEL035CPm1VO6Jrgk7enQPIctVxUesRgswP71OpGvJxy3j1k_J8p0WzZvRZTe1D_2Misa0UDGwnEIHhmr97fIpMSZjFxlcygQw8QN34IHLHIXMaTY1eiCf4CCr6rOS9wUeu7P3CPkmFq9XhxBT_LLCmIMhHnxP5x27FUJE_JZlfek0MmARcrhpsZS2sFhHAiWrjxjOE27jkDtv1nEwn65wMw==",
+		claims:  jwt.MapClaims{"foo": "paddedbar"},
+		paddedDecode: jwt.DisablePadding,
+		signingMethod: jwt.SigningMethodRS256,
+		keyfunc: defaultKeyFunc,
+		valid:   false,
+	},
+	{
+		name:    "Validated padded token with padding enabled",
+		tokenString: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJwYWRkZWRiYXIifQ==.20kGGJaYekGTRFf8b0TwhuETcR8lv5z2363X5jf7G1yTWVTwOmte5Ii8L8_OQbYwPoiVHmZY6iJPbt_DhCN42AeFY74BcsUhR-BVrYUVhKK0RppuzEcSlILDNeQsJDLEL035CPm1VO6Jrgk7enQPIctVxUesRgswP71OpGvJxy3j1k_J8p0WzZvRZTe1D_2Misa0UDGwnEIHhmr97fIpMSZjFxlcygQw8QN34IHLHIXMaTY1eiCf4CCr6rOS9wUeu7P3CPkmFq9XhxBT_LLCmIMhHnxP5x27FUJE_JZlfek0MmARcrhpsZS2sFhHAiWrjxjOE27jkDtv1nEwn65wMw==",
+		claims:  jwt.MapClaims{"foo": "paddedbar"},
+		paddedDecode: jwt.AllowPadding,
+		signingMethod: jwt.SigningMethodRS256,
+		keyfunc: defaultKeyFunc,
+		valid:   true,
+	},
+}
+
+// Extension of Parsing, this is to test out functionality specific to switching codecs with padding.
+func TestSetPadding(t *testing.T) {
+	for _, data := range setPaddingTestData {
+		t.Run(data.name, func(t *testing.T) {
+
+			// If the token string is blank, use helper function to generate string
+			jwt.SetDecodePadding(data.paddedDecode)
+
+			if data.tokenString == "" {
+				data.tokenString = signToken(data.claims, data.signingMethod)
+
+			}
+			fmt.Println(data.tokenString)
+
+			// Parse the token
+			var token *jwt.Token
+			var err error
+			parser := new(jwt.Parser)
+
+			// Figure out correct claims type
+			token, err = parser.ParseWithClaims(data.tokenString, jwt.MapClaims{}, data.keyfunc)
+
+			if (err == nil) != data.valid || token.Valid != data.valid {
+				t.Errorf("[%v] Error Parsing Token with decoding padding set to %v: %v",
+					data.name,
+					data.paddedDecode,
+					err,
+				)
+			}
+
+		})
+		jwt.SetDecodePadding(jwt.DisablePadding)
+
 	}
 }
 

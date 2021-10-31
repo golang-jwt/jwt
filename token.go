@@ -4,8 +4,29 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"strings"
+	"sync/atomic"
 	"time"
 )
+
+const (
+	DisablePadding uint64 = 0 // Utilizes RawURLEncoding
+	AllowPadding   uint64 = 1 // Utilizes URLEncoding
+
+)
+
+var decodePaddingAllowed uint64
+
+// SetDecodePadding will switch the codec used for encoding/decoding JWTs respectively. Note that the JWS RFC7515
+// states that the tokens will utilize a Base64url encoding with no padding. Unfortuneately, some implementations
+// of JWT are producing non-standard tokens, and thus require support for decoding. Note that this is a global
+// variable, and updating it will change the behavior on a package level.
+func SetDecodePadding(setPadding uint64) {
+	atomic.SwapUint64(&decodePaddingAllowed, setPadding)
+}
+
+func init() {
+	SetDecodePadding(DisablePadding)
+}
 
 // TimeFunc provides the current time when parsing token to validate "exp" claim (expiration time).
 // You can override it to use another time value.  This is useful for testing or if your
@@ -112,7 +133,10 @@ func EncodeSegment(seg []byte) string {
 // Deprecated: In a future release, we will demote this function to a non-exported function, since it
 // should only be used internally
 func DecodeSegment(seg string) ([]byte, error) {
-	if strings.Contains(seg, "=") {
+	if atomic.LoadUint64(&decodePaddingAllowed) == AllowPadding {
+		if l := len(seg) % 4; l > 0 {
+			seg += strings.Repeat("=", 4-l)
+		}
 		return base64.URLEncoding.DecodeString(seg)
 	}
 
