@@ -58,6 +58,16 @@ var jwtTestData = []struct {
 		jwt.SigningMethodRS256,
 	},
 	{
+		"basic with padding",
+		"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJwYWRkZWRiYXIifQ==.20kGGJaYekGTRFf8b0TwhuETcR8lv5z2363X5jf7G1yTWVTwOmte5Ii8L8_OQbYwPoiVHmZY6iJPbt_DhCN42AeFY74BcsUhR-BVrYUVhKK0RppuzEcSlILDNeQsJDLEL035CPm1VO6Jrgk7enQPIctVxUesRgswP71OpGvJxy3j1k_J8p0WzZvRZTe1D_2Misa0UDGwnEIHhmr97fIpMSZjFxlcygQw8QN34IHLHIXMaTY1eiCf4CCr6rOS9wUeu7P3CPkmFq9XhxBT_LLCmIMhHnxP5x27FUJE_JZlfek0MmARcrhpsZS2sFhHAiWrjxjOE27jkDtv1nEwn65wMw==",
+		defaultKeyFunc,
+		jwt.MapClaims{"foo": "paddedbar"},
+		true,
+		0,
+		nil,
+		jwt.SigningMethodRS256,
+	},
+	{
 		"basic expired",
 		"", // autogen
 		defaultKeyFunc,
