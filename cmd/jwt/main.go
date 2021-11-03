@@ -293,7 +293,7 @@ func isRs() bool {
 }
 
 func isEd() bool {
-	return strings.HasPrefix(strings.ToUpper(*flagAlg), "Ed")
+	return *flagAlg == "EdDSA"
 }
 
 type ArgList map[string]string
