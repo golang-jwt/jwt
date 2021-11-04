@@ -16,15 +16,17 @@ import (
 var errKeyFuncError error = fmt.Errorf("error loading key")
 
 var (
-	jwtTestDefaultKey      *rsa.PublicKey
-	jwtTestRSAPrivateKey   *rsa.PrivateKey
-	jwtTestEC256PublicKey  crypto.PublicKey
-	jwtTestEC256PrivateKey crypto.PrivateKey
-	defaultKeyFunc         jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return jwtTestDefaultKey, nil }
-	ecdsaKeyFunc           jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return jwtTestEC256PublicKey, nil }
-	emptyKeyFunc           jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return nil, nil }
-	errorKeyFunc           jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return nil, errKeyFuncError }
-	nilKeyFunc             jwt.Keyfunc = nil
+	jwtTestDefaultKey       *rsa.PublicKey
+	jwtTestRSAPrivateKey    *rsa.PrivateKey
+	jwtTestEC256PublicKey   crypto.PublicKey
+	jwtTestEC256PrivateKey  crypto.PrivateKey
+	exampleCognitoPublicKey crypto.PublicKey
+	defaultKeyFunc          jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return jwtTestDefaultKey, nil }
+	ecdsaKeyFunc            jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return jwtTestEC256PublicKey, nil }
+	exampleCognitoKeyFunc   jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return exampleCognitoPublicKey, nil }
+	emptyKeyFunc            jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return nil, nil }
+	errorKeyFunc            jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return nil, errKeyFuncError }
+	nilKeyFunc              jwt.Keyfunc = nil
 )
 
 func init() {
@@ -32,9 +34,14 @@ func init() {
 	jwtTestDefaultKey = test.LoadRSAPublicKeyFromDisk("test/sample_key.pub")
 	jwtTestEC256PublicKey = test.LoadECPublicKeyFromDisk("test/ec256-public.pem")
 
+	// Load cognito public key - note there is only a public key for this key pair and should only be used for the
+	// two test cases below.
+	exampleCognitoPublicKey = test.LoadECPublicKeyFromDisk("test/exampleCognito-public.pem")
+
 	// Load private keys
 	jwtTestRSAPrivateKey = test.LoadRSAPrivateKeyFromDisk("test/sample_key")
 	jwtTestEC256PrivateKey = test.LoadECPrivateKeyFromDisk("test/ec256-private.pem")
+
 }
 
 var jwtTestData = []struct {
@@ -480,6 +487,24 @@ var setPaddingTestData = []struct {
 		keyfunc:       defaultKeyFunc,
 		valid:         true,
 	},
+	{
+		name:          "Error for padded cognito token with padding disabled",
+		tokenString:   "eyJ0eXAiOiJKV1QiLCJraWQiOiIxMjM0NTY3OC1hYmNkLTEyMzQtYWJjZC0xMjM0NTY3OGFiY2QiLCJhbGciOiJFUzI1NiIsImlzcyI6Imh0dHBzOi8vY29nbml0by1pZHAuZXUtd2VzdC0yLmFtYXpvbmF3cy5jb20vIiwiY2xpZW50IjoiN0xUY29QWnJWNDR6ZVg2WUs5VktBcHZPM3EiLCJzaWduZXIiOiJhcm46YXdzOmVsYXN0aWNsb2FkYmFsYW5jaW5nIiwiZXhwIjoxNjI5NDcwMTAxfQ==.eyJzdWIiOiIxMjM0NTY3OC1hYmNkLTEyMzQtYWJjZC0xMjM0NTY3OGFiY2QiLCJlbWFpbF92ZXJpZmllZCI6InRydWUiLCJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6IjEyMzQ1Njc4LWFiY2QtMTIzNC1hYmNkLTEyMzQ1Njc4YWJjZCIsImV4cCI6MTYyOTQ3MDEwMSwiaXNzIjoiaHR0cHM6Ly9jb2duaXRvLWlkcC5ldS13ZXN0LTIuYW1hem9uYXdzLmNvbS8ifQ==.sx0muJ754glJvwWgkHaPrOI3L1gaPjRLLUvOQRk0WitnqC5Dtt1knorcbOzlEcH9zwPM2jYYIAYQz_qEyM3grw==",
+		claims:        nil,
+		paddedDecode:  false,
+		signingMethod: jwt.SigningMethodES256,
+		keyfunc:       exampleCognitoKeyFunc,
+		valid:         false,
+	},
+	{
+		name:          "Validated padded cognito token with padding enabled",
+		tokenString:   "eyJ0eXAiOiJKV1QiLCJraWQiOiIxMjM0NTY3OC1hYmNkLTEyMzQtYWJjZC0xMjM0NTY3OGFiY2QiLCJhbGciOiJFUzI1NiIsImlzcyI6Imh0dHBzOi8vY29nbml0by1pZHAuZXUtd2VzdC0yLmFtYXpvbmF3cy5jb20vIiwiY2xpZW50IjoiN0xUY29QWnJWNDR6ZVg2WUs5VktBcHZPM3EiLCJzaWduZXIiOiJhcm46YXdzOmVsYXN0aWNsb2FkYmFsYW5jaW5nIiwiZXhwIjoxNjI5NDcwMTAxfQ==.eyJzdWIiOiIxMjM0NTY3OC1hYmNkLTEyMzQtYWJjZC0xMjM0NTY3OGFiY2QiLCJlbWFpbF92ZXJpZmllZCI6InRydWUiLCJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6IjEyMzQ1Njc4LWFiY2QtMTIzNC1hYmNkLTEyMzQ1Njc4YWJjZCIsImV4cCI6MTYyOTQ3MDEwMSwiaXNzIjoiaHR0cHM6Ly9jb2duaXRvLWlkcC5ldS13ZXN0LTIuYW1hem9uYXdzLmNvbS8ifQ==.sx0muJ754glJvwWgkHaPrOI3L1gaPjRLLUvOQRk0WitnqC5Dtt1knorcbOzlEcH9zwPM2jYYIAYQz_qEyM3grw==",
+		claims:        nil,
+		paddedDecode:  true,
+		signingMethod: jwt.SigningMethodES256,
+		keyfunc:       exampleCognitoKeyFunc,
+		valid:         true,
+	},
 }
 
 // Extension of Parsing, this is to test out functionality specific to switching codecs with padding.
@@ -499,6 +524,7 @@ func TestSetPadding(t *testing.T) {
 			var token *jwt.Token
 			var err error
 			parser := new(jwt.Parser)
+			parser.SkipClaimsValidation = true
 
 			// Figure out correct claims type
 			token, err = parser.ParseWithClaims(data.tokenString, jwt.MapClaims{}, data.keyfunc)
