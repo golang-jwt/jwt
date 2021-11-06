@@ -34,9 +34,9 @@ func init() {
 	jwtTestDefaultKey = test.LoadRSAPublicKeyFromDisk("test/sample_key.pub")
 	jwtTestEC256PublicKey = test.LoadECPublicKeyFromDisk("test/ec256-public.pem")
 
-	// Load cognito public key - note there is only a public key for this key pair and should only be used for the
+	// Load padded public key - note there is only a public key for this key pair and should only be used for the
 	// two test cases below.
-	paddedKey = test.LoadECPublicKeyFromDisk("test/exampleCognito-public.pem")
+	paddedKey = test.LoadECPublicKeyFromDisk("test/examplePaddedKey-public.pem")
 
 	// Load private keys
 	jwtTestRSAPrivateKey = test.LoadRSAPrivateKeyFromDisk("test/sample_key")
