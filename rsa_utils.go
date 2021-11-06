@@ -87,10 +87,8 @@ func ParseRSAPublicKeyFromPEM(key []byte) (*rsa.PublicKey, error) {
 
 	// Parse the key
 	var parsedKey interface{}
-	if parsedKey, err = x509.ParsePKIXPublicKey(block.Bytes); err != nil {
-		if cert, err := x509.ParseCertificate(block.Bytes); err == nil {
-			parsedKey = cert.PublicKey
-		} else {
+	if parsedKey, err = x509.ParsePKCS1PublicKey(block.Bytes); err != nil {
+		if parsedKey, err = x509.ParsePKCS8PublicKey(block.Bytes); err != nil {
 			return nil, err
 		}
 	}
