@@ -7,6 +7,14 @@ import (
 	"time"
 )
 
+
+// DecodePaddingAllowed will switch the codec used for decoding JWTs respectively. Note that the JWS RFC7515
+// states that the tokens will utilize a Base64url encoding with no padding. Unfortunately, some implementations
+// of JWT are producing non-standard tokens, and thus require support for decoding. Note that this is a global
+// variable, and updating it will change the behavior on a package level, and is also NOT go-routine safe.
+// To use the non-recommended decoding, set this boolean to `true` prior to using this package.
+var DecodePaddingAllowed bool
+
 // TimeFunc provides the current time when parsing token to validate "exp" claim (expiration time).
 // You can override it to use another time value.  This is useful for testing or if your
 // server uses a different time zone than your tokens.
@@ -112,5 +120,12 @@ func EncodeSegment(seg []byte) string {
 // Deprecated: In a future release, we will demote this function to a non-exported function, since it
 // should only be used internally
 func DecodeSegment(seg string) ([]byte, error) {
+	if DecodePaddingAllowed {
+		if l := len(seg) % 4; l > 0 {
+			seg += strings.Repeat("=", 4-l)
+		}
+		return base64.URLEncoding.DecodeString(seg)
+	}
+
 	return base64.RawURLEncoding.DecodeString(seg)
 }
