@@ -1,6 +1,11 @@
 package jwt_test
 
 import (
+	"bytes"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"io/ioutil"
 	"strings"
 	"testing"
@@ -153,6 +158,25 @@ func TestRSAKeyParsing(t *testing.T) {
 		t.Errorf("Parsed invalid key as valid private key: %v", k)
 	}
 
+}
+
+func TestRSAParsePublicKeyFromPEM_PKCS1(t *testing.T) {
+	var privateKey *rsa.PrivateKey
+	var err error
+
+	if privateKey, err = rsa.GenerateKey(rand.Reader, 2048); err != nil {
+		t.Errorf("failed to generate RSA private key: %v", err)
+	}
+
+	publicKeyBytes := x509.MarshalPKCS1PublicKey(&privateKey.PublicKey)
+	pemBuffer := new(bytes.Buffer)
+	if err = pem.Encode(pemBuffer, &pem.Block{Type: "RSA PUBLIC KEY", Bytes: publicKeyBytes}); err != nil {
+		t.Errorf("failed to encode public pem: %v", err)
+	}
+
+	if _, err := jwt.ParseRSAPublicKeyFromPEM(pemBuffer.Bytes()); err != nil {
+		t.Errorf("failed to parse RSA public key: %v", err)
+	}
 }
 
 func BenchmarkRSAParsing(b *testing.B) {
