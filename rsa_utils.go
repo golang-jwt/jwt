@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
+	"fmt"
 )
 
 var (
@@ -91,8 +92,8 @@ func ParseRSAPublicKeyFromPEM(key []byte) (*rsa.PublicKey, error) {
 		if cert, err := x509.ParseCertificate(block.Bytes); err == nil {
 			parsedKey = cert.PublicKey
 		} else {
-			if parsedKey, err = x509.ParsePKCS1PublicKey(block.Bytes); err == nil {
-				return nil, err
+			if parsedKey, err = x509.ParsePKCS1PublicKey(block.Bytes); err != nil {
+				return nil, fmt.Errorf("%v - %w", ErrNotRSAPublicKey.Error(), err)
 			}
 		}
 	}
