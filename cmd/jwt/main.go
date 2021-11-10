@@ -128,6 +128,9 @@ func verifyToken() error {
 
 	// Parse the token.  Load the key from command line option
 	token, err := jwt.Parse(string(tokData), func(t *jwt.Token) (interface{}, error) {
+		if isNone() {
+			return jwt.UnsafeAllowNoneSignatureType, nil
+		}
 		data, err := loadData(*flagKey)
 		if err != nil {
 			return nil, err
@@ -192,9 +195,13 @@ func signToken() error {
 
 	// get the key
 	var key interface{}
-	key, err = loadData(*flagKey)
-	if err != nil {
-		return fmt.Errorf("couldn't read key: %w", err)
+	if isNone() {
+		key = jwt.UnsafeAllowNoneSignatureType
+	} else {
+		key, err = loadData(*flagKey)
+		if err != nil {
+			return fmt.Errorf("couldn't read key: %w", err)
+		}
 	}
 
 	// get the signing alg
@@ -294,6 +301,10 @@ func isRs() bool {
 
 func isEd() bool {
 	return *flagAlg == "EdDSA"
+}
+
+func isNone() bool {
+	return *flagAlg == "none"
 }
 
 type ArgList map[string]string
