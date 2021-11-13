@@ -46,9 +46,9 @@ func main() {
 		RefreshErrorHandler: func(err error) {
 			log.Printf("There was an error with the jwt.Keyfunc\nError: %s", err.Error())
 		},
-		RefreshInterval:   &refreshInterval,
-		RefreshRateLimit:  &refreshRateLimit,
-		RefreshTimeout:    &refreshTimeout,
+		RefreshInterval:   refreshInterval,
+		RefreshRateLimit:  refreshRateLimit,
+		RefreshTimeout:    refreshTimeout,
 		RefreshUnknownKID: &refreshUnknownKID,
 	}
 

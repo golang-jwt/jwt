@@ -20,8 +20,8 @@ func main() {
 	refreshInterval := time.Hour
 	refreshTimeout := time.Second * 10
 	options := keyfunc.Options{
-		RefreshInterval: &refreshInterval,
-		RefreshTimeout:  &refreshTimeout,
+		RefreshInterval: refreshInterval,
+		RefreshTimeout:  refreshTimeout,
 		RefreshErrorHandler: func(err error) {
 			log.Printf("There was an error with the jwt.Keyfunc\nError: %s", err.Error())
 		},

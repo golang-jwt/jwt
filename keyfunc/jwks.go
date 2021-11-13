@@ -44,10 +44,10 @@ type JWKs struct {
 	keys                map[string]*jsonKey
 	mux                 sync.RWMutex
 	refreshErrorHandler ErrorHandler
-	refreshInterval     *time.Duration
-	refreshRateLimit    *time.Duration
+	refreshInterval     time.Duration
+	refreshRateLimit    time.Duration
 	refreshRequests     chan context.CancelFunc
-	refreshTimeout      *time.Duration
+	refreshTimeout      time.Duration
 	refreshUnknownKID   bool
 }
 

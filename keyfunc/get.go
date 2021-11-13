@@ -33,8 +33,8 @@ func Get(jwksURL string, options ...Options) (jwks *JWKs, err error) {
 	if jwks.client == nil {
 		jwks.client = http.DefaultClient
 	}
-	if jwks.refreshTimeout == nil {
-		jwks.refreshTimeout = &defaultRefreshTimeout
+	if jwks.refreshTimeout == 0 {
+		jwks.refreshTimeout = defaultRefreshTimeout
 	}
 
 	// Get the keys for the JWKs.
@@ -43,7 +43,7 @@ func Get(jwksURL string, options ...Options) (jwks *JWKs, err error) {
 	}
 
 	// Check to see if a background refresh of the JWKs should happen.
-	if jwks.refreshInterval != nil || jwks.refreshUnknownKID {
+	if jwks.refreshInterval != 0 || jwks.refreshUnknownKID {
 
 		// Attach a context used to end the background goroutine.
 		jwks.ctx, jwks.cancel = context.WithCancel(context.Background())
@@ -66,8 +66,8 @@ func (j *JWKs) backgroundRefresh() {
 	var lastRefresh time.Time
 	var queueOnce sync.Once
 	var refreshMux sync.Mutex
-	if j.refreshRateLimit != nil {
-		lastRefresh = time.Now().Add(-*j.refreshRateLimit)
+	if j.refreshRateLimit != 0 {
+		lastRefresh = time.Now().Add(-j.refreshRateLimit)
 	}
 
 	// Create a channel that will never send anything unless there is a refresh interval.
@@ -77,8 +77,8 @@ func (j *JWKs) backgroundRefresh() {
 	for {
 
 		// If there is a refresh interval, create the channel for it.
-		if j.refreshInterval != nil {
-			refreshInterval = time.After(*j.refreshInterval)
+		if j.refreshInterval != 0 {
+			refreshInterval = time.After(j.refreshInterval)
 		}
 
 		// Wait for a refresh to occur or the background to end.
@@ -98,7 +98,7 @@ func (j *JWKs) backgroundRefresh() {
 
 			// Rate limit, if needed.
 			refreshMux.Lock()
-			if j.refreshRateLimit != nil && lastRefresh.Add(*j.refreshRateLimit).After(time.Now()) {
+			if j.refreshRateLimit != 0 && lastRefresh.Add(j.refreshRateLimit).After(time.Now()) {
 
 				// Don't make the JWT parsing goroutine wait for the JWKs to refresh.
 				cancel()
@@ -111,7 +111,7 @@ func (j *JWKs) backgroundRefresh() {
 
 						// Wait for the next time to refresh.
 						refreshMux.Lock()
-						wait := time.Until(lastRefresh.Add(*j.refreshRateLimit))
+						wait := time.Until(lastRefresh.Add(j.refreshRateLimit))
 						refreshMux.Unlock()
 						select {
 						case <-j.ctx.Done():
@@ -162,9 +162,9 @@ func (j *JWKs) refresh() (err error) {
 	var ctx context.Context
 	var cancel context.CancelFunc
 	if j.ctx != nil {
-		ctx, cancel = context.WithTimeout(j.ctx, *j.refreshTimeout)
+		ctx, cancel = context.WithTimeout(j.ctx, j.refreshTimeout)
 	} else {
-		ctx, cancel = context.WithTimeout(context.Background(), *j.refreshTimeout)
+		ctx, cancel = context.WithTimeout(context.Background(), j.refreshTimeout)
 	}
 	defer cancel()
 

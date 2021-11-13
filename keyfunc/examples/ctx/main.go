@@ -19,7 +19,7 @@ func main() {
 	// seconds. This timeout is also used to create the initial context.Context for keyfunc.Get.
 	refreshTimeout := time.Second * 10
 	options := keyfunc.Options{
-		RefreshTimeout: &refreshTimeout,
+		RefreshTimeout: refreshTimeout,
 		RefreshErrorHandler: func(err error) {
 			log.Printf("There was an error with the jwt.Keyfunc\nError: %s", err.Error())
 		},

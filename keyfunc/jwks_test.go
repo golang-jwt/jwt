@@ -52,7 +52,7 @@ func TestInvalidServer(t *testing.T) {
 	// Set the options to refresh KID when unknown.
 	refreshInterval := time.Second
 	options := keyfunc.Options{
-		RefreshInterval:     &refreshInterval,
+		RefreshInterval:     refreshInterval,
 		RefreshErrorHandler: testingRefreshErrorHandler,
 	}
 
@@ -116,13 +116,13 @@ func TestJWKs(t *testing.T) {
 			RefreshErrorHandler: testingRefreshErrorHandler,
 		},
 		{
-			RefreshInterval: &testingRefreshInterval,
+			RefreshInterval: testingRefreshInterval,
 		},
 		{
-			RefreshRateLimit: &testingRateLimit,
+			RefreshRateLimit: testingRateLimit,
 		},
 		{
-			RefreshTimeout: &testingRefreshTimeout,
+			RefreshTimeout: testingRefreshTimeout,
 		},
 	}
 
@@ -155,8 +155,8 @@ func TestJWKs(t *testing.T) {
 		}
 
 		// Wait for the interval to pass, if required.
-		if opts.RefreshInterval != nil {
-			time.Sleep(*opts.RefreshInterval)
+		if opts.RefreshInterval != 0 {
+			time.Sleep(opts.RefreshInterval)
 		}
 
 		// Iterate through the test cases.
@@ -279,9 +279,9 @@ func TestRateLimit(t *testing.T) {
 		RefreshErrorHandler: func(err error) {
 			t.Errorf("The package itself had an error.\nError: %s", err.Error())
 		},
-		RefreshInterval:   &refreshInterval,
-		RefreshRateLimit:  &refreshRateLimit,
-		RefreshTimeout:    &refreshTimeout,
+		RefreshInterval:   refreshInterval,
+		RefreshRateLimit:  refreshRateLimit,
+		RefreshTimeout:    refreshTimeout,
 		RefreshUnknownKID: &refreshUnknownKID,
 	}
 
