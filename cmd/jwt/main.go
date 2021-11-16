@@ -14,6 +14,7 @@ import (
 	"io/ioutil"
 	"os"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -21,7 +22,7 @@ import (
 
 var (
 	// Options
-	flagAlg     = flag.String("alg", "", "signing algorithm identifier")
+	flagAlg     = flag.String("alg", "", algHelp())
 	flagKey     = flag.String("key", "", "path to key file or '-' to read from stdin")
 	flagCompact = flag.Bool("compact", false, "output compact JSON")
 	flagDebug   = flag.Bool("debug", false, "print out all kinds of debug data")
@@ -305,6 +306,25 @@ func isEd() bool {
 
 func isNone() bool {
 	return *flagAlg == "none"
+}
+
+func algHelp() string {
+	algs := jwt.GetAlgorithms()
+	sort.Strings(algs)
+
+	var b strings.Builder
+	b.WriteString("signing algorithm identifier, one of\n")
+	for i, alg := range algs {
+		if i > 0 {
+			if i%7 == 0 {
+				b.WriteString(",\n")
+			} else {
+				b.WriteString(", ")
+			}
+		}
+		b.WriteString(alg)
+	}
+	return b.String()
 }
 
 type ArgList map[string]string
