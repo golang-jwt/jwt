@@ -113,6 +113,12 @@ func (c *RegisteredClaims) VerifyNotBefore(cmp time.Time, req bool) bool {
 	return verifyNbf(&c.NotBefore.Time, cmp, req)
 }
 
+// VerifyIssuer compares the iss claim against cmp.
+// If required is false, this method will return true if the value matches or is unset
+func (c *RegisteredClaims) VerifyIssuer(cmp string, req bool) bool {
+	return verifyIss(c.Issuer, cmp, req)
+}
+
 // StandardClaims are a structured version of the JWT Claims Set, as referenced at
 // https://datatracker.ietf.org/doc/html/rfc7519#section-4. They do not follow the
 // specification exactly, since they were based on an earlier draft of the
