@@ -4,6 +4,7 @@ import (
 	"crypto"
 	"crypto/rsa"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 	"testing"
@@ -325,6 +326,7 @@ func TestParser_Parse(t *testing.T) {
 
 			// Parse the token
 			var token *jwt.Token
+			var ve *jwt.ValidationError
 			var err error
 			var parser = data.parser
 			if parser == nil {
@@ -361,15 +363,15 @@ func TestParser_Parse(t *testing.T) {
 				if err == nil {
 					t.Errorf("[%v] Expecting error. Didn't get one.", data.name)
 				} else {
+					if errors.As(err, &ve) {
+						// compare the bitfield part of the error
+						if e := ve.Errors; e != data.errors {
+							t.Errorf("[%v] Errors don't match expectation.  %v != %v", data.name, e, data.errors)
+						}
 
-					ve := err.(*jwt.ValidationError)
-					// compare the bitfield part of the error
-					if e := ve.Errors; e != data.errors {
-						t.Errorf("[%v] Errors don't match expectation.  %v != %v", data.name, e, data.errors)
-					}
-
-					if err.Error() == errKeyFuncError.Error() && ve.Inner != errKeyFuncError {
-						t.Errorf("[%v] Inner error does not match expectation.  %v != %v", data.name, ve.Inner, errKeyFuncError)
+						if err.Error() == errKeyFuncError.Error() && ve.Inner != errKeyFuncError {
+							t.Errorf("[%v] Inner error does not match expectation.  %v != %v", data.name, ve.Inner, errKeyFuncError)
+						}
 					}
 				}
 			}
