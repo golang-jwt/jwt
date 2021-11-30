@@ -14,9 +14,13 @@ var (
 	ErrTokenUnverifiable     = errors.New("token is unverifiable")
 	ErrTokenSignatureInvalid = errors.New("token signature is invalid")
 
+	ErrTokenInvalidAudience  = errors.New("token has invalid audience")
 	ErrTokenExpired          = errors.New("token is expired")
 	ErrTokenUsedBeforeIssued = errors.New("token used before issued")
+	ErrTokenInvalidIssuer    = errors.New("token has invalid issuer")
 	ErrTokenNotValidYet      = errors.New("token is not valid yet")
+	ErrTokenInvalidId        = errors.New("token has invalid id")
+	ErrTokenInvalidClaims    = errors.New("token has invalid claims")
 )
 
 // The errors that might occur when parsing and validating a token
@@ -71,9 +75,9 @@ func (e *ValidationError) valid() bool {
 	return e.Errors == 0
 }
 
-// Is checks if this ValidationError is of the supplied error type. We are first checking for the exact error message
-// by suppling the inner message. If that fails, we the error flags. This way we can supply custom error messages
-// and still use errors.Is using the pre-supplied error variables.
+// Is checks if this ValidationError is of the supplied error. We are first checking for the exact error message
+// by comparing the inner error message. If that fails, we compare using the error flags. This way we can use
+// custom error messages (mainly for backwards compatability) and still leverage errors.Is using the global error variables.
 func (e *ValidationError) Is(err error) bool {
 	// Check, if our inner error is a direct match
 	if errors.Is(errors.Unwrap(e), err) {
@@ -88,12 +92,20 @@ func (e *ValidationError) Is(err error) bool {
 		return e.Errors&ValidationErrorUnverifiable != 0
 	case ErrTokenSignatureInvalid:
 		return e.Errors&ValidationErrorSignatureInvalid != 0
+	case ErrTokenInvalidAudience:
+		return e.Errors&ValidationErrorAudience != 0
 	case ErrTokenExpired:
 		return e.Errors&ValidationErrorExpired != 0
-	case ErrTokenNotValidYet:
-		return e.Errors&ValidationErrorNotValidYet != 0
 	case ErrTokenUsedBeforeIssued:
 		return e.Errors&ValidationErrorIssuedAt != 0
+	case ErrTokenInvalidIssuer:
+		return e.Errors&ValidationErrorIssuer != 0
+	case ErrTokenNotValidYet:
+		return e.Errors&ValidationErrorNotValidYet != 0
+	case ErrTokenInvalidId:
+		return e.Errors&ValidationErrorId != 0
+	case ErrTokenInvalidClaims:
+		return e.Errors&ValidationErrorClaimsInvalid != 0
 	}
 
 	return false
