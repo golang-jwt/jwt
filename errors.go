@@ -87,7 +87,7 @@ func (e *ValidationError) Is(err error) bool {
 	case ErrTokenUnverifiable:
 		return e.Errors&ValidationErrorUnverifiable != 0
 	case ErrTokenSignatureInvalid:
-		return e.Errors&ValidationErrorUnverifiable != 0
+		return e.Errors&ValidationErrorSignatureInvalid != 0
 	case ErrTokenExpired:
 		return e.Errors&ValidationErrorExpired != 0
 	case ErrTokenNotValidYet:
