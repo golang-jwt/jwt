@@ -1,5 +1,7 @@
 package jwt
 
+import "time"
+
 // ParserOption is used to implement functional-style options that modify the behaviour of the parser. To add
 // new options, just create a function (ideally beginning with With or Without) that returns an anonymous function that
 // takes a *Parser type as input and manipulates its configuration accordingly.
@@ -25,5 +27,11 @@ func WithJSONNumber() ParserOption {
 func WithoutClaimsValidation() ParserOption {
 	return func(p *Parser) {
 		p.SkipClaimsValidation = true
+	}
+}
+
+func WithLeeway(d time.Duration) ParserOption {
+	return func(p *Parser) {
+		p.options = append(p.options, &ClaimsValidationOptions{Leeway: d})
 	}
 }
