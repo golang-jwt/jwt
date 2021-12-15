@@ -58,7 +58,7 @@ func (e MultiExtractor) ExtractToken(req *http.Request) (string, error) {
 	for _, extractor := range e {
 		if tok, err := extractor.ExtractToken(req); tok != "" {
 			return tok, nil
-		} else if err != ErrNoTokenInRequest {
+		} else if !errors.Is(err, ErrNoTokenInRequest) {
 			return "", err
 		}
 	}
