@@ -190,8 +190,9 @@ func (c *StandardClaims) VerifyAudience(cmp string, req bool) bool {
 // If req is false, it will return true, if exp is unset.
 func (c *StandardClaims) VerifyExpiresAt(cmp int64, req bool, opts ...*ValidatorOptions) bool {
 	var s time.Duration
-	if len(opts) > 0 && opts[0] != nil {
-		s = opts[0].Leeway
+	o := MergeValidatorOptions(opts...)
+	if o != nil {
+		s = o.Leeway
 	}
 	if c.ExpiresAt == 0 {
 		return verifyExp(nil, time.Unix(cmp, 0), req, s)
@@ -216,8 +217,9 @@ func (c *StandardClaims) VerifyIssuedAt(cmp int64, req bool) bool {
 // If req is false, it will return true, if nbf is unset.
 func (c *StandardClaims) VerifyNotBefore(cmp int64, req bool, opts ...*ValidatorOptions) bool {
 	var s time.Duration
-	if len(opts) > 0 && opts[0] != nil {
-		s = opts[0].Leeway
+	o := MergeValidatorOptions(opts...)
+	if o != nil {
+		s = o.Leeway
 	}
 	if c.NotBefore == 0 {
 		return verifyNbf(nil, time.Unix(cmp, 0), req, s)
