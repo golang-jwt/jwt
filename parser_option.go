@@ -32,6 +32,6 @@ func WithoutClaimsValidation() ParserOption {
 
 func WithLeeway(d time.Duration) ParserOption {
 	return func(p *Parser) {
-		p.options = append(p.options, &ClaimsValidationOptions{Leeway: d})
+		p.options = append(p.options, &ValidatorOptions{Leeway: d})
 	}
 }

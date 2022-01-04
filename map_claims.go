@@ -34,7 +34,7 @@ func (m MapClaims) VerifyAudience(cmp string, req bool) bool {
 
 // VerifyExpiresAt compares the exp claim against cmp (cmp <= exp).
 // If req is false, it will return true, if exp is unset.
-func (m MapClaims) VerifyExpiresAt(cmp int64, req bool, opts ...*ClaimsValidationOptions) bool {
+func (m MapClaims) VerifyExpiresAt(cmp int64, req bool, opts ...*ValidatorOptions) bool {
 	cmpTime := time.Unix(cmp, 0)
 
 	v, ok := m["exp"]
@@ -43,8 +43,9 @@ func (m MapClaims) VerifyExpiresAt(cmp int64, req bool, opts ...*ClaimsValidatio
 	}
 
 	var s time.Duration
-	if len(opts) > 0 && opts[0] != nil {
-		s = opts[0].Leeway
+	o := MergeValidatorOptions(opts...)
+	if o != nil {
+		s = o.Leeway
 	}
 
 	switch exp := v.(type) {
@@ -91,7 +92,7 @@ func (m MapClaims) VerifyIssuedAt(cmp int64, req bool) bool {
 
 // VerifyNotBefore compares the nbf claim against cmp (cmp >= nbf).
 // If req is false, it will return true, if nbf is unset.
-func (m MapClaims) VerifyNotBefore(cmp int64, req bool, opts ...*ClaimsValidationOptions) bool {
+func (m MapClaims) VerifyNotBefore(cmp int64, req bool, opts ...*ValidatorOptions) bool {
 	cmpTime := time.Unix(cmp, 0)
 
 	v, ok := m["nbf"]
@@ -100,8 +101,9 @@ func (m MapClaims) VerifyNotBefore(cmp int64, req bool, opts ...*ClaimsValidatio
 	}
 
 	var s time.Duration
-	if len(opts) > 0 && opts[0] != nil {
-		s = opts[0].Leeway
+	o := MergeValidatorOptions(opts...)
+	if o != nil {
+		s = o.Leeway
 	}
 
 	switch nbf := v.(type) {
@@ -131,7 +133,7 @@ func (m MapClaims) VerifyIssuer(cmp string, req bool) bool {
 // There is no accounting for clock skew.
 // As well, if any of the above claims are not in the token, it will still
 // be considered a valid claim.
-func (m MapClaims) Valid(opts ...*ClaimsValidationOptions) error {
+func (m MapClaims) Valid(opts ...*ValidatorOptions) error {
 	vErr := new(ValidationError)
 	now := TimeFunc().Unix()
 
