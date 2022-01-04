@@ -51,10 +51,11 @@ type RegisteredClaims struct {
 func (c RegisteredClaims) Valid(opts ...*ValidatorOptions) error {
 	vErr := new(ValidationError)
 	now := TimeFunc()
+	o := MergeValidatorOptions(opts...)
 
 	// The claims below are optional, by default, so if they are set to the
 	// default value in Go, let's not fail the verification for them.
-	if !c.VerifyExpiresAt(now, false, opts...) {
+	if !c.VerifyExpiresAt(now, false, o) {
 		delta := now.Sub(c.ExpiresAt.Time)
 		vErr.Inner = fmt.Errorf("token is expired by %v", delta)
 		vErr.Errors |= ValidationErrorExpired
@@ -65,7 +66,7 @@ func (c RegisteredClaims) Valid(opts ...*ValidatorOptions) error {
 		vErr.Errors |= ValidationErrorIssuedAt
 	}
 
-	if !c.VerifyNotBefore(now, false, opts...) {
+	if !c.VerifyNotBefore(now, false, o) {
 		vErr.Inner = fmt.Errorf("token is not valid yet")
 		vErr.Errors |= ValidationErrorNotValidYet
 	}
@@ -154,10 +155,11 @@ type StandardClaims struct {
 func (c StandardClaims) Valid(opts ...*ValidatorOptions) error {
 	vErr := new(ValidationError)
 	now := TimeFunc().Unix()
+	o := MergeValidatorOptions(opts...)
 
 	// The claims below are optional, by default, so if they are set to the
 	// default value in Go, let's not fail the verification for them.
-	if !c.VerifyExpiresAt(now, false, opts...) {
+	if !c.VerifyExpiresAt(now, false, o) {
 		delta := time.Unix(now, 0).Sub(time.Unix(c.ExpiresAt, 0))
 		vErr.Inner = fmt.Errorf("token is expired by %v", delta)
 		vErr.Errors |= ValidationErrorExpired
@@ -168,7 +170,7 @@ func (c StandardClaims) Valid(opts ...*ValidatorOptions) error {
 		vErr.Errors |= ValidationErrorIssuedAt
 	}
 
-	if !c.VerifyNotBefore(now, false, opts...) {
+	if !c.VerifyNotBefore(now, false, o) {
 		vErr.Inner = fmt.Errorf("token is not valid yet")
 		vErr.Errors |= ValidationErrorNotValidYet
 	}

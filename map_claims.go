@@ -136,8 +136,9 @@ func (m MapClaims) VerifyIssuer(cmp string, req bool) bool {
 func (m MapClaims) Valid(opts ...*ValidatorOptions) error {
 	vErr := new(ValidationError)
 	now := TimeFunc().Unix()
+	o := MergeValidatorOptions(opts...)
 
-	if !m.VerifyExpiresAt(now, false, opts...) {
+	if !m.VerifyExpiresAt(now, false, o) {
 		vErr.Inner = errors.New("Token is expired")
 		vErr.Errors |= ValidationErrorExpired
 	}
@@ -147,7 +148,7 @@ func (m MapClaims) Valid(opts ...*ValidatorOptions) error {
 		vErr.Errors |= ValidationErrorIssuedAt
 	}
 
-	if !m.VerifyNotBefore(now, false, opts...) {
+	if !m.VerifyNotBefore(now, false, o) {
 		vErr.Inner = errors.New("Token is not valid yet")
 		vErr.Errors |= ValidationErrorNotValidYet
 	}
