@@ -89,7 +89,7 @@ func (c *RegisteredClaims) VerifyExpiresAt(cmp time.Time, req bool, opts ...*Val
 	var s time.Duration
 	o := MergeValidatorOptions(opts...)
 	if o != nil {
-		s = o.Leeway
+		s = o.leeway
 	}
 	if c.ExpiresAt == nil {
 		return verifyExp(nil, cmp, req, s)
@@ -114,7 +114,7 @@ func (c *RegisteredClaims) VerifyNotBefore(cmp time.Time, req bool, opts ...*Val
 	var s time.Duration
 	o := MergeValidatorOptions(opts...)
 	if o != nil {
-		s = o.Leeway
+		s = o.leeway
 	}
 	if c.NotBefore == nil {
 		return verifyNbf(nil, cmp, req, s)
@@ -192,7 +192,7 @@ func (c *StandardClaims) VerifyExpiresAt(cmp int64, req bool, opts ...*Validator
 	var s time.Duration
 	o := MergeValidatorOptions(opts...)
 	if o != nil {
-		s = o.Leeway
+		s = o.leeway
 	}
 	if c.ExpiresAt == 0 {
 		return verifyExp(nil, time.Unix(cmp, 0), req, s)
@@ -219,7 +219,7 @@ func (c *StandardClaims) VerifyNotBefore(cmp int64, req bool, opts ...*Validator
 	var s time.Duration
 	o := MergeValidatorOptions(opts...)
 	if o != nil {
-		s = o.Leeway
+		s = o.leeway
 	}
 	if c.NotBefore == 0 {
 		return verifyNbf(nil, time.Unix(cmp, 0), req, s)

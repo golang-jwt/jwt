@@ -4,11 +4,15 @@ import "time"
 
 // ValidatorOptions represents options that can be used for claims validation
 type ValidatorOptions struct {
-	Leeway time.Duration
+	leeway time.Duration  // Leeway to provide when validating time values
 }
 
 func Validator() *ValidatorOptions {
 	return &ValidatorOptions{}
+}
+
+func (v *ValidatorOptions) SetLeeway(d time.Duration) {
+	v.leeway = d
 }
 
 // MergeValidatorOptions combines the given ValidatorOptions instances into a single ValidatorOptions
@@ -19,8 +23,8 @@ func MergeValidatorOptions(opts ...*ValidatorOptions) *ValidatorOptions {
 		if opt == nil {
 			continue
 		}
-		if opt.Leeway != 0 {
-			v.Leeway = opt.Leeway
+		if opt.leeway != 0 {
+			v.SetLeeway(opt.leeway)
 		}
 	}
 	return v

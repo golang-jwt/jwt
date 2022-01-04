@@ -45,7 +45,7 @@ func (m MapClaims) VerifyExpiresAt(cmp int64, req bool, opts ...*ValidatorOption
 	var s time.Duration
 	o := MergeValidatorOptions(opts...)
 	if o != nil {
-		s = o.Leeway
+		s = o.leeway
 	}
 
 	switch exp := v.(type) {
@@ -103,7 +103,7 @@ func (m MapClaims) VerifyNotBefore(cmp int64, req bool, opts ...*ValidatorOption
 	var s time.Duration
 	o := MergeValidatorOptions(opts...)
 	if o != nil {
-		s = o.Leeway
+		s = o.leeway
 	}
 
 	switch nbf := v.(type) {
