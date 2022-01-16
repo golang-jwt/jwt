@@ -3,7 +3,7 @@ package jwt_test
 import (
 	"testing"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 func TestToken_SigningString(t1 *testing.T) {
