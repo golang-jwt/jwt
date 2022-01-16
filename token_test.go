@@ -70,6 +70,8 @@ func BenchmarkToken_SigningString(b *testing.B) {
 		Claims:    jwt.StandardClaims{},
 	}
 	b.Run("BenchmarkToken_SigningString", func(b *testing.B) {
+		b.ResetTimer()
+		b.ReportAllocs()
 		for i := 0; i<b.N; i++ {
 			t.SigningString()
 		}
