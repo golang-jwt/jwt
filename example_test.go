@@ -1,6 +1,7 @@
 package jwt_test
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -103,15 +104,11 @@ func ExampleParse_errorChecking() {
 
 	if token.Valid {
 		fmt.Println("You look nice today")
-	} else if ve, ok := err.(*jwt.ValidationError); ok {
-		if ve.Errors&jwt.ValidationErrorMalformed != 0 {
-			fmt.Println("That's not even a token")
-		} else if ve.Errors&(jwt.ValidationErrorExpired|jwt.ValidationErrorNotValidYet) != 0 {
-			// Token is either expired or not active yet
-			fmt.Println("Timing is everything")
-		} else {
-			fmt.Println("Couldn't handle this token:", err)
-		}
+	} else if errors.Is(err, jwt.ErrTokenMalformed) {
+		fmt.Println("That's not even a token")
+	} else if errors.Is(err, jwt.ErrTokenExpired) || errors.Is(err, jwt.ErrTokenNotValidYet) {
+		// Token is either expired or not active yet
+		fmt.Println("Timing is everything")
 	} else {
 		fmt.Println("Couldn't handle this token:", err)
 	}
