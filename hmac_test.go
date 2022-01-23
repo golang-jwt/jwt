@@ -48,17 +48,21 @@ var hmacTestData = []struct {
 // Sample data from http://tools.ietf.org/html/draft-jones-json-web-signature-04#appendix-A.1
 var hmacTestKey, _ = ioutil.ReadFile("test/hmacTestKey")
 
+var hmacTestKeyString = string(hmacTestKey)
+
 func TestHMACVerify(t *testing.T) {
 	for _, data := range hmacTestData {
 		parts := strings.Split(data.tokenString, ".")
 
 		method := jwt.GetSigningMethod(data.alg)
-		err := method.Verify(strings.Join(parts[0:2], "."), parts[2], hmacTestKey)
-		if data.valid && err != nil {
-			t.Errorf("[%v] Error while verifying key: %v", data.name, err)
-		}
-		if !data.valid && err == nil {
-			t.Errorf("[%v] Invalid key passed validation", data.name)
+		for _, hmacTestKey := range []interface{}{hmacTestKey, hmacTestKeyString} {
+			err := method.Verify(strings.Join(parts[0:2], "."), parts[2], hmacTestKey)
+			if data.valid && err != nil {
+				t.Errorf("[%v] Error while verifying key: %v", data.name, err)
+			}
+			if !data.valid && err == nil {
+				t.Errorf("[%v] Invalid key passed validation", data.name)
+			}
 		}
 	}
 }
@@ -68,12 +72,14 @@ func TestHMACSign(t *testing.T) {
 		if data.valid {
 			parts := strings.Split(data.tokenString, ".")
 			method := jwt.GetSigningMethod(data.alg)
-			sig, err := method.Sign(strings.Join(parts[0:2], "."), hmacTestKey)
-			if err != nil {
-				t.Errorf("[%v] Error signing token: %v", data.name, err)
-			}
-			if sig != parts[2] {
-				t.Errorf("[%v] Incorrect signature.\nwas:\n%v\nexpecting:\n%v", data.name, sig, parts[2])
+			for _, hmacTestKey := range []interface{}{hmacTestKey, hmacTestKeyString} {
+				sig, err := method.Sign(strings.Join(parts[0:2], "."), hmacTestKey)
+				if err != nil {
+					t.Errorf("[%v] Error signing token: %v", data.name, err)
+				}
+				if sig != parts[2] {
+					t.Errorf("[%v] Incorrect signature.\nwas:\n%v\nexpecting:\n%v", data.name, sig, parts[2])
+				}
 			}
 		}
 	}
