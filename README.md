@@ -55,6 +55,7 @@ A common use case would be integrating with different 3rd party signature provid
 | GCP       | Integrates with multiple Google Cloud Platform signing tools (AppEngine, IAM API, Cloud KMS) | https://github.com/someone1/gcp-jwt-go     |
 | AWS       | Integrates with AWS Key Management Service, KMS                                              | https://github.com/matelang/jwt-go-aws-kms |
 
+*Disclaimer*: Unless otherwise specified, these integrations are maintained by third parties and should not be considered as a primary offer by any of the mentioned cloud providers
 
 ## Compliance
 
