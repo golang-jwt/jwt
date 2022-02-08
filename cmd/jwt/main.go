@@ -7,6 +7,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -16,6 +17,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"unicode"
 
 	"github.com/golang-jwt/jwt/v4"
 )
@@ -142,6 +144,8 @@ func verifyToken() error {
 			return jwt.ParseRSAPublicKeyFromPEM(data)
 		} else if isEd() {
 			return jwt.ParseEdPublicKeyFromPEM(data)
+		} else if isHs() {
+			return parseHSKey(data)
 		}
 		return data, nil
 	})
@@ -196,9 +200,19 @@ func signToken() error {
 
 	// get the key
 	var key interface{}
-	if isNone() {
+	switch {
+	case isNone():
 		key = jwt.UnsafeAllowNoneSignatureType
-	} else {
+	case isHs():
+		kb, err := loadData(*flagKey)
+		if err != nil {
+			return fmt.Errorf("couldn't read key: %w", err)
+		}
+		key, err = parseHSKey(kb)
+		if err != nil {
+			return err
+		}
+	default:
 		key, err = loadData(*flagKey)
 		if err != nil {
 			return fmt.Errorf("couldn't read key: %w", err)
@@ -292,6 +306,10 @@ func showToken() error {
 	return nil
 }
 
+func isHs() bool {
+	return strings.HasPrefix(*flagAlg, "HS")
+}
+
 func isEs() bool {
 	return strings.HasPrefix(*flagAlg, "ES")
 }
@@ -341,4 +359,18 @@ func (l ArgList) Set(arg string) error {
 	}
 	l[parts[0]] = parts[1]
 	return nil
+}
+
+func parseHSKey(b []byte) ([]byte, error) {
+	if len(b) == 0 {
+		return nil, fmt.Errorf("shared key is empty")
+	}
+	f := func(c rune) bool {
+		return unicode.IsSpace(c)
+	}
+	i := bytes.IndexFunc(b, f)
+	if i < 0 {
+		return b, nil
+	}
+	return b[:i], nil
 }
