@@ -49,9 +49,13 @@ func newNumericDateFromSeconds(f float64) *NumericDate {
 // MarshalJSON is an implementation of the json.RawMessage interface and serializes the UNIX epoch
 // represented in NumericDate to a byte array, using the precision specified in TimePrecision.
 func (date NumericDate) MarshalJSON() (b []byte, err error) {
+	prec := -1
+	if TimePrecision == time.Second {
+		prec = 0
+	}
 	f := float64(date.Truncate(TimePrecision).UnixNano()) / float64(time.Second)
 
-	return []byte(strconv.FormatFloat(f, 'f', -1, 64)), nil
+	return []byte(strconv.FormatFloat(f, 'f', prec, 64)), nil
 }
 
 // UnmarshalJSON is an implementation of the json.RawMessage interface and deserializses a
