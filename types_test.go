@@ -65,3 +65,49 @@ func TestSingleArrayMarshal(t *testing.T) {
 		t.Errorf("Serialized format of string array mismatch. Expecting: %s  Got: %s", string(expected), string(b))
 	}
 }
+
+func TestNumericDate_MarshalJSON(t *testing.T) {
+	// Do not run this test in parallel because it's changing
+	// global state.
+	oldPrecision := jwt.TimePrecision
+	t.Cleanup(func() {
+		jwt.TimePrecision = oldPrecision
+	})
+
+	tt := []struct {
+		in        time.Time
+		want      string
+		precision time.Duration
+	}{
+		{time.Unix(5243700879, 0), "5243700879", time.Second},
+		{time.Unix(5243700879, 0), "5243700879.000001", time.Millisecond},
+		{time.Unix(5243700879, 0), "5243700879.000001", time.Microsecond},
+		{time.Unix(5243700879, 0), "5243700879.000001", time.Nanosecond},
+		//
+		{time.Unix(4239425898, 0), "4239425898", time.Second},
+		{time.Unix(4239425898, 0), "4239425898", time.Millisecond},
+		{time.Unix(4239425898, 0), "4239425898", time.Microsecond},
+		{time.Unix(4239425898, 0), "4239425898", time.Nanosecond},
+		//
+		{time.Unix(0, 1644285000210402000), "1644285000", time.Second},
+		{time.Unix(0, 1644285000210402000), "1644285000.2099998", time.Millisecond},
+		{time.Unix(0, 1644285000210402000), "1644285000.210402", time.Microsecond},
+		{time.Unix(0, 1644285000210402000), "1644285000.210402", time.Nanosecond},
+		//
+		{time.Unix(0, 1644285315063096000), "1644285315", time.Second},
+		{time.Unix(0, 1644285315063096000), "1644285315.063", time.Millisecond},
+		{time.Unix(0, 1644285315063096000), "1644285315.063096", time.Microsecond},
+		{time.Unix(0, 1644285315063096000), "1644285315.063096", time.Nanosecond},
+	}
+
+	for i, tc := range tt {
+		jwt.TimePrecision = tc.precision
+		by, err := jwt.NewNumericDate(tc.in).MarshalJSON()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got := string(by); got != tc.want {
+			t.Fatalf("[%d]: failed encoding: got %q want %q", i, got, tc.want)
+		}
+	}
+}
