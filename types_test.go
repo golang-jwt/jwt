@@ -18,12 +18,10 @@ func TestNumericDate(t *testing.T) {
 
 	jwt.TimePrecision = time.Microsecond
 
-	raw := `{"iat":1516239022,"exp":1516239022.12345}`
+	raw := `{"iat":1516239022.000000,"exp":1516239022.123450}`
 
-	err := json.Unmarshal([]byte(raw), &s)
-
-	if err != nil {
-		t.Errorf("Unexpected error: %s", err)
+	if err := json.Unmarshal([]byte(raw), &s); err != nil {
+		t.Fatalf("Unexpected error: %s", err)
 	}
 
 	b, _ := json.Marshal(s)
