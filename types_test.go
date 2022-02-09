@@ -80,24 +80,24 @@ func TestNumericDate_MarshalJSON(t *testing.T) {
 		precision time.Duration
 	}{
 		{time.Unix(5243700879, 0), "5243700879", time.Second},
-		{time.Unix(5243700879, 0), "5243700879.000001", time.Millisecond},
+		{time.Unix(5243700879, 0), "5243700879.000", time.Millisecond},
 		{time.Unix(5243700879, 0), "5243700879.000001", time.Microsecond},
-		{time.Unix(5243700879, 0), "5243700879.000001", time.Nanosecond},
+		{time.Unix(5243700879, 0), "5243700879.000000954", time.Nanosecond},
 		//
 		{time.Unix(4239425898, 0), "4239425898", time.Second},
-		{time.Unix(4239425898, 0), "4239425898", time.Millisecond},
-		{time.Unix(4239425898, 0), "4239425898", time.Microsecond},
-		{time.Unix(4239425898, 0), "4239425898", time.Nanosecond},
+		{time.Unix(4239425898, 0), "4239425898.000", time.Millisecond},
+		{time.Unix(4239425898, 0), "4239425898.000000", time.Microsecond},
+		{time.Unix(4239425898, 0), "4239425898.000000000", time.Nanosecond},
 		//
 		{time.Unix(0, 1644285000210402000), "1644285000", time.Second},
-		{time.Unix(0, 1644285000210402000), "1644285000.2099998", time.Millisecond},
+		{time.Unix(0, 1644285000210402000), "1644285000.210", time.Millisecond},
 		{time.Unix(0, 1644285000210402000), "1644285000.210402", time.Microsecond},
-		{time.Unix(0, 1644285000210402000), "1644285000.210402", time.Nanosecond},
+		{time.Unix(0, 1644285000210402000), "1644285000.210402012", time.Nanosecond},
 		//
 		{time.Unix(0, 1644285315063096000), "1644285315", time.Second},
 		{time.Unix(0, 1644285315063096000), "1644285315.063", time.Millisecond},
 		{time.Unix(0, 1644285315063096000), "1644285315.063096", time.Microsecond},
-		{time.Unix(0, 1644285315063096000), "1644285315.063096", time.Nanosecond},
+		{time.Unix(0, 1644285315063096000), "1644285315.063096046", time.Nanosecond},
 	}
 
 	for i, tc := range tt {
@@ -107,7 +107,7 @@ func TestNumericDate_MarshalJSON(t *testing.T) {
 			t.Fatal(err)
 		}
 		if got := string(by); got != tc.want {
-			t.Fatalf("[%d]: failed encoding: got %q want %q", i, got, tc.want)
+			t.Errorf("[%d]: failed encoding: got %q want %q", i, got, tc.want)
 		}
 	}
 }
