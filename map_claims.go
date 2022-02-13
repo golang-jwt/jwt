@@ -34,7 +34,7 @@ func (m MapClaims) VerifyAudience(cmp string, req bool) bool {
 
 // VerifyExpiresAt compares the exp claim against cmp (cmp <= exp).
 // If req is false, it will return true, if exp is unset.
-func (m MapClaims) VerifyExpiresAt(cmp int64, req bool, opts ...*ValidatorOptions) bool {
+func (m MapClaims) VerifyExpiresAt(cmp int64, req bool, opts ...ValidatorOption) bool {
 	cmpTime := time.Unix(cmp, 0)
 
 	v, ok := m["exp"]
@@ -42,23 +42,22 @@ func (m MapClaims) VerifyExpiresAt(cmp int64, req bool, opts ...*ValidatorOption
 		return !req
 	}
 
-	var s time.Duration
-	o := MergeValidatorOptions(opts...)
-	if o != nil {
-		s = o.leeway
+	validator := ValidatorOptions{}
+	for _, o := range opts {
+		o(&validator)
 	}
 
 	switch exp := v.(type) {
 	case float64:
 		if exp == 0 {
-			return verifyExp(nil, cmpTime, req, s)
+			return verifyExp(nil, cmpTime, req, validator.leeway)
 		}
 
-		return verifyExp(&newNumericDateFromSeconds(exp).Time, cmpTime, req, s)
+		return verifyExp(&newNumericDateFromSeconds(exp).Time, cmpTime, req, validator.leeway)
 	case json.Number:
 		v, _ := exp.Float64()
 
-		return verifyExp(&newNumericDateFromSeconds(v).Time, cmpTime, req, s)
+		return verifyExp(&newNumericDateFromSeconds(v).Time, cmpTime, req, validator.leeway)
 	}
 
 	return false
@@ -92,7 +91,7 @@ func (m MapClaims) VerifyIssuedAt(cmp int64, req bool) bool {
 
 // VerifyNotBefore compares the nbf claim against cmp (cmp >= nbf).
 // If req is false, it will return true, if nbf is unset.
-func (m MapClaims) VerifyNotBefore(cmp int64, req bool, opts ...*ValidatorOptions) bool {
+func (m MapClaims) VerifyNotBefore(cmp int64, req bool, opts ...ValidatorOption) bool {
 	cmpTime := time.Unix(cmp, 0)
 
 	v, ok := m["nbf"]
@@ -100,23 +99,22 @@ func (m MapClaims) VerifyNotBefore(cmp int64, req bool, opts ...*ValidatorOption
 		return !req
 	}
 
-	var s time.Duration
-	o := MergeValidatorOptions(opts...)
-	if o != nil {
-		s = o.leeway
+	validator := ValidatorOptions{}
+	for _, o := range opts {
+		o(&validator)
 	}
 
 	switch nbf := v.(type) {
 	case float64:
 		if nbf == 0 {
-			return verifyNbf(nil, cmpTime, req, s)
+			return verifyNbf(nil, cmpTime, req, validator.leeway)
 		}
 
-		return verifyNbf(&newNumericDateFromSeconds(nbf).Time, cmpTime, req, s)
+		return verifyNbf(&newNumericDateFromSeconds(nbf).Time, cmpTime, req, validator.leeway)
 	case json.Number:
 		v, _ := nbf.Float64()
 
-		return verifyNbf(&newNumericDateFromSeconds(v).Time, cmpTime, req, s)
+		return verifyNbf(&newNumericDateFromSeconds(v).Time, cmpTime, req, validator.leeway)
 	}
 
 	return false
@@ -133,12 +131,11 @@ func (m MapClaims) VerifyIssuer(cmp string, req bool) bool {
 // There is no accounting for clock skew.
 // As well, if any of the above claims are not in the token, it will still
 // be considered a valid claim.
-func (m MapClaims) Valid(opts ...*ValidatorOptions) error {
+func (m MapClaims) Valid(opts ...ValidatorOption) error {
 	vErr := new(ValidationError)
 	now := TimeFunc().Unix()
-	o := MergeValidatorOptions(opts...)
 
-	if !m.VerifyExpiresAt(now, false, o) {
+	if !m.VerifyExpiresAt(now, false, opts...) {
 		// TODO(oxisto): this should be replaced with ErrTokenExpired
 		vErr.Inner = errors.New("Token is expired")
 		vErr.Errors |= ValidationErrorExpired
@@ -150,7 +147,7 @@ func (m MapClaims) Valid(opts ...*ValidatorOptions) error {
 		vErr.Errors |= ValidationErrorIssuedAt
 	}
 
-	if !m.VerifyNotBefore(now, false, o) {
+	if !m.VerifyNotBefore(now, false, opts...) {
 		// TODO(oxisto): this should be replaced with ErrTokenNotValidYet
 		vErr.Inner = errors.New("Token is not valid yet")
 		vErr.Errors |= ValidationErrorNotValidYet

@@ -23,7 +23,7 @@ type Parser struct {
 	// Deprecated: In future releases, this field will not be exported anymore and should be set with an option to NewParser instead.
 	SkipClaimsValidation bool
 
-	options []*ValidatorOptions
+	options []ValidatorOption
 }
 
 // NewParser creates a new Parser with the specified options
