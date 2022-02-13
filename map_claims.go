@@ -139,16 +139,19 @@ func (m MapClaims) Valid(opts ...*ValidatorOptions) error {
 	o := MergeValidatorOptions(opts...)
 
 	if !m.VerifyExpiresAt(now, false, o) {
+		// TODO(oxisto): this should be replaced with ErrTokenExpired
 		vErr.Inner = errors.New("Token is expired")
 		vErr.Errors |= ValidationErrorExpired
 	}
 
 	if !m.VerifyIssuedAt(now, false) {
+		// TODO(oxisto): this should be replaced with ErrTokenUsedBeforeIssued
 		vErr.Inner = errors.New("Token used before issued")
 		vErr.Errors |= ValidationErrorIssuedAt
 	}
 
 	if !m.VerifyNotBefore(now, false, o) {
+		// TODO(oxisto): this should be replaced with ErrTokenNotValidYet
 		vErr.Inner = errors.New("Token is not valid yet")
 		vErr.Errors |= ValidationErrorNotValidYet
 	}

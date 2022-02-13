@@ -2,7 +2,7 @@ package jwt
 
 import "time"
 
-// ParserOption is used to implement functional-style options that modify the behaviour of the parser. To add
+// ParserOption is used to implement functional-style options that modify the behavior of the parser. To add
 // new options, just create a function (ideally beginning with With or Without) that returns an anonymous function that
 // takes a *Parser type as input and manipulates its configuration accordingly.
 type ParserOption func(*Parser)
@@ -15,7 +15,7 @@ func WithValidMethods(methods []string) ParserOption {
 	}
 }
 
-// WithJSONNumber is an option to configure the underyling JSON parser with UseNumber
+// WithJSONNumber is an option to configure the underlying JSON parser with UseNumber
 func WithJSONNumber() ParserOption {
 	return func(p *Parser) {
 		p.UseJSONNumber = true
