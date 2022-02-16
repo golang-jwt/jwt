@@ -9,7 +9,7 @@ import (
 // Claims must just have a Valid method that determines
 // if the token is invalid for any supported reason
 type Claims interface {
-	Valid(options ...ValidatorOption) error
+	Valid(opts ...validationOption) error
 }
 
 // RegisteredClaims are a structured version of the JWT Claims Set,
@@ -48,7 +48,7 @@ type RegisteredClaims struct {
 // There is no accounting for clock skew.
 // As well, if any of the above claims are not in the token, it will still
 // be considered a valid claim.
-func (c RegisteredClaims) Valid(opts ...ValidatorOption) error {
+func (c RegisteredClaims) Valid(opts ...validationOption) error {
 	vErr := new(ValidationError)
 	now := TimeFunc()
 
@@ -85,8 +85,8 @@ func (c *RegisteredClaims) VerifyAudience(cmp string, req bool) bool {
 
 // VerifyExpiresAt compares the exp claim against cmp (cmp < exp).
 // If req is false, it will return true, if exp is unset.
-func (c *RegisteredClaims) VerifyExpiresAt(cmp time.Time, req bool, opts ...ValidatorOption) bool {
-	validator := ValidatorOptions{}
+func (c *RegisteredClaims) VerifyExpiresAt(cmp time.Time, req bool, opts ...validationOption) bool {
+	validator := validator{}
 	for _, o := range opts {
 		o(&validator)
 	}
@@ -109,8 +109,8 @@ func (c *RegisteredClaims) VerifyIssuedAt(cmp time.Time, req bool) bool {
 
 // VerifyNotBefore compares the nbf claim against cmp (cmp >= nbf).
 // If req is false, it will return true, if nbf is unset.
-func (c *RegisteredClaims) VerifyNotBefore(cmp time.Time, req bool, opts ...ValidatorOption) bool {
-	validator := ValidatorOptions{}
+func (c *RegisteredClaims) VerifyNotBefore(cmp time.Time, req bool, opts ...validationOption) bool {
+	validator := validator{}
 	for _, o := range opts {
 		o(&validator)
 	}
@@ -149,7 +149,7 @@ type StandardClaims struct {
 // Valid validates time based claims "exp, iat, nbf". There is no accounting for clock skew.
 // As well, if any of the above claims are not in the token, it will still
 // be considered a valid claim.
-func (c StandardClaims) Valid(opts ...ValidatorOption) error {
+func (c StandardClaims) Valid(opts ...validationOption) error {
 	vErr := new(ValidationError)
 	now := TimeFunc().Unix()
 
@@ -186,8 +186,8 @@ func (c *StandardClaims) VerifyAudience(cmp string, req bool) bool {
 
 // VerifyExpiresAt compares the exp claim against cmp (cmp < exp).
 // If req is false, it will return true, if exp is unset.
-func (c *StandardClaims) VerifyExpiresAt(cmp int64, req bool, opts ...ValidatorOption) bool {
-	validator := ValidatorOptions{}
+func (c *StandardClaims) VerifyExpiresAt(cmp int64, req bool, opts ...validationOption) bool {
+	validator := validator{}
 	for _, o := range opts {
 		o(&validator)
 	}
@@ -212,8 +212,8 @@ func (c *StandardClaims) VerifyIssuedAt(cmp int64, req bool) bool {
 
 // VerifyNotBefore compares the nbf claim against cmp (cmp >= nbf).
 // If req is false, it will return true, if nbf is unset.
-func (c *StandardClaims) VerifyNotBefore(cmp int64, req bool, opts ...ValidatorOption) bool {
-	validator := ValidatorOptions{}
+func (c *StandardClaims) VerifyNotBefore(cmp int64, req bool, opts ...validationOption) bool {
+	validator := validator{}
 	for _, o := range opts {
 		o(&validator)
 	}
@@ -256,11 +256,11 @@ func verifyAud(aud []string, cmp string, required bool) bool {
 	return result
 }
 
-func verifyExp(exp *time.Time, now time.Time, required bool, clockSkew time.Duration) bool {
+func verifyExp(exp *time.Time, now time.Time, required bool, skew time.Duration) bool {
 	if exp == nil {
 		return !required
 	}
-	return now.Before((*exp).Add(+clockSkew))
+	return now.Before((*exp).Add(+skew))
 }
 
 func verifyIat(iat *time.Time, now time.Time, required bool) bool {
@@ -270,11 +270,11 @@ func verifyIat(iat *time.Time, now time.Time, required bool) bool {
 	return now.After(*iat) || now.Equal(*iat)
 }
 
-func verifyNbf(nbf *time.Time, now time.Time, required bool, clockSkew time.Duration) bool {
+func verifyNbf(nbf *time.Time, now time.Time, required bool, skew time.Duration) bool {
 	if nbf == nil {
 		return !required
 	}
-	t := (*nbf).Add(-clockSkew)
+	t := (*nbf).Add(-skew)
 	return now.After(t) || now.Equal(t)
 }
 
