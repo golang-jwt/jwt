@@ -25,7 +25,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go: [1.15, 1.16, 1.17]
+        go: [1.15, 1.16, 1.17, "1.18.0-rc1"]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -33,6 +33,7 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: "${{ matrix.go }}"
+          stable: '!contains(${{ matrix.go }}, "beta") && !contains(${{ matrix.go }}, "rc")'
       - name: Build
         run: |
           go vet ./...
