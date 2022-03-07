@@ -9,6 +9,9 @@ import (
 // Claims must just have a Valid method that determines
 // if the token is invalid for any supported reason
 type Claims interface {
+	// Valid implements claim validation. The opts are function style options that can
+	// be used to fine-tune the validation. The type used for the options is intentionally
+	// un-exported, since its API and its naming is subject to change.
 	Valid(opts ...validationOption) error
 }
 
