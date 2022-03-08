@@ -70,7 +70,8 @@ func TestMapclaimsVerifyIssuedAtInvalidTypeString(t *testing.T) {
 		"iat": "foo",
 	}
 	want := false
-	got := mapClaims.VerifyIssuedAt(0, false)
+	v := []validationOption{withIssuedAt()}
+	got := mapClaims.VerifyIssuedAt(0, false, v...)
 	if want != got {
 		t.Fatalf("Failed to verify claims, wanted: %v got %v", want, got)
 	}
@@ -110,13 +111,13 @@ func TestMapClaimsVerifyExpiresAtExpire(t *testing.T) {
 		t.Fatalf("Failed to verify claims, wanted: %v got %v", want, got)
 	}
 
-	got = mapClaims.VerifyExpiresAt(exp + 1, true)
+	got = mapClaims.VerifyExpiresAt(exp+1, true)
 	if want != got {
 		t.Fatalf("Failed to verify claims, wanted: %v got %v", want, got)
 	}
 
 	want = true
-	got = mapClaims.VerifyExpiresAt(exp - 1, true)
+	got = mapClaims.VerifyExpiresAt(exp-1, true)
 	if want != got {
 		t.Fatalf("Failed to verify claims, wanted: %v got %v", want, got)
 	}

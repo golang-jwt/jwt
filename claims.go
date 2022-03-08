@@ -63,7 +63,7 @@ func (c RegisteredClaims) Valid(opts ...validationOption) error {
 		vErr.Errors |= ValidationErrorExpired
 	}
 
-	if !c.VerifyIssuedAt(now, false) {
+	if !c.VerifyIssuedAt(now, false, opts...) {
 		vErr.Inner = ErrTokenUsedBeforeIssued
 		vErr.Errors |= ValidationErrorIssuedAt
 	}
@@ -89,10 +89,7 @@ func (c *RegisteredClaims) VerifyAudience(cmp string, req bool) bool {
 // VerifyExpiresAt compares the exp claim against cmp (cmp < exp).
 // If req is false, it will return true, if exp is unset.
 func (c *RegisteredClaims) VerifyExpiresAt(cmp time.Time, req bool, opts ...validationOption) bool {
-	validator := validator{}
-	for _, o := range opts {
-		o(&validator)
-	}
+	validator := getValidator(opts...)
 	if c.ExpiresAt == nil {
 		return verifyExp(nil, cmp, req, validator.leeway)
 	}
@@ -102,7 +99,12 @@ func (c *RegisteredClaims) VerifyExpiresAt(cmp time.Time, req bool, opts ...vali
 
 // VerifyIssuedAt compares the iat claim against cmp (cmp >= iat).
 // If req is false, it will return true, if iat is unset.
-func (c *RegisteredClaims) VerifyIssuedAt(cmp time.Time, req bool) bool {
+func (c *RegisteredClaims) VerifyIssuedAt(cmp time.Time, req bool, opts ...validationOption) bool {
+	validator := getValidator(opts...)
+	if !validator.iat {
+		return true
+	}
+
 	if c.IssuedAt == nil {
 		return verifyIat(nil, cmp, req)
 	}
@@ -113,10 +115,7 @@ func (c *RegisteredClaims) VerifyIssuedAt(cmp time.Time, req bool) bool {
 // VerifyNotBefore compares the nbf claim against cmp (cmp >= nbf).
 // If req is false, it will return true, if nbf is unset.
 func (c *RegisteredClaims) VerifyNotBefore(cmp time.Time, req bool, opts ...validationOption) bool {
-	validator := validator{}
-	for _, o := range opts {
-		o(&validator)
-	}
+	validator := getValidator(opts...)
 	if c.NotBefore == nil {
 		return verifyNbf(nil, cmp, req, validator.leeway)
 	}
@@ -164,7 +163,7 @@ func (c StandardClaims) Valid(opts ...validationOption) error {
 		vErr.Errors |= ValidationErrorExpired
 	}
 
-	if !c.VerifyIssuedAt(now, false) {
+	if !c.VerifyIssuedAt(now, false, opts...) {
 		vErr.Inner = ErrTokenUsedBeforeIssued
 		vErr.Errors |= ValidationErrorIssuedAt
 	}
@@ -190,10 +189,7 @@ func (c *StandardClaims) VerifyAudience(cmp string, req bool) bool {
 // VerifyExpiresAt compares the exp claim against cmp (cmp < exp).
 // If req is false, it will return true, if exp is unset.
 func (c *StandardClaims) VerifyExpiresAt(cmp int64, req bool, opts ...validationOption) bool {
-	validator := validator{}
-	for _, o := range opts {
-		o(&validator)
-	}
+	validator := getValidator(opts...)
 	if c.ExpiresAt == 0 {
 		return verifyExp(nil, time.Unix(cmp, 0), req, validator.leeway)
 	}
@@ -204,7 +200,12 @@ func (c *StandardClaims) VerifyExpiresAt(cmp int64, req bool, opts ...validation
 
 // VerifyIssuedAt compares the iat claim against cmp (cmp >= iat).
 // If req is false, it will return true, if iat is unset.
-func (c *StandardClaims) VerifyIssuedAt(cmp int64, req bool) bool {
+func (c *StandardClaims) VerifyIssuedAt(cmp int64, req bool, opts ...validationOption) bool {
+	validator := getValidator(opts...)
+	if !validator.iat {
+		return true
+	}
+
 	if c.IssuedAt == 0 {
 		return verifyIat(nil, time.Unix(cmp, 0), req)
 	}
@@ -216,10 +217,7 @@ func (c *StandardClaims) VerifyIssuedAt(cmp int64, req bool) bool {
 // VerifyNotBefore compares the nbf claim against cmp (cmp >= nbf).
 // If req is false, it will return true, if nbf is unset.
 func (c *StandardClaims) VerifyNotBefore(cmp int64, req bool, opts ...validationOption) bool {
-	validator := validator{}
-	for _, o := range opts {
-		o(&validator)
-	}
+	validator := getValidator(opts...)
 	if c.NotBefore == 0 {
 		return verifyNbf(nil, time.Unix(cmp, 0), req, validator.leeway)
 	}

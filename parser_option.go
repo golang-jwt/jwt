@@ -36,3 +36,10 @@ func WithLeeway(d time.Duration) ParserOption {
 		p.validationOptions = append(p.validationOptions, withLeeway(d))
 	}
 }
+
+// WithIssuedAt is an option to enable the validation of the issued at (iat) claim.
+func WithIssuedAt() ParserOption {
+	return func(p *Parser) {
+		p.validationOptions = append(p.validationOptions, withIssuedAt())
+	}
+}

@@ -42,10 +42,7 @@ func (m MapClaims) VerifyExpiresAt(cmp int64, req bool, opts ...validationOption
 		return !req
 	}
 
-	validator := validator{}
-	for _, o := range opts {
-		o(&validator)
-	}
+	validator := getValidator(opts...)
 
 	switch exp := v.(type) {
 	case float64:
@@ -65,12 +62,17 @@ func (m MapClaims) VerifyExpiresAt(cmp int64, req bool, opts ...validationOption
 
 // VerifyIssuedAt compares the exp claim against cmp (cmp >= iat).
 // If req is false, it will return true, if iat is unset.
-func (m MapClaims) VerifyIssuedAt(cmp int64, req bool) bool {
+func (m MapClaims) VerifyIssuedAt(cmp int64, req bool, opts ...validationOption) bool {
 	cmpTime := time.Unix(cmp, 0)
 
 	v, ok := m["iat"]
 	if !ok {
 		return !req
+	}
+
+	validator := getValidator(opts...)
+	if !validator.iat {
+		return true
 	}
 
 	switch iat := v.(type) {
@@ -99,10 +101,7 @@ func (m MapClaims) VerifyNotBefore(cmp int64, req bool, opts ...validationOption
 		return !req
 	}
 
-	validator := validator{}
-	for _, o := range opts {
-		o(&validator)
-	}
+	validator := getValidator(opts...)
 
 	switch nbf := v.(type) {
 	case float64:
@@ -141,7 +140,7 @@ func (m MapClaims) Valid(opts ...validationOption) error {
 		vErr.Errors |= ValidationErrorExpired
 	}
 
-	if !m.VerifyIssuedAt(now, false) {
+	if !m.VerifyIssuedAt(now, false, opts...) {
 		// TODO(oxisto): this should be replaced with ErrTokenUsedBeforeIssued
 		vErr.Inner = errors.New("Token used before issued")
 		vErr.Errors |= ValidationErrorIssuedAt
