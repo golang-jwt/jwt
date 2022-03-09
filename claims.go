@@ -101,7 +101,7 @@ func (c *RegisteredClaims) VerifyExpiresAt(cmp time.Time, req bool, opts ...vali
 // If req is false, it will return true, if iat is unset.
 func (c *RegisteredClaims) VerifyIssuedAt(cmp time.Time, req bool, opts ...validationOption) bool {
 	validator := getValidator(opts...)
-	if !validator.iat {
+	if validator.skipIssuedAt {
 		return true
 	}
 
@@ -202,7 +202,7 @@ func (c *StandardClaims) VerifyExpiresAt(cmp int64, req bool, opts ...validation
 // If req is false, it will return true, if iat is unset.
 func (c *StandardClaims) VerifyIssuedAt(cmp int64, req bool, opts ...validationOption) bool {
 	validator := getValidator(opts...)
-	if !validator.iat {
+	if validator.skipIssuedAt {
 		return true
 	}
 

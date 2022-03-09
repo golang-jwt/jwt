@@ -2,7 +2,6 @@ package jwt
 
 import (
 	"encoding/json"
-	"errors"
 	"time"
 	// "fmt"
 )
@@ -73,7 +72,7 @@ func (m MapClaims) VerifyIssuedAt(cmp int64, req bool, opts ...validationOption)
 	// validate the type
 	switch v.(type) {
 	case float64, json.Number:
-		if !getValidator(opts...).iat {
+		if getValidator(opts...).skipIssuedAt {
 			return true
 		}
 	default:
@@ -140,20 +139,17 @@ func (m MapClaims) Valid(opts ...validationOption) error {
 	now := TimeFunc().Unix()
 
 	if !m.VerifyExpiresAt(now, false, opts...) {
-		// TODO(oxisto): this should be replaced with ErrTokenExpired
-		vErr.Inner = errors.New("Token is expired")
+		vErr.Inner = ErrTokenExpired
 		vErr.Errors |= ValidationErrorExpired
 	}
 
 	if !m.VerifyIssuedAt(now, false, opts...) {
-		// TODO(oxisto): this should be replaced with ErrTokenUsedBeforeIssued
-		vErr.Inner = errors.New("Token used before issued")
+		vErr.Inner = ErrTokenUsedBeforeIssued
 		vErr.Errors |= ValidationErrorIssuedAt
 	}
 
 	if !m.VerifyNotBefore(now, false, opts...) {
-		// TODO(oxisto): this should be replaced with ErrTokenNotValidYet
-		vErr.Inner = errors.New("Token is not valid yet")
+		vErr.Inner = ErrTokenNotValidYet
 		vErr.Errors |= ValidationErrorNotValidYet
 	}
 

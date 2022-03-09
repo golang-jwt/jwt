@@ -15,8 +15,8 @@ type validationOption func(*validator)
 // Note that this struct is (currently) un-exported, its naming is subject to change and will only be exported once
 // the API is more stable.
 type validator struct {
-	leeway time.Duration // Leeway to provide when validating time values
-	iat    bool
+	leeway       time.Duration // Leeway to provide when validating time values
+	skipIssuedAt bool
 }
 
 // withLeeway is an option to set the clock skew (leeway) window
@@ -29,13 +29,13 @@ func withLeeway(d time.Duration) validationOption {
 	}
 }
 
-// withIssuedAth is an option to enable the validation of the issued at (iat) claim
+// withoutIssuedAth is an option to disable the validation of the issued at (iat) claim
 //
 // Note that this function is (currently) un-exported, its naming is subject to change and will only be exported once
 // the API is more stable.
-func withIssuedAt() validationOption {
+func withoutIssuedAt() validationOption {
 	return func(v *validator) {
-		v.iat = true
+		v.skipIssuedAt = true
 	}
 }
 
