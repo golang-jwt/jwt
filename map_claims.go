@@ -128,16 +128,19 @@ func (m MapClaims) validateAudience(req bool, opts ...validationOption) bool {
 	}
 
 	validator := getValidator(opts...)
-	
+
 	if validator.skipAudience {
 		return true
 	}
 
-	if validator.audience == nil {
-		return false
+	// Based on my reading of https://datatracker.ietf.org/doc/html/rfc7519/#section-4.1.3
+	// this should technically fail. This is left as a decision for the maintainers to alter
+	// the behavior as it would be a breaking change.
+	if validator.audience != nil {
+		return m.VerifyAudience(*validator.audience, true)
 	}
 
-	return m.VerifyAudience(*validator.audience, true)
+	return !req
 }
 
 // Valid validates time based claims "exp, iat, nbf".
