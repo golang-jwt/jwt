@@ -69,10 +69,12 @@ func (m MapClaims) VerifyIssuedAt(cmp int64, req bool, opts ...validationOption)
 		return !req
 	}
 
+	validator := getValidator(opts...)
+
 	// validate the type
 	switch v.(type) {
 	case float64, json.Number:
-		if getValidator(opts...).skipIssuedAt {
+		if validator.skipIssuedAt {
 			return true
 		}
 	default:
@@ -82,14 +84,14 @@ func (m MapClaims) VerifyIssuedAt(cmp int64, req bool, opts ...validationOption)
 	switch iat := v.(type) {
 	case float64:
 		if iat == 0 {
-			return verifyIat(nil, cmpTime, req)
+			return verifyIat(nil, cmpTime, req, validator.leeway)
 		}
 
-		return verifyIat(&newNumericDateFromSeconds(iat).Time, cmpTime, req)
+		return verifyIat(&newNumericDateFromSeconds(iat).Time, cmpTime, req, validator.leeway)
 	case json.Number:
 		v, _ := iat.Float64()
 
-		return verifyIat(&newNumericDateFromSeconds(v).Time, cmpTime, req)
+		return verifyIat(&newNumericDateFromSeconds(v).Time, cmpTime, req, validator.leeway)
 	}
 
 	return false

@@ -111,10 +111,10 @@ func (c *RegisteredClaims) VerifyIssuedAt(cmp time.Time, req bool, opts ...valid
 	}
 
 	if c.IssuedAt == nil {
-		return verifyIat(nil, cmp, req)
+		return verifyIat(nil, cmp, req, validator.leeway)
 	}
 
-	return verifyIat(&c.IssuedAt.Time, cmp, req)
+	return verifyIat(&c.IssuedAt.Time, cmp, req, validator.leeway)
 }
 
 // VerifyNotBefore compares the nbf claim against cmp (cmp >= nbf).
@@ -238,11 +238,11 @@ func (c *StandardClaims) VerifyIssuedAt(cmp int64, req bool, opts ...validationO
 	}
 
 	if c.IssuedAt == 0 {
-		return verifyIat(nil, time.Unix(cmp, 0), req)
+		return verifyIat(nil, time.Unix(cmp, 0), req, validator.leeway)
 	}
 
 	t := time.Unix(c.IssuedAt, 0)
-	return verifyIat(&t, time.Unix(cmp, 0), req)
+	return verifyIat(&t, time.Unix(cmp, 0), req, validator.leeway)
 }
 
 // VerifyNotBefore compares the nbf claim against cmp (cmp >= nbf).
@@ -316,11 +316,12 @@ func verifyExp(exp *time.Time, now time.Time, required bool, skew time.Duration)
 	return now.Before((*exp).Add(+skew))
 }
 
-func verifyIat(iat *time.Time, now time.Time, required bool) bool {
+func verifyIat(iat *time.Time, now time.Time, required bool, skew time.Duration) bool {
 	if iat == nil {
 		return !required
 	}
-	return now.After(*iat) || now.Equal(*iat)
+	t := (*iat).Add(-skew)
+	return now.After(t) || now.Equal(*iat)
 }
 
 func verifyNbf(nbf *time.Time, now time.Time, required bool, skew time.Duration) bool {
