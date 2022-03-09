@@ -18,7 +18,7 @@ type validator struct {
 	leeway       time.Duration // Leeway to provide when validating time values
 	audience     *string       // Expected audience value
 	skipAudience bool          // Ignore aud check
-	skipIssuedAt bool
+	skipIssuedAt bool          // Ignore iat check
 }
 
 // withLeeway is an option to set the clock skew (leeway) window
