@@ -30,7 +30,7 @@ func withLeeway(d time.Duration) validationOption {
 	}
 }
 
-// WithAudience returns the ParserOption for specifying an expected aud member value
+// withAudience returns the ParserOption for specifying an expected aud member value
 //
 // Note that this function is (currently) un-exported, its naming is subject to change and will only be exported once
 // the API is more stable.
@@ -40,7 +40,7 @@ func withAudience(aud string) validationOption {
 	}
 }
 
-// WithoutAudienceValidation returns the ParserOption that specifies audience check should be skipped
+// withoutAudienceValidation returns the ParserOption that specifies audience check should be skipped
 //
 // Note that this function is (currently) un-exported, its naming is subject to change and will only be exported once
 // the API is more stable.
