@@ -130,6 +130,28 @@ func (m MapClaims) VerifyIssuer(cmp string, req bool) bool {
 	return verifyIss(iss, cmp, req)
 }
 
+func (m MapClaims) validateAudience(req bool, opts ...validationOption) bool {
+	_, ok := m["aud"]
+	if !ok {
+		return !req
+	}
+
+	validator := getValidator(opts...)
+
+	if validator.skipAudience {
+		return true
+	}
+
+	// Based on my reading of https://datatracker.ietf.org/doc/html/rfc7519/#section-4.1.3
+	// this should technically fail. This is left as a decision for the maintainers to alter
+	// the behavior as it would be a breaking change.
+	if validator.audience != nil {
+		return m.VerifyAudience(*validator.audience, true)
+	}
+
+	return !req
+}
+
 // Valid validates time based claims "exp, iat, nbf".
 // There is no accounting for clock skew.
 // As well, if any of the above claims are not in the token, it will still
@@ -151,6 +173,11 @@ func (m MapClaims) Valid(opts ...validationOption) error {
 	if !m.VerifyNotBefore(now, false, opts...) {
 		vErr.Inner = ErrTokenNotValidYet
 		vErr.Errors |= ValidationErrorNotValidYet
+	}
+
+	if !m.validateAudience(false, opts...) {
+		vErr.Inner = ErrTokenInvalidAudience
+		vErr.Errors |= ValidationErrorAudience
 	}
 
 	if vErr.valid() {
