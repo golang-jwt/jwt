@@ -189,6 +189,28 @@ var jwtTestData = []struct {
 		jwt.SigningMethodRS256,
 	},
 	{
+		"basic iat",
+		"", // autogen
+		defaultKeyFunc,
+		jwt.MapClaims{"foo": "bar", "iat": float64(time.Now().Unix() + 100)},
+		true,
+		0,
+		nil,
+		nil,
+		jwt.SigningMethodRS256,
+	},
+	{
+		"basic iat with validation",
+		"", // autogen
+		defaultKeyFunc,
+		jwt.MapClaims{"foo": "bar", "iat": float64(time.Now().Unix() + 100)},
+		false,
+		jwt.ValidationErrorIssuedAt,
+		[]error{jwt.ErrTokenUsedBeforeIssued},
+		jwt.NewParser(jwt.WithIssuedAt()),
+		jwt.SigningMethodRS256,
+	},
+	{
 		"invalid signing method",
 		"",
 		defaultKeyFunc,
