@@ -42,10 +42,7 @@ func (m MapClaims) VerifyExpiresAt(cmp int64, req bool, opts ...validationOption
 		return !req
 	}
 
-	validator := validator{}
-	for _, o := range opts {
-		o(&validator)
-	}
+	validator := getValidator(opts...)
 
 	switch exp := v.(type) {
 	case float64:
@@ -99,10 +96,7 @@ func (m MapClaims) VerifyNotBefore(cmp int64, req bool, opts ...validationOption
 		return !req
 	}
 
-	validator := validator{}
-	for _, o := range opts {
-		o(&validator)
-	}
+	validator := getValidator(opts...)
 
 	switch nbf := v.(type) {
 	case float64:
@@ -125,6 +119,25 @@ func (m MapClaims) VerifyNotBefore(cmp int64, req bool, opts ...validationOption
 func (m MapClaims) VerifyIssuer(cmp string, req bool) bool {
 	iss, _ := m["iss"].(string)
 	return verifyIss(iss, cmp, req)
+}
+
+func (m MapClaims) validateAudience(req bool, opts ...validationOption) bool {
+	_, ok := m["aud"]
+	if !ok {
+		return !req
+	}
+
+	validator := getValidator(opts...)
+	
+	if validator.skipAudience {
+		return true
+	}
+
+	if validator.audience == nil {
+		return false
+	}
+
+	return m.VerifyAudience(*validator.audience, true)
 }
 
 // Valid validates time based claims "exp, iat, nbf".
@@ -151,6 +164,11 @@ func (m MapClaims) Valid(opts ...validationOption) error {
 		// TODO(oxisto): this should be replaced with ErrTokenNotValidYet
 		vErr.Inner = errors.New("Token is not valid yet")
 		vErr.Errors |= ValidationErrorNotValidYet
+	}
+
+	if !m.validateAudience(false, opts...) {
+		vErr.Inner = ErrTokenInvalidAudience
+		vErr.Errors |= ValidationErrorAudience
 	}
 
 	if vErr.valid() {

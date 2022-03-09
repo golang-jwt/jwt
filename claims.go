@@ -73,6 +73,11 @@ func (c RegisteredClaims) Valid(opts ...validationOption) error {
 		vErr.Errors |= ValidationErrorNotValidYet
 	}
 
+	if !c.validateAudience(false, opts...) {
+		vErr.Inner = ErrTokenInvalidAudience
+		vErr.Errors |= ValidationErrorAudience
+	}
+
 	if vErr.valid() {
 		return nil
 	}
@@ -89,10 +94,7 @@ func (c *RegisteredClaims) VerifyAudience(cmp string, req bool) bool {
 // VerifyExpiresAt compares the exp claim against cmp (cmp < exp).
 // If req is false, it will return true, if exp is unset.
 func (c *RegisteredClaims) VerifyExpiresAt(cmp time.Time, req bool, opts ...validationOption) bool {
-	validator := validator{}
-	for _, o := range opts {
-		o(&validator)
-	}
+	validator := getValidator(opts...)
 	if c.ExpiresAt == nil {
 		return verifyExp(nil, cmp, req, validator.leeway)
 	}
@@ -113,10 +115,7 @@ func (c *RegisteredClaims) VerifyIssuedAt(cmp time.Time, req bool) bool {
 // VerifyNotBefore compares the nbf claim against cmp (cmp >= nbf).
 // If req is false, it will return true, if nbf is unset.
 func (c *RegisteredClaims) VerifyNotBefore(cmp time.Time, req bool, opts ...validationOption) bool {
-	validator := validator{}
-	for _, o := range opts {
-		o(&validator)
-	}
+	validator := getValidator(opts...)
 	if c.NotBefore == nil {
 		return verifyNbf(nil, cmp, req, validator.leeway)
 	}
@@ -128,6 +127,27 @@ func (c *RegisteredClaims) VerifyNotBefore(cmp time.Time, req bool, opts ...vali
 // If required is false, this method will return true if the value matches or is unset
 func (c *RegisteredClaims) VerifyIssuer(cmp string, req bool) bool {
 	return verifyIss(c.Issuer, cmp, req)
+}
+
+func (c *RegisteredClaims) validateAudience(req bool, opts ...validationOption) bool {
+	if len(c.Audience) == 0 {
+		return !req
+	}
+
+	validator := getValidator(opts...)
+
+	if validator.skipAudience {
+		return true
+	}
+
+	// Based on my reading of https://datatracker.ietf.org/doc/html/rfc7519/#section-4.1.3
+	// this should technically fail. This is left as a decision for the maintainers to alter
+	// the behavior as it would be a breaking change.
+	if validator.audience != nil {
+		return c.VerifyAudience(*validator.audience, true)
+	}
+
+	return !req
 }
 
 // StandardClaims are a structured version of the JWT Claims Set, as referenced at
@@ -174,6 +194,11 @@ func (c StandardClaims) Valid(opts ...validationOption) error {
 		vErr.Errors |= ValidationErrorNotValidYet
 	}
 
+	if !c.validateAudience(false, opts...) {
+		vErr.Inner = ErrTokenInvalidAudience
+		vErr.Errors |= ValidationErrorAudience
+	}
+
 	if vErr.valid() {
 		return nil
 	}
@@ -190,10 +215,7 @@ func (c *StandardClaims) VerifyAudience(cmp string, req bool) bool {
 // VerifyExpiresAt compares the exp claim against cmp (cmp < exp).
 // If req is false, it will return true, if exp is unset.
 func (c *StandardClaims) VerifyExpiresAt(cmp int64, req bool, opts ...validationOption) bool {
-	validator := validator{}
-	for _, o := range opts {
-		o(&validator)
-	}
+	validator := getValidator(opts...)
 	if c.ExpiresAt == 0 {
 		return verifyExp(nil, time.Unix(cmp, 0), req, validator.leeway)
 	}
@@ -216,10 +238,7 @@ func (c *StandardClaims) VerifyIssuedAt(cmp int64, req bool) bool {
 // VerifyNotBefore compares the nbf claim against cmp (cmp >= nbf).
 // If req is false, it will return true, if nbf is unset.
 func (c *StandardClaims) VerifyNotBefore(cmp int64, req bool, opts ...validationOption) bool {
-	validator := validator{}
-	for _, o := range opts {
-		o(&validator)
-	}
+	validator := getValidator(opts...)
 	if c.NotBefore == 0 {
 		return verifyNbf(nil, time.Unix(cmp, 0), req, validator.leeway)
 	}
@@ -232,6 +251,27 @@ func (c *StandardClaims) VerifyNotBefore(cmp int64, req bool, opts ...validation
 // If required is false, this method will return true if the value matches or is unset
 func (c *StandardClaims) VerifyIssuer(cmp string, req bool) bool {
 	return verifyIss(c.Issuer, cmp, req)
+}
+
+func (c *StandardClaims) validateAudience(req bool, opts ...validationOption) bool {
+	if c.Audience == "" {
+		return !req
+	}
+
+	validator := getValidator(opts...)
+
+	if validator.skipAudience {
+		return true
+	}
+
+	// Based on my reading of https://datatracker.ietf.org/doc/html/rfc7519/#section-4.1.3
+	// this should technically fail. This is left as a decision for the maintainers to alter
+	// the behavior as it would be a breaking change.
+	if validator.audience != nil {
+		return c.VerifyAudience(*validator.audience, true)
+	}
+
+	return !req
 }
 
 // ----- helpers

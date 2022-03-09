@@ -15,7 +15,9 @@ type validationOption func(*validator)
 // Note that this struct is (currently) un-exported, its naming is subject to change and will only be exported once
 // the API is more stable.
 type validator struct {
-	leeway time.Duration // Leeway to provide when validating time values
+	audience     *string       // Expected audience value
+	skipAudience bool          // Ignore aud check
+	leeway       time.Duration // Leeway to provide when validating time values
 }
 
 // withLeeway is an option to set the clock skew (leeway) window
@@ -26,4 +28,33 @@ func withLeeway(d time.Duration) validationOption {
 	return func(v *validator) {
 		v.leeway = d
 	}
+}
+
+// WithAudience returns the ParserOption for specifying an expected aud member value
+//
+// Note that this function is (currently) un-exported, its naming is subject to change and will only be exported once
+// the API is more stable.
+func withAudience(aud string) validationOption {
+	return func(v *validator) {
+		v.audience = &aud
+	}
+}
+
+// WithoutAudienceValidation returns the ParserOption that specifies audience check should be skipped
+//
+// Note that this function is (currently) un-exported, its naming is subject to change and will only be exported once
+// the API is more stable.
+func withoutAudienceValidation() validationOption {
+	return func(v *validator) {
+		v.skipAudience = true
+	}
+}
+
+// getValidator return the validation given the options
+func getValidator(opts ...validationOption) validator {
+	v := validator{}
+	for _, o := range opts {
+		o(&v)
+	}
+	return v
 }
