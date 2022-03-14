@@ -135,21 +135,13 @@ func (c *RegisteredClaims) VerifyIssuer(cmp string, req bool) bool {
 }
 
 func (c *RegisteredClaims) validateAudience(req bool, opts ...validationOption) bool {
-	if len(c.Audience) == 0 {
-		return !req
-	}
-
-	validator := getValidator(opts...)
-
-	if validator.skipAudience {
-		return true
-	}
+	aud, skip := getAudienceValidationOpts(len(c.Audience) != 0, opts...)
 
 	// Based on my reading of https://datatracker.ietf.org/doc/html/rfc7519/#section-4.1.3
 	// this should technically fail. This is left as a decision for the maintainers to alter
 	// the behavior as it would be a breaking change.
-	if validator.audience != nil {
-		return c.VerifyAudience(*validator.audience, true)
+	if !skip && aud != nil {
+		return c.VerifyAudience(*aud, req)
 	}
 
 	return !req
@@ -264,21 +256,13 @@ func (c *StandardClaims) VerifyIssuer(cmp string, req bool) bool {
 }
 
 func (c *StandardClaims) validateAudience(req bool, opts ...validationOption) bool {
-	if c.Audience == "" {
-		return !req
-	}
-
-	validator := getValidator(opts...)
-
-	if validator.skipAudience {
-		return true
-	}
+	aud, skip := getAudienceValidationOpts(c.Audience != "", opts...)
 
 	// Based on my reading of https://datatracker.ietf.org/doc/html/rfc7519/#section-4.1.3
 	// this should technically fail. This is left as a decision for the maintainers to alter
 	// the behavior as it would be a breaking change.
-	if validator.audience != nil {
-		return c.VerifyAudience(*validator.audience, true)
+	if !skip && aud != nil {
+		return c.VerifyAudience(*aud, req)
 	}
 
 	return !req

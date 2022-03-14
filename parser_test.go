@@ -207,7 +207,7 @@ var jwtTestData = []struct {
 		true,
 		0,
 		nil,
-		jwt.NewParser(jwt.WithoutIssuedAt()),
+		jwt.NewParser(jwt.WithoutIssuedAtValidation()),
 		jwt.SigningMethodRS256,
 	},
 	{
@@ -375,7 +375,7 @@ var jwtTestData = []struct {
 		"",
 		defaultKeyFunc,
 		&jwt.RegisteredClaims{
-			Audience: jwt.ClaimStrings{"test", "test"},
+			Audience: jwt.ClaimStrings{"test", "test2"},
 		},
 		true,
 		0,

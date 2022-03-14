@@ -31,11 +31,11 @@ func withLeeway(d time.Duration) validationOption {
 	}
 }
 
-// withoutIssuedAth is an option to disable the validation of the issued at (iat) claim
+// withoutIssuedAtValidation is an option to disable the validation of the issued at (iat) claim
 //
 // Note that this function is (currently) un-exported, its naming is subject to change and will only be exported once
 // the API is more stable.
-func withoutIssuedAt() validationOption {
+func withoutIssuedAtValidation() validationOption {
 	return func(v *validator) {
 		v.skipIssuedAt = true
 	}
@@ -68,4 +68,17 @@ func getValidator(opts ...validationOption) validator {
 		o(&v)
 	}
 	return v
+}
+
+// getAudienceValidationOpts returns the aud, and skip validation values from the
+// options. If validation is not required then function will return true for skip.
+func getAudienceValidationOpts(req bool, opts ...validationOption) (*string, bool) {
+	if !req {
+		return nil, true
+	}
+	validator := getValidator(opts...)
+	if validator.skipAudience {
+		return nil, true
+	}
+	return validator.audience, false
 }
