@@ -134,7 +134,8 @@ func (m MapClaims) VerifyIssuer(cmp string, req bool) bool {
 
 func (m MapClaims) validateAudience(req bool, opts ...validationOption) bool {
 	_, ok := m["aud"]
-	aud, skip := getAudienceValidationOpts(ok, opts...)
+	v := getValidator(opts...)
+	aud, skip := v.getAudienceValidationOpts(ok)
 
 	// Based on my reading of https://datatracker.ietf.org/doc/html/rfc7519/#section-4.1.3
 	// this should technically fail. This is left as a decision for the maintainers to alter

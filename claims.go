@@ -135,7 +135,8 @@ func (c *RegisteredClaims) VerifyIssuer(cmp string, req bool) bool {
 }
 
 func (c *RegisteredClaims) validateAudience(req bool, opts ...validationOption) bool {
-	aud, skip := getAudienceValidationOpts(len(c.Audience) != 0, opts...)
+	v := getValidator(opts...)
+	aud, skip := v.getAudienceValidationOpts(len(c.Audience) != 0)
 
 	// Based on my reading of https://datatracker.ietf.org/doc/html/rfc7519/#section-4.1.3
 	// this should technically fail. This is left as a decision for the maintainers to alter
@@ -256,7 +257,8 @@ func (c *StandardClaims) VerifyIssuer(cmp string, req bool) bool {
 }
 
 func (c *StandardClaims) validateAudience(req bool, opts ...validationOption) bool {
-	aud, skip := getAudienceValidationOpts(c.Audience != "", opts...)
+	v := getValidator(opts...)
+	aud, skip := v.getAudienceValidationOpts(c.Audience != "")
 
 	// Based on my reading of https://datatracker.ietf.org/doc/html/rfc7519/#section-4.1.3
 	// this should technically fail. This is left as a decision for the maintainers to alter
