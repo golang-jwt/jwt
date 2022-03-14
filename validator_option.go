@@ -73,10 +73,7 @@ func getValidator(opts ...validationOption) validator {
 // getAudienceValidationOpts returns the aud, and skip validation values from the
 // options. If validation is not required then function will return true for skip.
 func (v *validator) getAudienceValidationOpts(req bool) (*string, bool) {
-	if !req {
-		return nil, true
-	}
-	if v.skipAudience {
+	if !req || v.skipAudience {
 		return nil, true
 	}
 	return v.audience, false
