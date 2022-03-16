@@ -14,6 +14,6 @@ You will receive a response within a timely manner. If the issue is confirmed, w
 
 Please avoid publicly discussing a potential security vulnerability.
 
-Let's take this offile and find a solution first, this limits the potential impact as much as possible.
+Let's take this offline and find a solution first, this limits the potential impact as much as possible.
 
 We appreciate your help!
