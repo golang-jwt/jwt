@@ -36,3 +36,26 @@ func WithLeeway(d time.Duration) ParserOption {
 		p.validationOptions = append(p.validationOptions, withLeeway(d))
 	}
 }
+
+// WithoutIssuedAtValidation is an option to disable the validation of the issued at (iat) claim.
+// The current `iat` time based validation is planned to be deprecated in v5
+
+func WithoutIssuedAtValidation() ParserOption {
+	return func(p *Parser) {
+		p.validationOptions = append(p.validationOptions, withoutIssuedAtValidation())
+	}
+}
+
+// WithAudience returns the ParserOption for specifying an expected aud member value
+func WithAudience(aud string) ParserOption {
+	return func(p *Parser) {
+		p.validationOptions = append(p.validationOptions, withAudience(aud))
+	}
+}
+
+// WithoutAudienceValidation returns the ParserOption that specifies audience check should be skipped
+func WithoutAudienceValidation() ParserOption {
+	return func(p *Parser) {
+		p.validationOptions = append(p.validationOptions, withoutAudienceValidation())
+	}
+}

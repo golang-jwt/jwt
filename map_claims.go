@@ -2,7 +2,6 @@ package jwt
 
 import (
 	"encoding/json"
-	"errors"
 	"time"
 	// "fmt"
 )
@@ -42,10 +41,7 @@ func (m MapClaims) VerifyExpiresAt(cmp int64, req bool, opts ...validationOption
 		return !req
 	}
 
-	validator := validator{}
-	for _, o := range opts {
-		o(&validator)
-	}
+	validator := getValidator(opts...)
 
 	switch exp := v.(type) {
 	case float64:
@@ -65,7 +61,7 @@ func (m MapClaims) VerifyExpiresAt(cmp int64, req bool, opts ...validationOption
 
 // VerifyIssuedAt compares the exp claim against cmp (cmp >= iat).
 // If req is false, it will return true, if iat is unset.
-func (m MapClaims) VerifyIssuedAt(cmp int64, req bool) bool {
+func (m MapClaims) VerifyIssuedAt(cmp int64, req bool, opts ...validationOption) bool {
 	cmpTime := time.Unix(cmp, 0)
 
 	v, ok := m["iat"]
@@ -73,17 +69,29 @@ func (m MapClaims) VerifyIssuedAt(cmp int64, req bool) bool {
 		return !req
 	}
 
+	validator := getValidator(opts...)
+
+	// validate the type
+	switch v.(type) {
+	case float64, json.Number:
+		if validator.skipIssuedAt {
+			return true
+		}
+	default:
+		return false
+	}
+
 	switch iat := v.(type) {
 	case float64:
 		if iat == 0 {
-			return verifyIat(nil, cmpTime, req)
+			return verifyIat(nil, cmpTime, req, validator.leeway)
 		}
 
-		return verifyIat(&newNumericDateFromSeconds(iat).Time, cmpTime, req)
+		return verifyIat(&newNumericDateFromSeconds(iat).Time, cmpTime, req, validator.leeway)
 	case json.Number:
 		v, _ := iat.Float64()
 
-		return verifyIat(&newNumericDateFromSeconds(v).Time, cmpTime, req)
+		return verifyIat(&newNumericDateFromSeconds(v).Time, cmpTime, req, validator.leeway)
 	}
 
 	return false
@@ -99,10 +107,7 @@ func (m MapClaims) VerifyNotBefore(cmp int64, req bool, opts ...validationOption
 		return !req
 	}
 
-	validator := validator{}
-	for _, o := range opts {
-		o(&validator)
-	}
+	validator := getValidator(opts...)
 
 	switch nbf := v.(type) {
 	case float64:
@@ -127,6 +132,21 @@ func (m MapClaims) VerifyIssuer(cmp string, req bool) bool {
 	return verifyIss(iss, cmp, req)
 }
 
+func (m MapClaims) validateAudience(req bool, opts ...validationOption) bool {
+	_, ok := m["aud"]
+	v := getValidator(opts...)
+	aud, skip := v.getAudienceValidationOpts(ok)
+
+	// Based on my reading of https://datatracker.ietf.org/doc/html/rfc7519/#section-4.1.3
+	// this should technically fail. This is left as a decision for the maintainers to alter
+	// the behavior as it would be a breaking change.
+	if !skip && aud != nil {
+		return m.VerifyAudience(*aud, req)
+	}
+
+	return !req
+}
+
 // Valid validates time based claims "exp, iat, nbf".
 // There is no accounting for clock skew.
 // As well, if any of the above claims are not in the token, it will still
@@ -136,21 +156,23 @@ func (m MapClaims) Valid(opts ...validationOption) error {
 	now := TimeFunc().Unix()
 
 	if !m.VerifyExpiresAt(now, false, opts...) {
-		// TODO(oxisto): this should be replaced with ErrTokenExpired
-		vErr.Inner = errors.New("Token is expired")
+		vErr.Inner = ErrTokenExpired
 		vErr.Errors |= ValidationErrorExpired
 	}
 
-	if !m.VerifyIssuedAt(now, false) {
-		// TODO(oxisto): this should be replaced with ErrTokenUsedBeforeIssued
-		vErr.Inner = errors.New("Token used before issued")
+	if !m.VerifyIssuedAt(now, false, opts...) {
+		vErr.Inner = ErrTokenUsedBeforeIssued
 		vErr.Errors |= ValidationErrorIssuedAt
 	}
 
 	if !m.VerifyNotBefore(now, false, opts...) {
-		// TODO(oxisto): this should be replaced with ErrTokenNotValidYet
-		vErr.Inner = errors.New("Token is not valid yet")
+		vErr.Inner = ErrTokenNotValidYet
 		vErr.Errors |= ValidationErrorNotValidYet
+	}
+
+	if !m.validateAudience(false, opts...) {
+		vErr.Inner = ErrTokenInvalidAudience
+		vErr.Errors |= ValidationErrorAudience
 	}
 
 	if vErr.valid() {

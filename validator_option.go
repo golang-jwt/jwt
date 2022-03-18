@@ -15,7 +15,10 @@ type validationOption func(*validator)
 // Note that this struct is (currently) un-exported, its naming is subject to change and will only be exported once
 // the API is more stable.
 type validator struct {
-	leeway time.Duration // Leeway to provide when validating time values
+	leeway       time.Duration // Leeway to provide when validating time values
+	audience     *string       // Expected audience value
+	skipAudience bool          // Ignore aud check
+	skipIssuedAt bool          // Ignore iat check
 }
 
 // withLeeway is an option to set the clock skew (leeway) window
@@ -26,4 +29,52 @@ func withLeeway(d time.Duration) validationOption {
 	return func(v *validator) {
 		v.leeway = d
 	}
+}
+
+// withoutIssuedAtValidation is an option to disable the validation of the issued at (iat) claim
+//
+// Note that this function is (currently) un-exported, its naming is subject to change and will only be exported once
+// the API is more stable.
+func withoutIssuedAtValidation() validationOption {
+	return func(v *validator) {
+		v.skipIssuedAt = true
+	}
+}
+
+// withAudience returns the ParserOption for specifying an expected aud member value
+//
+// Note that this function is (currently) un-exported, its naming is subject to change and will only be exported once
+// the API is more stable.
+func withAudience(aud string) validationOption {
+	return func(v *validator) {
+		v.audience = &aud
+	}
+}
+
+// withoutAudienceValidation returns the ParserOption that specifies audience check should be skipped
+//
+// Note that this function is (currently) un-exported, its naming is subject to change and will only be exported once
+// the API is more stable.
+func withoutAudienceValidation() validationOption {
+	return func(v *validator) {
+		v.skipAudience = true
+	}
+}
+
+// getValidator return the validation given the options
+func getValidator(opts ...validationOption) validator {
+	v := validator{}
+	for _, o := range opts {
+		o(&v)
+	}
+	return v
+}
+
+// getAudienceValidationOpts returns the aud, and skip validation values from the
+// options. If validation is not required then function will return true for skip.
+func (v *validator) getAudienceValidationOpts(req bool) (*string, bool) {
+	if !req || v.skipAudience {
+		return nil, true
+	}
+	return v.audience, false
 }
