@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - uses: reviewdog/action-staticcheck@v1
         with:
           github_token: ${{ secrets.github_token }}
@@ -25,12 +25,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go: [1.15, 1.16, 1.17]
+        go: [1.16, 1.17, 1.18]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: "${{ matrix.go }}"
       - name: Build
