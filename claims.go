@@ -9,10 +9,7 @@ import (
 // Claims must just have a Valid method that determines
 // if the token is invalid for any supported reason
 type Claims interface {
-	// Valid implements claim validation. The opts are function style options that can
-	// be used to fine-tune the validation. The type used for the options is intentionally
-	// un-exported, since its API and its naming is subject to change.
-	Valid(opts ...validationOption) error
+	Valid() error
 }
 
 // RegisteredClaims are a structured version of the JWT Claims Set,
@@ -51,13 +48,13 @@ type RegisteredClaims struct {
 // There is no accounting for clock skew.
 // As well, if any of the above claims are not in the token, it will still
 // be considered a valid claim.
-func (c RegisteredClaims) Valid(opts ...validationOption) error {
+func (c RegisteredClaims) Valid() error {
 	vErr := new(ValidationError)
 	now := TimeFunc()
 
 	// The claims below are optional, by default, so if they are set to the
 	// default value in Go, let's not fail the verification for them.
-	if !c.VerifyExpiresAt(now, false, opts...) {
+	if !c.VerifyExpiresAt(now, false) {
 		delta := now.Sub(c.ExpiresAt.Time)
 		vErr.Inner = fmt.Errorf("%s by %s", ErrTokenExpired, delta)
 		vErr.Errors |= ValidationErrorExpired
@@ -68,7 +65,7 @@ func (c RegisteredClaims) Valid(opts ...validationOption) error {
 		vErr.Errors |= ValidationErrorIssuedAt
 	}
 
-	if !c.VerifyNotBefore(now, false, opts...) {
+	if !c.VerifyNotBefore(now, false) {
 		vErr.Inner = ErrTokenNotValidYet
 		vErr.Errors |= ValidationErrorNotValidYet
 	}
@@ -88,16 +85,12 @@ func (c *RegisteredClaims) VerifyAudience(cmp string, req bool) bool {
 
 // VerifyExpiresAt compares the exp claim against cmp (cmp < exp).
 // If req is false, it will return true, if exp is unset.
-func (c *RegisteredClaims) VerifyExpiresAt(cmp time.Time, req bool, opts ...validationOption) bool {
-	validator := validator{}
-	for _, o := range opts {
-		o(&validator)
-	}
+func (c *RegisteredClaims) VerifyExpiresAt(cmp time.Time, req bool) bool {
 	if c.ExpiresAt == nil {
-		return verifyExp(nil, cmp, req, validator.leeway)
+		return verifyExp(nil, cmp, req)
 	}
 
-	return verifyExp(&c.ExpiresAt.Time, cmp, req, validator.leeway)
+	return verifyExp(&c.ExpiresAt.Time, cmp, req)
 }
 
 // VerifyIssuedAt compares the iat claim against cmp (cmp >= iat).
@@ -112,16 +105,12 @@ func (c *RegisteredClaims) VerifyIssuedAt(cmp time.Time, req bool) bool {
 
 // VerifyNotBefore compares the nbf claim against cmp (cmp >= nbf).
 // If req is false, it will return true, if nbf is unset.
-func (c *RegisteredClaims) VerifyNotBefore(cmp time.Time, req bool, opts ...validationOption) bool {
-	validator := validator{}
-	for _, o := range opts {
-		o(&validator)
-	}
+func (c *RegisteredClaims) VerifyNotBefore(cmp time.Time, req bool) bool {
 	if c.NotBefore == nil {
-		return verifyNbf(nil, cmp, req, validator.leeway)
+		return verifyNbf(nil, cmp, req)
 	}
 
-	return verifyNbf(&c.NotBefore.Time, cmp, req, validator.leeway)
+	return verifyNbf(&c.NotBefore.Time, cmp, req)
 }
 
 // VerifyIssuer compares the iss claim against cmp.
@@ -152,13 +141,13 @@ type StandardClaims struct {
 // Valid validates time based claims "exp, iat, nbf". There is no accounting for clock skew.
 // As well, if any of the above claims are not in the token, it will still
 // be considered a valid claim.
-func (c StandardClaims) Valid(opts ...validationOption) error {
+func (c StandardClaims) Valid() error {
 	vErr := new(ValidationError)
 	now := TimeFunc().Unix()
 
 	// The claims below are optional, by default, so if they are set to the
 	// default value in Go, let's not fail the verification for them.
-	if !c.VerifyExpiresAt(now, false, opts...) {
+	if !c.VerifyExpiresAt(now, false) {
 		delta := time.Unix(now, 0).Sub(time.Unix(c.ExpiresAt, 0))
 		vErr.Inner = fmt.Errorf("%s by %s", ErrTokenExpired, delta)
 		vErr.Errors |= ValidationErrorExpired
@@ -169,7 +158,7 @@ func (c StandardClaims) Valid(opts ...validationOption) error {
 		vErr.Errors |= ValidationErrorIssuedAt
 	}
 
-	if !c.VerifyNotBefore(now, false, opts...) {
+	if !c.VerifyNotBefore(now, false) {
 		vErr.Inner = ErrTokenNotValidYet
 		vErr.Errors |= ValidationErrorNotValidYet
 	}
@@ -189,17 +178,13 @@ func (c *StandardClaims) VerifyAudience(cmp string, req bool) bool {
 
 // VerifyExpiresAt compares the exp claim against cmp (cmp < exp).
 // If req is false, it will return true, if exp is unset.
-func (c *StandardClaims) VerifyExpiresAt(cmp int64, req bool, opts ...validationOption) bool {
-	validator := validator{}
-	for _, o := range opts {
-		o(&validator)
-	}
+func (c *StandardClaims) VerifyExpiresAt(cmp int64, req bool) bool {
 	if c.ExpiresAt == 0 {
-		return verifyExp(nil, time.Unix(cmp, 0), req, validator.leeway)
+		return verifyExp(nil, time.Unix(cmp, 0), req)
 	}
 
 	t := time.Unix(c.ExpiresAt, 0)
-	return verifyExp(&t, time.Unix(cmp, 0), req, validator.leeway)
+	return verifyExp(&t, time.Unix(cmp, 0), req)
 }
 
 // VerifyIssuedAt compares the iat claim against cmp (cmp >= iat).
@@ -215,17 +200,13 @@ func (c *StandardClaims) VerifyIssuedAt(cmp int64, req bool) bool {
 
 // VerifyNotBefore compares the nbf claim against cmp (cmp >= nbf).
 // If req is false, it will return true, if nbf is unset.
-func (c *StandardClaims) VerifyNotBefore(cmp int64, req bool, opts ...validationOption) bool {
-	validator := validator{}
-	for _, o := range opts {
-		o(&validator)
-	}
+func (c *StandardClaims) VerifyNotBefore(cmp int64, req bool) bool {
 	if c.NotBefore == 0 {
-		return verifyNbf(nil, time.Unix(cmp, 0), req, validator.leeway)
+		return verifyNbf(nil, time.Unix(cmp, 0), req)
 	}
 
 	t := time.Unix(c.NotBefore, 0)
-	return verifyNbf(&t, time.Unix(cmp, 0), req, validator.leeway)
+	return verifyNbf(&t, time.Unix(cmp, 0), req)
 }
 
 // VerifyIssuer compares the iss claim against cmp.
@@ -259,11 +240,11 @@ func verifyAud(aud []string, cmp string, required bool) bool {
 	return result
 }
 
-func verifyExp(exp *time.Time, now time.Time, required bool, skew time.Duration) bool {
+func verifyExp(exp *time.Time, now time.Time, required bool) bool {
 	if exp == nil {
 		return !required
 	}
-	return now.Before((*exp).Add(+skew))
+	return now.Before(*exp)
 }
 
 func verifyIat(iat *time.Time, now time.Time, required bool) bool {
@@ -273,12 +254,11 @@ func verifyIat(iat *time.Time, now time.Time, required bool) bool {
 	return now.After(*iat) || now.Equal(*iat)
 }
 
-func verifyNbf(nbf *time.Time, now time.Time, required bool, skew time.Duration) bool {
+func verifyNbf(nbf *time.Time, now time.Time, required bool) bool {
 	if nbf == nil {
 		return !required
 	}
-	t := (*nbf).Add(-skew)
-	return now.After(t) || now.Equal(t)
+	return now.After(*nbf) || now.Equal(*nbf)
 }
 
 func verifyIss(iss string, cmp string, required bool) bool {
