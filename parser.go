@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 )
 
 type Parser struct {
@@ -22,6 +23,12 @@ type Parser struct {
 	//
 	// Deprecated: In future releases, this field will not be exported anymore and should be set with an option to NewParser instead.
 	SkipClaimsValidation bool
+
+	// TimeFunc provides the current time when parsing token to validate "exp" claim (expiration time).
+	// You can override it to use another time value.  This is useful for testing or if your
+	// server uses a different time zone than your tokens.
+	// If not provided, it uses the static TimeFunc from this package.
+	TimeFunc func() time.Time
 }
 
 // NewParser creates a new Parser with the specified options
@@ -82,7 +89,11 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 
 	// Validate Claims
 	if !p.SkipClaimsValidation {
-		if err := token.Claims.Valid(); err != nil {
+		timeFunc := TimeFunc
+		if p.TimeFunc != nil {
+			timeFunc = p.TimeFunc
+		}
+		if err := token.Claims.ValidWithTime(timeFunc()); err != nil {
 
 			// If the Claims Valid returned an error, check if it is a validation error,
 			// If it was another error type, create a ValidationError with a generic ClaimsInvalid flag set

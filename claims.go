@@ -10,6 +10,7 @@ import (
 // if the token is invalid for any supported reason
 type Claims interface {
 	Valid() error
+	ValidWithTime(moment time.Time) error
 }
 
 // RegisteredClaims are a structured version of the JWT Claims Set,
@@ -49,23 +50,31 @@ type RegisteredClaims struct {
 // As well, if any of the above claims are not in the token, it will still
 // be considered a valid claim.
 func (c RegisteredClaims) Valid() error {
+	return c.ValidWithTime(TimeFunc())
+}
+
+// ValidWithTime validates time based claims "exp, iat, nbf". With a specific moment in time.
+// This is useful for testing or if your server uses a different time zone than your tokens.
+// There is no accounting for clock skew.
+// As well, if any of the above claims are not in the token, it will still
+// be considered a valid claim.
+func (c RegisteredClaims) ValidWithTime(moment time.Time) error {
 	vErr := new(ValidationError)
-	now := TimeFunc()
 
 	// The claims below are optional, by default, so if they are set to the
 	// default value in Go, let's not fail the verification for them.
-	if !c.VerifyExpiresAt(now, false) {
-		delta := now.Sub(c.ExpiresAt.Time)
+	if !c.VerifyExpiresAt(moment, false) {
+		delta := moment.Sub(c.ExpiresAt.Time)
 		vErr.Inner = fmt.Errorf("%s by %s", ErrTokenExpired, delta)
 		vErr.Errors |= ValidationErrorExpired
 	}
 
-	if !c.VerifyIssuedAt(now, false) {
+	if !c.VerifyIssuedAt(moment, false) {
 		vErr.Inner = ErrTokenUsedBeforeIssued
 		vErr.Errors |= ValidationErrorIssuedAt
 	}
 
-	if !c.VerifyNotBefore(now, false) {
+	if !c.VerifyNotBefore(moment, false) {
 		vErr.Inner = ErrTokenNotValidYet
 		vErr.Errors |= ValidationErrorNotValidYet
 	}
@@ -142,8 +151,17 @@ type StandardClaims struct {
 // As well, if any of the above claims are not in the token, it will still
 // be considered a valid claim.
 func (c StandardClaims) Valid() error {
+	return c.ValidWithTime(TimeFunc())
+}
+
+// ValidWithTime validates time based claims "exp, iat, nbf". With a specific moment in time.
+// This is useful for testing or if your server uses a different time zone than your tokens.
+// There is no accounting for clock skew.
+// As well, if any of the above claims are not in the token, it will still
+// be considered a valid claim.
+func (c StandardClaims) ValidWithTime(moment time.Time) error {
 	vErr := new(ValidationError)
-	now := TimeFunc().Unix()
+	now := moment.Unix()
 
 	// The claims below are optional, by default, so if they are set to the
 	// default value in Go, let's not fail the verification for them.

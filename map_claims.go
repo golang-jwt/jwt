@@ -122,8 +122,17 @@ func (m MapClaims) VerifyIssuer(cmp string, req bool) bool {
 // As well, if any of the above claims are not in the token, it will still
 // be considered a valid claim.
 func (m MapClaims) Valid() error {
+	return m.ValidWithTime(TimeFunc())
+}
+
+// ValidWithTime validates time based claims "exp, iat, nbf". With a specific moment in time.
+// This is useful for testing or if your server uses a different time zone than your tokens.
+// There is no accounting for clock skew.
+// As well, if any of the above claims are not in the token, it will still
+// be considered a valid claim.
+func (m MapClaims) ValidWithTime(moment time.Time) error {
 	vErr := new(ValidationError)
-	now := TimeFunc().Unix()
+	now := moment.Unix()
 
 	if !m.VerifyExpiresAt(now, false) {
 		// TODO(oxisto): this should be replaced with ErrTokenExpired
