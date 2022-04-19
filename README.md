@@ -38,7 +38,7 @@ This library supports the parsing and verification as well as the generation and
 
 ## Examples
 
-See [the project documentation](https://pkg.go.dev/github.com/golang-jwt/jwt) for examples of usage:
+See [the project documentation](https://pkg.go.dev/github.com/golang-jwt/jwt/v4) for examples of usage:
 
 * [Simple example of parsing and validating a token](https://pkg.go.dev/github.com/golang-jwt/jwt#example-Parse-Hmac)
 * [Simple example of building and signing a token](https://pkg.go.dev/github.com/golang-jwt/jwt#example-New-Hmac)
