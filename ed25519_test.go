@@ -1,6 +1,8 @@
 package jwt_test
 
 import (
+	"crypto"
+	"crypto/ed25519"
 	"io/ioutil"
 	"strings"
 	"testing"
@@ -35,6 +37,13 @@ var ed25519TestData = []struct {
 }
 
 func TestEd25519Verify(t *testing.T) {
+	// This is a different ed25519 pub key from the one that can be used to verify
+	// the data.
+	const wrongPubKeyData = `
+-----BEGIN PUBLIC KEY-----
+MCowBQYDK2VwAyEADXYgR79f8XWn19vwmxtYb/H4hFiaQDBm1xUsgaqr/3Q=
+-----END PUBLIC KEY-----`
+
 	for _, data := range ed25519TestData {
 		var err error
 
@@ -55,6 +64,42 @@ func TestEd25519Verify(t *testing.T) {
 		}
 		if !data.valid && err == nil {
 			t.Errorf("[%v] Invalid key passed validation", data.name)
+		}
+
+		// test key rotations
+		invalidKey, err := jwt.ParseEdPublicKeyFromPEM([]byte(wrongPubKeyData))
+		if err != nil {
+			t.Errorf("Unable to parse wrong Ed25519 public key: %v", err)
+		}
+
+		err = method.Verify(strings.Join(parts[0:2], "."), parts[2], []ed25519.PublicKey{})
+		if err == nil {
+			t.Errorf("[%v] Empty keys passed validation", data.name)
+		}
+
+		err = method.Verify(strings.Join(parts[0:2], "."), parts[2], []ed25519.PublicKey{invalidKey.(ed25519.PublicKey)})
+		if err == nil {
+			t.Errorf("[%v] Invalid keys passed validation", data.name)
+		}
+
+		if !data.valid {
+			continue
+		}
+
+		err = method.Verify(strings.Join(parts[0:2], "."), parts[2], []ed25519.PublicKey{
+			invalidKey.(ed25519.PublicKey),
+			ed25519Key.(ed25519.PublicKey),
+		})
+		if err != nil {
+			t.Errorf("[%v] Error while verifying invalid+valid ed25519 keys: %v", data.name, err)
+		}
+
+		err = method.Verify(strings.Join(parts[0:2], "."), parts[2], []crypto.PublicKey{
+			invalidKey,
+			ed25519Key,
+		})
+		if err != nil {
+			t.Errorf("[%v] Error while verifying invalid+valid crypto keys: %v", data.name, err)
 		}
 	}
 }

@@ -54,7 +54,8 @@ func (m *SigningMethodECDSA) Alg() string {
 }
 
 // Verify implements token verification for the SigningMethod.
-// For this verify method, key must be an ecdsa.PublicKey struct
+// For this verify method, key must be in types of either *ecdsa.PublicKey or
+// []*ecdsa.PublicKey (for rotation keys).
 func (m *SigningMethodECDSA) Verify(signingString, signature string, key interface{}) error {
 	var err error
 
@@ -64,12 +65,15 @@ func (m *SigningMethodECDSA) Verify(signingString, signature string, key interfa
 		return err
 	}
 
-	// Get the key
-	var ecdsaKey *ecdsa.PublicKey
-	switch k := key.(type) {
+	// Get the keys
+	var keys []*ecdsa.PublicKey
+	switch v := key.(type) {
 	case *ecdsa.PublicKey:
-		ecdsaKey = k
-	default:
+		keys = append(keys, v)
+	case []*ecdsa.PublicKey:
+		keys = v
+	}
+	if len(keys) == 0 {
 		return ErrInvalidKeyType
 	}
 
@@ -80,19 +84,23 @@ func (m *SigningMethodECDSA) Verify(signingString, signature string, key interfa
 	r := big.NewInt(0).SetBytes(sig[:m.KeySize])
 	s := big.NewInt(0).SetBytes(sig[m.KeySize:])
 
-	// Create hasher
 	if !m.Hash.Available() {
 		return ErrHashUnavailable
 	}
-	hasher := m.Hash.New()
-	hasher.Write([]byte(signingString))
 
-	// Verify the signature
-	if verifystatus := ecdsa.Verify(ecdsaKey, hasher.Sum(nil), r, s); verifystatus {
-		return nil
+	var lastErr error
+	for _, ecdsaKey := range keys {
+		// Create hasher
+		hasher := m.Hash.New()
+		hasher.Write([]byte(signingString))
+
+		// Verify the signature
+		if verifystatus := ecdsa.Verify(ecdsaKey, hasher.Sum(nil), r, s); verifystatus {
+			return nil
+		}
+		lastErr = ErrECDSAVerification
 	}
-
-	return ErrECDSAVerification
+	return lastErr
 }
 
 // Sign implements token signing for the SigningMethod.

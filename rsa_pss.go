@@ -1,3 +1,4 @@
+//go:build go1.4
 // +build go1.4
 
 package jwt
@@ -80,7 +81,8 @@ func init() {
 }
 
 // Verify implements token verification for the SigningMethod.
-// For this verify method, key must be an rsa.PublicKey struct
+// For this verify method, key must be in the types of either *rsa.PublicKey or
+// []*rsa.PublicKey (for rotation keys).
 func (m *SigningMethodRSAPSS) Verify(signingString, signature string, key interface{}) error {
 	var err error
 
@@ -90,27 +92,38 @@ func (m *SigningMethodRSAPSS) Verify(signingString, signature string, key interf
 		return err
 	}
 
-	var rsaKey *rsa.PublicKey
-	switch k := key.(type) {
+	var keys []*rsa.PublicKey
+	switch v := key.(type) {
 	case *rsa.PublicKey:
-		rsaKey = k
-	default:
-		return ErrInvalidKey
+		keys = append(keys, v)
+	case []*rsa.PublicKey:
+		keys = v
+	}
+	if len(keys) == 0 {
+		return ErrInvalidKeyType
 	}
 
-	// Create hasher
 	if !m.Hash.Available() {
 		return ErrHashUnavailable
 	}
-	hasher := m.Hash.New()
-	hasher.Write([]byte(signingString))
 
-	opts := m.Options
-	if m.VerifyOptions != nil {
-		opts = m.VerifyOptions
+	var lastErr error
+	for _, rsaKey := range keys {
+		// Create hasher
+		hasher := m.Hash.New()
+		hasher.Write([]byte(signingString))
+
+		opts := m.Options
+		if m.VerifyOptions != nil {
+			opts = m.VerifyOptions
+		}
+
+		lastErr = rsa.VerifyPSS(rsaKey, m.Hash, hasher.Sum(nil), sig, opts)
+		if lastErr == nil {
+			return nil
+		}
 	}
-
-	return rsa.VerifyPSS(rsaKey, m.Hash, hasher.Sum(nil), sig, opts)
+	return lastErr
 }
 
 // Sign implements token signing for the SigningMethod.
