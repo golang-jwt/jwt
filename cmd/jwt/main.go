@@ -11,7 +11,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"regexp"
 	"sort"
@@ -91,7 +90,7 @@ func loadData(p string) ([]byte, error) {
 			return nil, err
 		}
 	}
-	return ioutil.ReadAll(rdr)
+	return io.ReadAll(rdr)
 }
 
 // Print a json object in accordance with the prophecy (or the command line options)

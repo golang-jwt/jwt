@@ -2,7 +2,7 @@ package jwt_test
 
 import (
 	"crypto/ecdsa"
-	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 
@@ -55,7 +55,7 @@ func TestECDSAVerify(t *testing.T) {
 	for _, data := range ecdsaTestData {
 		var err error
 
-		key, _ := ioutil.ReadFile(data.keys["public"])
+		key, _ := os.ReadFile(data.keys["public"])
 
 		var ecdsaKey *ecdsa.PublicKey
 		if ecdsaKey, err = jwt.ParseECPublicKeyFromPEM(key); err != nil {
@@ -78,7 +78,7 @@ func TestECDSAVerify(t *testing.T) {
 func TestECDSASign(t *testing.T) {
 	for _, data := range ecdsaTestData {
 		var err error
-		key, _ := ioutil.ReadFile(data.keys["private"])
+		key, _ := os.ReadFile(data.keys["private"])
 
 		var ecdsaKey *ecdsa.PrivateKey
 		if ecdsaKey, err = jwt.ParseECPrivateKeyFromPEM(key); err != nil {
@@ -108,7 +108,7 @@ func TestECDSASign(t *testing.T) {
 
 func BenchmarkECDSAParsing(b *testing.B) {
 	for _, data := range ecdsaTestData {
-		key, _ := ioutil.ReadFile(data.keys["private"])
+		key, _ := os.ReadFile(data.keys["private"])
 
 		b.Run(data.name, func(b *testing.B) {
 			b.ReportAllocs()
@@ -126,7 +126,7 @@ func BenchmarkECDSAParsing(b *testing.B) {
 
 func BenchmarkECDSASigning(b *testing.B) {
 	for _, data := range ecdsaTestData {
-		key, _ := ioutil.ReadFile(data.keys["private"])
+		key, _ := os.ReadFile(data.keys["private"])
 
 		ecdsaKey, err := jwt.ParseECPrivateKeyFromPEM(key)
 		if err != nil {

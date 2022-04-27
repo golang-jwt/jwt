@@ -1,10 +1,11 @@
+//go:build go1.4
 // +build go1.4
 
 package jwt_test
 
 import (
 	"crypto/rsa"
-	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -53,7 +54,7 @@ var rsaPSSTestData = []struct {
 func TestRSAPSSVerify(t *testing.T) {
 	var err error
 
-	key, _ := ioutil.ReadFile("test/sample_key.pub")
+	key, _ := os.ReadFile("test/sample_key.pub")
 	var rsaPSSKey *rsa.PublicKey
 	if rsaPSSKey, err = jwt.ParseRSAPublicKeyFromPEM(key); err != nil {
 		t.Errorf("Unable to parse RSA public key: %v", err)
@@ -76,7 +77,7 @@ func TestRSAPSSVerify(t *testing.T) {
 func TestRSAPSSSign(t *testing.T) {
 	var err error
 
-	key, _ := ioutil.ReadFile("test/sample_key")
+	key, _ := os.ReadFile("test/sample_key")
 	var rsaPSSKey *rsa.PrivateKey
 	if rsaPSSKey, err = jwt.ParseRSAPrivateKeyFromPEM(key); err != nil {
 		t.Errorf("Unable to parse RSA private key: %v", err)
