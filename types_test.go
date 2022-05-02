@@ -79,13 +79,18 @@ func TestNumericDate_MarshalJSON(t *testing.T) {
 	}{
 		{time.Unix(5243700879, 0), "5243700879", time.Second},
 		{time.Unix(5243700879, 0), "5243700879.000", time.Millisecond},
-		{time.Unix(5243700879, 0), "5243700879.000001", time.Microsecond},
-		{time.Unix(5243700879, 0), "5243700879.000000954", time.Nanosecond},
+		{time.Unix(5243700879, 0), "5243700879.000000", time.Microsecond},
+		{time.Unix(5243700879, 0), "5243700879.000000000", time.Nanosecond},
 		//
 		{time.Unix(4239425898, 0), "4239425898", time.Second},
 		{time.Unix(4239425898, 0), "4239425898.000", time.Millisecond},
 		{time.Unix(4239425898, 0), "4239425898.000000", time.Microsecond},
 		{time.Unix(4239425898, 0), "4239425898.000000000", time.Nanosecond},
+		//
+		{time.Unix(253402271999, 0), "253402271999", time.Second},
+		{time.Unix(253402271999, 0), "253402271999.000", time.Millisecond},
+		{time.Unix(253402271999, 0), "253402271999.000000", time.Microsecond},
+		{time.Unix(253402271999, 0), "253402271999.000000000", time.Nanosecond},
 		//
 		{time.Unix(0, 1644285000210402000), "1644285000", time.Second},
 		{time.Unix(0, 1644285000210402000), "1644285000.210", time.Millisecond},

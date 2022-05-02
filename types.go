@@ -53,7 +53,8 @@ func (date NumericDate) MarshalJSON() (b []byte, err error) {
 	if TimePrecision < time.Second {
 		prec = int(math.Log10(float64(time.Second) / float64(TimePrecision)))
 	}
-	f := float64(date.Truncate(TimePrecision).UnixNano()) / float64(time.Second)
+	trancatedDate := date.Truncate(TimePrecision)
+	f := float64(trancatedDate.Unix()) + float64(trancatedDate.Nanosecond()) / float64(time.Second)
 
 	return []byte(strconv.FormatFloat(f, 'f', prec, 64)), nil
 }
