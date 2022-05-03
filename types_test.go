@@ -2,6 +2,7 @@ package jwt_test
 
 import (
 	"encoding/json"
+	"math"
 	"testing"
 	"time"
 
@@ -95,12 +96,22 @@ func TestNumericDate_MarshalJSON(t *testing.T) {
 		{time.Unix(0, 1644285000210402000), "1644285000", time.Second},
 		{time.Unix(0, 1644285000210402000), "1644285000.210", time.Millisecond},
 		{time.Unix(0, 1644285000210402000), "1644285000.210402", time.Microsecond},
-		{time.Unix(0, 1644285000210402000), "1644285000.210402012", time.Nanosecond},
+		{time.Unix(0, 1644285000210402000), "1644285000.210402000", time.Nanosecond},
 		//
 		{time.Unix(0, 1644285315063096000), "1644285315", time.Second},
 		{time.Unix(0, 1644285315063096000), "1644285315.063", time.Millisecond},
 		{time.Unix(0, 1644285315063096000), "1644285315.063096", time.Microsecond},
-		{time.Unix(0, 1644285315063096000), "1644285315.063096046", time.Nanosecond},
+		{time.Unix(0, 1644285315063096000), "1644285315.063096000", time.Nanosecond},
+		// Maximum time that a go time.Time can represent
+		{time.Unix(math.MaxInt64, 999999999), "9223372036854775807", time.Second},
+		{time.Unix(math.MaxInt64, 999999999), "9223372036854775807.999", time.Millisecond},
+		{time.Unix(math.MaxInt64, 999999999), "9223372036854775807.999999", time.Microsecond},
+		{time.Unix(math.MaxInt64, 999999999), "9223372036854775807.999999999", time.Nanosecond},
+		// Strange precisions
+		{time.Unix(math.MaxInt64, 999999999), "9223372036854775807", time.Second},
+		{time.Unix(math.MaxInt64, 999999999), "9223372036854775756", time.Minute},
+		{time.Unix(math.MaxInt64, 999999999), "9223372036854774016", time.Hour},
+		{time.Unix(math.MaxInt64, 999999999), "9223372036854745216", 24 * time.Hour},
 	}
 
 	for i, tc := range tt {

@@ -54,9 +54,11 @@ func (date NumericDate) MarshalJSON() (b []byte, err error) {
 		prec = int(math.Log10(float64(time.Second) / float64(TimePrecision)))
 	}
 	trancatedDate := date.Truncate(TimePrecision)
-	f := float64(trancatedDate.Unix()) + float64(trancatedDate.Nanosecond()) / float64(time.Second)
+	whole := strconv.FormatInt(trancatedDate.Unix(), 10)
+	decimal := strconv.FormatFloat(float64(trancatedDate.Nanosecond())/float64(time.Second), 'f', prec, 64)
+	f := append([]byte(whole), []byte(decimal)[1:]...)
 
-	return []byte(strconv.FormatFloat(f, 'f', prec, 64)), nil
+	return f, nil
 }
 
 // UnmarshalJSON is an implementation of the json.RawMessage interface and deserializses a
