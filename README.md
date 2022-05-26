@@ -36,18 +36,18 @@ The part in the middle is the interesting bit.  It's called the Claims and conta
 
 This library supports the parsing and verification as well as the generation and signing of JWTs.  Current supported signing algorithms are HMAC SHA, RSA, RSA-PSS, and ECDSA, though hooks are present for adding your own.
 
-## Installation Guidelines 
+## Installation Guidelines
 
 1. To install the jwt package, you first need [Go](https://go.dev/doc/install) installed, then you can use the below Go command to install jwt.
 
 ```sh
-$ go get -u github.com/golang-jwt/jwt
+$ go get -u github.com/golang-jwt/jwt/v4
 ```
 
 2. Import it in your code:
 
 ```go
-import "github.com/golang-jwt/jwt"
+import "github.com/golang-jwt/jwt/v4"
 ```
 
 ## Examples
