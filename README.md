@@ -38,10 +38,10 @@ This library supports the parsing and verification as well as the generation and
 
 ## Installation Guidelines
 
-1. To install the jwt package, you first need [Go](https://go.dev/doc/install) installed, then you can use the below Go command to install jwt.
+1. To install the jwt package, you first need to have [Go](https://go.dev/doc/install) installed, then you can use the command below to add `jwt-go` as a dependency in your Go program.
 
 ```sh
-$ go get -u github.com/golang-jwt/jwt/v4
+go get -u github.com/golang-jwt/jwt/v4
 ```
 
 2. Import it in your code:
