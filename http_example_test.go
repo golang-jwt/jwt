@@ -8,11 +8,11 @@ import (
 	"crypto/rsa"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -34,13 +34,13 @@ var (
 
 // read the key files before starting http handlers
 func init() {
-	signBytes, err := ioutil.ReadFile(privKeyPath)
+	signBytes, err := os.ReadFile(privKeyPath)
 	fatal(err)
 
 	signKey, err = jwt.ParseRSAPrivateKeyFromPEM(signBytes)
 	fatal(err)
 
-	verifyBytes, err := ioutil.ReadFile(pubKeyPath)
+	verifyBytes, err := os.ReadFile(pubKeyPath)
 	fatal(err)
 
 	verifyKey, err = jwt.ParseRSAPublicKeyFromPEM(verifyBytes)

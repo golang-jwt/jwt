@@ -1,7 +1,7 @@
 package jwt_test
 
 import (
-	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 
@@ -38,7 +38,7 @@ func TestEd25519Verify(t *testing.T) {
 	for _, data := range ed25519TestData {
 		var err error
 
-		key, _ := ioutil.ReadFile(data.keys["public"])
+		key, _ := os.ReadFile(data.keys["public"])
 
 		ed25519Key, err := jwt.ParseEdPublicKeyFromPEM(key)
 		if err != nil {
@@ -62,7 +62,7 @@ func TestEd25519Verify(t *testing.T) {
 func TestEd25519Sign(t *testing.T) {
 	for _, data := range ed25519TestData {
 		var err error
-		key, _ := ioutil.ReadFile(data.keys["private"])
+		key, _ := os.ReadFile(data.keys["private"])
 
 		ed25519Key, err := jwt.ParseEdPrivateKeyFromPEM(key)
 		if err != nil {

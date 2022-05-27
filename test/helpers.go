@@ -3,13 +3,13 @@ package test
 import (
 	"crypto"
 	"crypto/rsa"
-	"io/ioutil"
+	"os"
 
 	"github.com/golang-jwt/jwt/v4"
 )
 
 func LoadRSAPrivateKeyFromDisk(location string) *rsa.PrivateKey {
-	keyData, e := ioutil.ReadFile(location)
+	keyData, e := os.ReadFile(location)
 	if e != nil {
 		panic(e.Error())
 	}
@@ -21,7 +21,7 @@ func LoadRSAPrivateKeyFromDisk(location string) *rsa.PrivateKey {
 }
 
 func LoadRSAPublicKeyFromDisk(location string) *rsa.PublicKey {
-	keyData, e := ioutil.ReadFile(location)
+	keyData, e := os.ReadFile(location)
 	if e != nil {
 		panic(e.Error())
 	}
@@ -45,7 +45,7 @@ func MakeSampleToken(c jwt.Claims, method jwt.SigningMethod, key interface{}) st
 }
 
 func LoadECPrivateKeyFromDisk(location string) crypto.PrivateKey {
-	keyData, e := ioutil.ReadFile(location)
+	keyData, e := os.ReadFile(location)
 	if e != nil {
 		panic(e.Error())
 	}
@@ -57,7 +57,7 @@ func LoadECPrivateKeyFromDisk(location string) crypto.PrivateKey {
 }
 
 func LoadECPublicKeyFromDisk(location string) crypto.PublicKey {
-	keyData, e := ioutil.ReadFile(location)
+	keyData, e := os.ReadFile(location)
 	if e != nil {
 		panic(e.Error())
 	}
