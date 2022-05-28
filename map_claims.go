@@ -45,14 +45,14 @@ func (m MapClaims) VerifyExpiresAt(cmp int64, req bool) bool {
 	switch exp := v.(type) {
 	case float64:
 		if exp == 0 {
-			return verifyExp(nil, cmpTime, req)
+			return verifyExp(nil, cmpTime, req, 0)
 		}
 
-		return verifyExp(&newNumericDateFromSeconds(exp).Time, cmpTime, req)
+		return verifyExp(&newNumericDateFromSeconds(exp).Time, cmpTime, req, 0)
 	case json.Number:
 		v, _ := exp.Float64()
 
-		return verifyExp(&newNumericDateFromSeconds(v).Time, cmpTime, req)
+		return verifyExp(&newNumericDateFromSeconds(v).Time, cmpTime, req, 0)
 	}
 
 	return false
@@ -97,14 +97,14 @@ func (m MapClaims) VerifyNotBefore(cmp int64, req bool) bool {
 	switch nbf := v.(type) {
 	case float64:
 		if nbf == 0 {
-			return verifyNbf(nil, cmpTime, req)
+			return verifyNbf(nil, cmpTime, req, 0)
 		}
 
-		return verifyNbf(&newNumericDateFromSeconds(nbf).Time, cmpTime, req)
+		return verifyNbf(&newNumericDateFromSeconds(nbf).Time, cmpTime, req, 0)
 	case json.Number:
 		v, _ := nbf.Float64()
 
-		return verifyNbf(&newNumericDateFromSeconds(v).Time, cmpTime, req)
+		return verifyNbf(&newNumericDateFromSeconds(v).Time, cmpTime, req, 0)
 	}
 
 	return false
