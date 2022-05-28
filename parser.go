@@ -22,11 +22,16 @@ type Parser struct {
 	//
 	// Deprecated: In future releases, this field will not be exported anymore and should be set with an option to NewParser instead.
 	SkipClaimsValidation bool
+
+	validator *Validator
 }
 
 // NewParser creates a new Parser with the specified options
 func NewParser(options ...ParserOption) *Parser {
-	p := &Parser{}
+	p := &Parser{
+		// Supply a default validator
+		validator: NewValidator(),
+	}
 
 	// loop through our parsing options and apply them
 	for _, option := range options {
@@ -82,14 +87,34 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 
 	// Validate Claims
 	if !p.SkipClaimsValidation {
-		if err := token.Claims.Valid(); err != nil {
+		// Experimental. It gets pretty messy here, because we have a new
+		// interface, that not all Claims (especially ones external to the
+		// package) might implement.
+		if claimsv2, ok := token.Claims.(ClaimsV2); ok {
+			// Make sure we have at least a default validator
+			if p.validator == nil {
+				p.validator = NewValidator()
+			}
 
-			// If the Claims Valid returned an error, check if it is a validation error,
-			// If it was another error type, create a ValidationError with a generic ClaimsInvalid flag set
-			if e, ok := err.(*ValidationError); !ok {
-				vErr = &ValidationError{Inner: err, Errors: ValidationErrorClaimsInvalid}
-			} else {
-				vErr = e
+			if err := p.validator.Validate(claimsv2); err != nil {
+				// If the Claims Valid returned an error, check if it is a validation error,
+				// If it was another error type, create a ValidationError with a generic ClaimsInvalid flag set
+				if e, ok := err.(*ValidationError); !ok {
+					vErr = &ValidationError{Inner: err, Errors: ValidationErrorClaimsInvalid}
+				} else {
+					vErr = e
+				}
+			}
+		} else {
+			// Legacy way of validating
+			if err := token.Claims.Valid(); err != nil {
+				// If the Claims Valid returned an error, check if it is a validation error,
+				// If it was another error type, create a ValidationError with a generic ClaimsInvalid flag set
+				if e, ok := err.(*ValidationError); !ok {
+					vErr = &ValidationError{Inner: err, Errors: ValidationErrorClaimsInvalid}
+				} else {
+					vErr = e
+				}
 			}
 		}
 	}

@@ -27,3 +27,9 @@ func WithoutClaimsValidation() ParserOption {
 		p.SkipClaimsValidation = true
 	}
 }
+
+func WithValidator(v *Validator) ParserOption {
+	return func(p *Parser) {
+		p.validator = v
+	}
+}
