@@ -33,6 +33,13 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: "${{ matrix.go }}"
+      - name: Check Go code formatting
+        run: |
+          if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
+            gofmt -s -l .
+            echo "Please format Go code by running: go fmt ./..."
+            exit 1
+          fi
       - name: Build
         run: |
           go vet ./...
