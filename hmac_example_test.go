@@ -2,7 +2,7 @@ package jwt_test
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -15,7 +15,7 @@ var hmacSampleSecret []byte
 
 func init() {
 	// Load sample key data
-	if keyData, e := ioutil.ReadFile("test/hmacTestKey"); e == nil {
+	if keyData, e := os.ReadFile("test/hmacTestKey"); e == nil {
 		hmacSampleSecret = keyData
 	} else {
 		panic(e)

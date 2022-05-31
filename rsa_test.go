@@ -1,7 +1,7 @@
 package jwt_test
 
 import (
-	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 
@@ -46,7 +46,7 @@ var rsaTestData = []struct {
 }
 
 func TestRSAVerify(t *testing.T) {
-	keyData, _ := ioutil.ReadFile("test/sample_key.pub")
+	keyData, _ := os.ReadFile("test/sample_key.pub")
 	key, _ := jwt.ParseRSAPublicKeyFromPEM(keyData)
 
 	for _, data := range rsaTestData {
@@ -64,7 +64,7 @@ func TestRSAVerify(t *testing.T) {
 }
 
 func TestRSASign(t *testing.T) {
-	keyData, _ := ioutil.ReadFile("test/sample_key")
+	keyData, _ := os.ReadFile("test/sample_key")
 	key, _ := jwt.ParseRSAPrivateKeyFromPEM(keyData)
 
 	for _, data := range rsaTestData {
@@ -83,7 +83,7 @@ func TestRSASign(t *testing.T) {
 }
 
 func TestRSAVerifyWithPreParsedPrivateKey(t *testing.T) {
-	key, _ := ioutil.ReadFile("test/sample_key.pub")
+	key, _ := os.ReadFile("test/sample_key.pub")
 	parsedKey, err := jwt.ParseRSAPublicKeyFromPEM(key)
 	if err != nil {
 		t.Fatal(err)
@@ -97,7 +97,7 @@ func TestRSAVerifyWithPreParsedPrivateKey(t *testing.T) {
 }
 
 func TestRSAWithPreParsedPrivateKey(t *testing.T) {
-	key, _ := ioutil.ReadFile("test/sample_key")
+	key, _ := os.ReadFile("test/sample_key")
 	parsedKey, err := jwt.ParseRSAPrivateKeyFromPEM(key)
 	if err != nil {
 		t.Fatal(err)
@@ -114,9 +114,9 @@ func TestRSAWithPreParsedPrivateKey(t *testing.T) {
 }
 
 func TestRSAKeyParsing(t *testing.T) {
-	key, _ := ioutil.ReadFile("test/sample_key")
-	secureKey, _ := ioutil.ReadFile("test/privateSecure.pem")
-	pubKey, _ := ioutil.ReadFile("test/sample_key.pub")
+	key, _ := os.ReadFile("test/sample_key")
+	secureKey, _ := os.ReadFile("test/privateSecure.pem")
+	pubKey, _ := os.ReadFile("test/sample_key.pub")
 	badKey := []byte("All your base are belong to key")
 
 	// Test parsePrivateKey
@@ -156,7 +156,7 @@ func TestRSAKeyParsing(t *testing.T) {
 }
 
 func BenchmarkRSAParsing(b *testing.B) {
-	key, _ := ioutil.ReadFile("test/sample_key")
+	key, _ := os.ReadFile("test/sample_key")
 
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -170,7 +170,7 @@ func BenchmarkRSAParsing(b *testing.B) {
 }
 
 func BenchmarkRS256Signing(b *testing.B) {
-	key, _ := ioutil.ReadFile("test/sample_key")
+	key, _ := os.ReadFile("test/sample_key")
 	parsedKey, err := jwt.ParseRSAPrivateKeyFromPEM(key)
 	if err != nil {
 		b.Fatal(err)
@@ -180,7 +180,7 @@ func BenchmarkRS256Signing(b *testing.B) {
 }
 
 func BenchmarkRS384Signing(b *testing.B) {
-	key, _ := ioutil.ReadFile("test/sample_key")
+	key, _ := os.ReadFile("test/sample_key")
 	parsedKey, err := jwt.ParseRSAPrivateKeyFromPEM(key)
 	if err != nil {
 		b.Fatal(err)
@@ -190,7 +190,7 @@ func BenchmarkRS384Signing(b *testing.B) {
 }
 
 func BenchmarkRS512Signing(b *testing.B) {
-	key, _ := ioutil.ReadFile("test/sample_key")
+	key, _ := os.ReadFile("test/sample_key")
 	parsedKey, err := jwt.ParseRSAPrivateKeyFromPEM(key)
 	if err != nil {
 		b.Fatal(err)
