@@ -1,7 +1,6 @@
 package jwt
 
 import (
-	"crypto/subtle"
 	"fmt"
 	"time"
 )
@@ -44,79 +43,65 @@ type RegisteredClaims struct {
 	ID string `json:"jti,omitempty"`
 }
 
+func (c RegisteredClaims) GetExpiryAt() *NumericDate {
+	return c.ExpiresAt
+}
+
+func (c RegisteredClaims) GetNotBefore() *NumericDate {
+	return c.NotBefore
+}
+
+func (c RegisteredClaims) GetIssuedAt() *NumericDate {
+	return c.IssuedAt
+}
+
+func (c RegisteredClaims) GetAudience() ClaimStrings {
+	return c.Audience
+}
+
+func (c RegisteredClaims) GetIssuer() string {
+	return c.Issuer
+}
+
 // Valid validates time based claims "exp, iat, nbf".
 // There is no accounting for clock skew.
 // As well, if any of the above claims are not in the token, it will still
 // be considered a valid claim.
+//
+// Deprecated: This function should not be called directly, rather a claim should be validated using
+// the Validator struct.
 func (c RegisteredClaims) Valid() error {
-	vErr := new(ValidationError)
-	now := TimeFunc()
-
-	// The claims below are optional, by default, so if they are set to the
-	// default value in Go, let's not fail the verification for them.
-	if !c.VerifyExpiresAt(now, false) {
-		delta := now.Sub(c.ExpiresAt.Time)
-		vErr.Inner = fmt.Errorf("%s by %s", ErrTokenExpired, delta)
-		vErr.Errors |= ValidationErrorExpired
-	}
-
-	if !c.VerifyIssuedAt(now, false) {
-		vErr.Inner = ErrTokenUsedBeforeIssued
-		vErr.Errors |= ValidationErrorIssuedAt
-	}
-
-	if !c.VerifyNotBefore(now, false) {
-		vErr.Inner = ErrTokenNotValidYet
-		vErr.Errors |= ValidationErrorNotValidYet
-	}
-
-	if vErr.valid() {
-		return nil
-	}
-
-	return vErr
+	return NewValidator().Validate(c)
 }
 
 // VerifyAudience compares the aud claim against cmp.
 // If required is false, this method will return true if the value matches or is unset
 func (c *RegisteredClaims) VerifyAudience(cmp string, req bool) bool {
-	return verifyAud(c.Audience, cmp, req)
+	return NewValidator().VerifyAudience(c, cmp, req)
 }
 
 // VerifyExpiresAt compares the exp claim against cmp (cmp < exp).
 // If req is false, it will return true, if exp is unset.
 func (c *RegisteredClaims) VerifyExpiresAt(cmp time.Time, req bool) bool {
-	if c.ExpiresAt == nil {
-		return verifyExp(nil, cmp, req)
-	}
-
-	return verifyExp(&c.ExpiresAt.Time, cmp, req)
+	return NewValidator().VerifyExpiresAt(c, cmp, req)
 }
 
 // VerifyIssuedAt compares the iat claim against cmp (cmp >= iat).
 // If req is false, it will return true, if iat is unset.
 func (c *RegisteredClaims) VerifyIssuedAt(cmp time.Time, req bool) bool {
-	if c.IssuedAt == nil {
-		return verifyIat(nil, cmp, req)
-	}
-
-	return verifyIat(&c.IssuedAt.Time, cmp, req)
+	return NewValidator().VerifyIssuedAt(c, cmp, req)
 }
 
 // VerifyNotBefore compares the nbf claim against cmp (cmp >= nbf).
 // If req is false, it will return true, if nbf is unset.
 func (c *RegisteredClaims) VerifyNotBefore(cmp time.Time, req bool) bool {
-	if c.NotBefore == nil {
-		return verifyNbf(nil, cmp, req)
-	}
-
-	return verifyNbf(&c.NotBefore.Time, cmp, req)
+	return NewValidator().VerifyNotBefore(c, cmp, req)
 }
 
 // VerifyIssuer compares the iss claim against cmp.
 // If required is false, this method will return true if the value matches or is unset
 func (c *RegisteredClaims) VerifyIssuer(cmp string, req bool) bool {
-	return verifyIss(c.Issuer, cmp, req)
+	return NewValidator().VerifyIssuer(c, cmp, req)
 }
 
 // StandardClaims are a structured version of the JWT Claims Set, as referenced at
@@ -180,94 +165,37 @@ func (c *StandardClaims) VerifyAudience(cmp string, req bool) bool {
 // If req is false, it will return true, if exp is unset.
 func (c *StandardClaims) VerifyExpiresAt(cmp int64, req bool) bool {
 	if c.ExpiresAt == 0 {
-		return verifyExp(nil, time.Unix(cmp, 0), req)
+		return verifyExp(nil, time.Unix(cmp, 0), req, 0)
 	}
 
 	t := time.Unix(c.ExpiresAt, 0)
-	return verifyExp(&t, time.Unix(cmp, 0), req)
+	return verifyExp(&t, time.Unix(cmp, 0), req, 0)
 }
 
 // VerifyIssuedAt compares the iat claim against cmp (cmp >= iat).
 // If req is false, it will return true, if iat is unset.
 func (c *StandardClaims) VerifyIssuedAt(cmp int64, req bool) bool {
 	if c.IssuedAt == 0 {
-		return verifyIat(nil, time.Unix(cmp, 0), req)
+		return verifyIat(nil, time.Unix(cmp, 0), req, 0)
 	}
 
 	t := time.Unix(c.IssuedAt, 0)
-	return verifyIat(&t, time.Unix(cmp, 0), req)
+	return verifyIat(&t, time.Unix(cmp, 0), req, 0)
 }
 
 // VerifyNotBefore compares the nbf claim against cmp (cmp >= nbf).
 // If req is false, it will return true, if nbf is unset.
 func (c *StandardClaims) VerifyNotBefore(cmp int64, req bool) bool {
 	if c.NotBefore == 0 {
-		return verifyNbf(nil, time.Unix(cmp, 0), req)
+		return verifyNbf(nil, time.Unix(cmp, 0), req, 0)
 	}
 
 	t := time.Unix(c.NotBefore, 0)
-	return verifyNbf(&t, time.Unix(cmp, 0), req)
+	return verifyNbf(&t, time.Unix(cmp, 0), req, 0)
 }
 
 // VerifyIssuer compares the iss claim against cmp.
 // If required is false, this method will return true if the value matches or is unset
 func (c *StandardClaims) VerifyIssuer(cmp string, req bool) bool {
 	return verifyIss(c.Issuer, cmp, req)
-}
-
-// ----- helpers
-
-func verifyAud(aud []string, cmp string, required bool) bool {
-	if len(aud) == 0 {
-		return !required
-	}
-	// use a var here to keep constant time compare when looping over a number of claims
-	result := false
-
-	var stringClaims string
-	for _, a := range aud {
-		if subtle.ConstantTimeCompare([]byte(a), []byte(cmp)) != 0 {
-			result = true
-		}
-		stringClaims = stringClaims + a
-	}
-
-	// case where "" is sent in one or many aud claims
-	if len(stringClaims) == 0 {
-		return !required
-	}
-
-	return result
-}
-
-func verifyExp(exp *time.Time, now time.Time, required bool) bool {
-	if exp == nil {
-		return !required
-	}
-	return now.Before(*exp)
-}
-
-func verifyIat(iat *time.Time, now time.Time, required bool) bool {
-	if iat == nil {
-		return !required
-	}
-	return now.After(*iat) || now.Equal(*iat)
-}
-
-func verifyNbf(nbf *time.Time, now time.Time, required bool) bool {
-	if nbf == nil {
-		return !required
-	}
-	return now.After(*nbf) || now.Equal(*nbf)
-}
-
-func verifyIss(iss string, cmp string, required bool) bool {
-	if iss == "" {
-		return !required
-	}
-	if subtle.ConstantTimeCompare([]byte(iss), []byte(cmp)) != 0 {
-		return true
-	} else {
-		return false
-	}
 }
