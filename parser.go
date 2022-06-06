@@ -22,6 +22,8 @@ type Parser struct {
 	//
 	// Deprecated: In future releases, this field will not be exported anymore and should be set with an option to NewParser instead.
 	SkipClaimsValidation bool
+
+	v validator
 }
 
 // NewParser creates a new Parser with the specified options
@@ -79,6 +81,18 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 	}
 
 	vErr := &ValidationError{}
+
+	// Experimental: inject the validation options of the parser into the
+	// claims. This provides a backwards compatible way to have validation
+	// options, but it unfortunately only works for jwt.RegisteredClaims and
+	// jwt.StandardClaims
+	if rclaims, ok := claims.(*RegisteredClaims); ok {
+		rclaims.v = p.v
+	}
+
+	if sclaims, ok := claims.(*StandardClaims); ok {
+		sclaims.v = p.v
+	}
 
 	// Validate Claims
 	if !p.SkipClaimsValidation {

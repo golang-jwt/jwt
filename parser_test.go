@@ -321,6 +321,19 @@ var jwtTestData = []struct {
 		&jwt.Parser{UseJSONNumber: true},
 		jwt.SigningMethodRS256,
 	},
+	{
+		"RFC7519 Claims - expired by 100s with 120s skew",
+		"", // autogen
+		defaultKeyFunc,
+		&jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Second * 100)),
+		},
+		true,
+		0,
+		nil,
+		jwt.NewParser(jwt.WithLeeway(2 * time.Minute)),
+		jwt.SigningMethodRS256,
+	},
 }
 
 // signToken creates and returns a signed JWT token using signingMethod.

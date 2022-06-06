@@ -22,6 +22,8 @@ type Claims interface {
 //
 // See examples for how to use this with your own claim types.
 type RegisteredClaims struct {
+	v validator
+
 	// the `iss` (Issuer) claim. See https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.1
 	Issuer string `json:"iss,omitempty"`
 
@@ -87,10 +89,10 @@ func (c *RegisteredClaims) VerifyAudience(cmp string, req bool) bool {
 // If req is false, it will return true, if exp is unset.
 func (c *RegisteredClaims) VerifyExpiresAt(cmp time.Time, req bool) bool {
 	if c.ExpiresAt == nil {
-		return verifyExp(nil, cmp, req)
+		return verifyExp(nil, cmp, req, c.v.leeway)
 	}
 
-	return verifyExp(&c.ExpiresAt.Time, cmp, req)
+	return verifyExp(&c.ExpiresAt.Time, cmp, req, c.v.leeway)
 }
 
 // VerifyIssuedAt compares the iat claim against cmp (cmp >= iat).
@@ -107,10 +109,10 @@ func (c *RegisteredClaims) VerifyIssuedAt(cmp time.Time, req bool) bool {
 // If req is false, it will return true, if nbf is unset.
 func (c *RegisteredClaims) VerifyNotBefore(cmp time.Time, req bool) bool {
 	if c.NotBefore == nil {
-		return verifyNbf(nil, cmp, req)
+		return verifyNbf(nil, cmp, req, c.v.leeway)
 	}
 
-	return verifyNbf(&c.NotBefore.Time, cmp, req)
+	return verifyNbf(&c.NotBefore.Time, cmp, req, c.v.leeway)
 }
 
 // VerifyIssuer compares the iss claim against cmp.
@@ -129,6 +131,8 @@ func (c *RegisteredClaims) VerifyIssuer(cmp string, req bool) bool {
 //
 // Deprecated: Use RegisteredClaims instead for a forward-compatible way to access registered claims in a struct.
 type StandardClaims struct {
+	v validator
+
 	Audience  string `json:"aud,omitempty"`
 	ExpiresAt int64  `json:"exp,omitempty"`
 	Id        string `json:"jti,omitempty"`
@@ -180,11 +184,11 @@ func (c *StandardClaims) VerifyAudience(cmp string, req bool) bool {
 // If req is false, it will return true, if exp is unset.
 func (c *StandardClaims) VerifyExpiresAt(cmp int64, req bool) bool {
 	if c.ExpiresAt == 0 {
-		return verifyExp(nil, time.Unix(cmp, 0), req)
+		return verifyExp(nil, time.Unix(cmp, 0), req, c.v.leeway)
 	}
 
 	t := time.Unix(c.ExpiresAt, 0)
-	return verifyExp(&t, time.Unix(cmp, 0), req)
+	return verifyExp(&t, time.Unix(cmp, 0), req, c.v.leeway)
 }
 
 // VerifyIssuedAt compares the iat claim against cmp (cmp >= iat).
@@ -202,11 +206,11 @@ func (c *StandardClaims) VerifyIssuedAt(cmp int64, req bool) bool {
 // If req is false, it will return true, if nbf is unset.
 func (c *StandardClaims) VerifyNotBefore(cmp int64, req bool) bool {
 	if c.NotBefore == 0 {
-		return verifyNbf(nil, time.Unix(cmp, 0), req)
+		return verifyNbf(nil, time.Unix(cmp, 0), req, c.v.leeway)
 	}
 
 	t := time.Unix(c.NotBefore, 0)
-	return verifyNbf(&t, time.Unix(cmp, 0), req)
+	return verifyNbf(&t, time.Unix(cmp, 0), req, c.v.leeway)
 }
 
 // VerifyIssuer compares the iss claim against cmp.
@@ -240,11 +244,12 @@ func verifyAud(aud []string, cmp string, required bool) bool {
 	return result
 }
 
-func verifyExp(exp *time.Time, now time.Time, required bool) bool {
+func verifyExp(exp *time.Time, now time.Time, required bool, skew time.Duration) bool {
 	if exp == nil {
 		return !required
 	}
-	return now.Before(*exp)
+
+	return now.Before((*exp).Add(+skew))
 }
 
 func verifyIat(iat *time.Time, now time.Time, required bool) bool {
@@ -254,11 +259,13 @@ func verifyIat(iat *time.Time, now time.Time, required bool) bool {
 	return now.After(*iat) || now.Equal(*iat)
 }
 
-func verifyNbf(nbf *time.Time, now time.Time, required bool) bool {
+func verifyNbf(nbf *time.Time, now time.Time, required bool, skew time.Duration) bool {
 	if nbf == nil {
 		return !required
 	}
-	return now.After(*nbf) || now.Equal(*nbf)
+
+	t := (*nbf).Add(-skew)
+	return now.After(t) || now.Equal(t)
 }
 
 func verifyIss(iss string, cmp string, required bool) bool {
