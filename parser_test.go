@@ -79,6 +79,28 @@ var jwtTestData = []struct {
 		jwt.SigningMethodRS256,
 	},
 	{
+		"basic expired with 60s skew",
+		"", // autogen
+		defaultKeyFunc,
+		jwt.MapClaims{"foo": "bar", "exp": float64(time.Now().Unix() - 100)},
+		false,
+		jwt.ValidationErrorExpired,
+		[]error{jwt.ErrTokenExpired},
+		jwt.NewParser(jwt.WithLeeway(time.Minute)),
+		jwt.SigningMethodRS256,
+	},
+	{
+		"basic expired with 120s skew",
+		"", // autogen
+		defaultKeyFunc,
+		jwt.MapClaims{"foo": "bar", "exp": float64(time.Now().Unix() - 100)},
+		true,
+		0,
+		nil,
+		jwt.NewParser(jwt.WithLeeway(2 * time.Minute)),
+		jwt.SigningMethodRS256,
+	},
+	{
 		"basic nbf",
 		"", // autogen
 		defaultKeyFunc,
@@ -87,6 +109,28 @@ var jwtTestData = []struct {
 		jwt.ValidationErrorNotValidYet,
 		[]error{jwt.ErrTokenNotValidYet},
 		nil,
+		jwt.SigningMethodRS256,
+	},
+	{
+		"basic nbf with 60s skew",
+		"", // autogen
+		defaultKeyFunc,
+		jwt.MapClaims{"foo": "bar", "nbf": float64(time.Now().Unix() + 100)},
+		false,
+		jwt.ValidationErrorNotValidYet,
+		[]error{jwt.ErrTokenNotValidYet},
+		jwt.NewParser(jwt.WithLeeway(time.Minute)),
+		jwt.SigningMethodRS256,
+	},
+	{
+		"basic nbf with 120s skew",
+		"", // autogen
+		defaultKeyFunc,
+		jwt.MapClaims{"foo": "bar", "nbf": float64(time.Now().Unix() + 100)},
+		true,
+		0,
+		nil,
+		jwt.NewParser(jwt.WithLeeway(2 * time.Minute)),
 		jwt.SigningMethodRS256,
 	},
 	{
