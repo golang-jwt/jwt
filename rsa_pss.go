@@ -22,62 +22,65 @@ type SigningMethodRSAPSS struct {
 
 // Specific instances for RS/PS and company.
 var (
-	SigningMethodPS256 *SigningMethodRSAPSS
-	SigningMethodPS384 *SigningMethodRSAPSS
-	SigningMethodPS512 *SigningMethodRSAPSS
-)
 
-func init() {
 	// PS256
-	SigningMethodPS256 = &SigningMethodRSAPSS{
-		SigningMethodRSA: &SigningMethodRSA{
+	SigningMethodPS256 = newSigningMethodRSAPSS(
+		&SigningMethodRSA{
 			Name: "PS256",
 			Hash: crypto.SHA256,
 		},
-		Options: &rsa.PSSOptions{
+		&rsa.PSSOptions{
 			SaltLength: rsa.PSSSaltLengthEqualsHash,
 		},
-		VerifyOptions: &rsa.PSSOptions{
+		&rsa.PSSOptions{
 			SaltLength: rsa.PSSSaltLengthAuto,
 		},
-	}
-	RegisterSigningMethod(SigningMethodPS256.Alg(), func() SigningMethod {
-		return SigningMethodPS256
-	})
+	)
 
 	// PS384
-	SigningMethodPS384 = &SigningMethodRSAPSS{
-		SigningMethodRSA: &SigningMethodRSA{
+	SigningMethodPS384 = newSigningMethodRSAPSS(
+		&SigningMethodRSA{
 			Name: "PS384",
 			Hash: crypto.SHA384,
 		},
-		Options: &rsa.PSSOptions{
+		&rsa.PSSOptions{
 			SaltLength: rsa.PSSSaltLengthEqualsHash,
 		},
-		VerifyOptions: &rsa.PSSOptions{
+		&rsa.PSSOptions{
 			SaltLength: rsa.PSSSaltLengthAuto,
 		},
-	}
-	RegisterSigningMethod(SigningMethodPS384.Alg(), func() SigningMethod {
-		return SigningMethodPS384
-	})
+	)
 
 	// PS512
-	SigningMethodPS512 = &SigningMethodRSAPSS{
-		SigningMethodRSA: &SigningMethodRSA{
+	SigningMethodPS512 = newSigningMethodRSAPSS(
+		&SigningMethodRSA{
 			Name: "PS512",
 			Hash: crypto.SHA512,
 		},
-		Options: &rsa.PSSOptions{
+		&rsa.PSSOptions{
 			SaltLength: rsa.PSSSaltLengthEqualsHash,
 		},
-		VerifyOptions: &rsa.PSSOptions{
+		&rsa.PSSOptions{
 			SaltLength: rsa.PSSSaltLengthAuto,
 		},
+	)
+)
+
+// newSigningMethodRSAPSS creates a new SigningMethodRSAPSS struct and
+// registers it as a signing method.
+func newSigningMethodRSAPSS(smRSA *SigningMethodRSA, options *rsa.PSSOptions, verifyOptions ...*rsa.PSSOptions) *SigningMethodRSAPSS {
+	m := &SigningMethodRSAPSS{
+		SigningMethodRSA: smRSA,
+		Options:          options,
+		VerifyOptions:    &rsa.PSSOptions{},
 	}
-	RegisterSigningMethod(SigningMethodPS512.Alg(), func() SigningMethod {
-		return SigningMethodPS512
-	})
+	// If an additional *rsa.PSSOptions struct is given, use that for the VerifyOptions field.
+	// VerifyOptions is optional.
+	if len(verifyOptions) == 1 {
+		m.VerifyOptions = verifyOptions[0]
+	}
+	Register(m)
+	return m
 }
 
 // Verify implements token verification for the SigningMethod.

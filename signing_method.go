@@ -14,24 +14,33 @@ type SigningMethod interface {
 	Alg() string                                                   // returns the alg identifier for this method (example: 'HS256')
 }
 
-// RegisterSigningMethod registers the "alg" name and a factory function for signing method.
-// This is typically done during init() in the method's implementation
+// Register internally creates a new function that returns the given
+// SigningMethod. The function will be stored as a value in a thread safe map,
+// where the algorithm name is the key.
+func Register(m SigningMethod) {
+	signingMethodLock.Lock()
+	defer signingMethodLock.Unlock()
+	signingMethods[m.Alg()] = func() SigningMethod { return m }
+}
+
+// RegisterSigningMethod will use the given algorithm name as the key
+// and store the given function as the value.
+// Deprecated: use the Register function instead
 func RegisterSigningMethod(alg string, f func() SigningMethod) {
 	signingMethodLock.Lock()
 	defer signingMethodLock.Unlock()
-
 	signingMethods[alg] = f
 }
 
-// GetSigningMethod retrieves a signing method from an "alg" string
-func GetSigningMethod(alg string) (method SigningMethod) {
+// GetSigningMethod will return a SigningMethod from a given "alg" string.
+// Returns nil if the algorithm name was not found.
+func GetSigningMethod(alg string) SigningMethod {
 	signingMethodLock.RLock()
 	defer signingMethodLock.RUnlock()
-
 	if methodF, ok := signingMethods[alg]; ok {
-		method = methodF()
+		return methodF()
 	}
-	return
+	return nil
 }
 
 // GetAlgorithms returns a list of registered "alg" names
