@@ -13,7 +13,6 @@ var ed25519TestData = []struct {
 	keys        map[string]string
 	tokenString string
 	alg         string
-	claims      map[string]interface{}
 	valid       bool
 }{
 	{
@@ -21,7 +20,6 @@ var ed25519TestData = []struct {
 		map[string]string{"private": "test/ed25519-private.pem", "public": "test/ed25519-public.pem"},
 		"eyJhbGciOiJFRDI1NTE5IiwidHlwIjoiSldUIn0.eyJmb28iOiJiYXIifQ.ESuVzZq1cECrt9Od_gLPVG-_6uRP_8Nq-ajx6CtmlDqRJZqdejro2ilkqaQgSL-siE_3JMTUW7UwAorLaTyFCw",
 		"EdDSA",
-		map[string]interface{}{"foo": "bar"},
 		true,
 	},
 	{
@@ -29,7 +27,6 @@ var ed25519TestData = []struct {
 		map[string]string{"private": "test/ed25519-private.pem", "public": "test/ed25519-public.pem"},
 		"eyJhbGciOiJFRDI1NTE5IiwidHlwIjoiSldUIn0.eyJmb28iOiJiYXoifQ.ESuVzZq1cECrt9Od_gLPVG-_6uRP_8Nq-ajx6CtmlDqRJZqdejro2ilkqaQgSL-siE_3JMTUW7UwAorLaTyFCw",
 		"EdDSA",
-		map[string]interface{}{"foo": "bar"},
 		false,
 	},
 }
