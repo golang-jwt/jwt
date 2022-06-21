@@ -54,9 +54,9 @@ import "github.com/golang-jwt/jwt/v4"
 
 See [the project documentation](https://pkg.go.dev/github.com/golang-jwt/jwt/v4) for examples of usage:
 
-* [Simple example of parsing and validating a token](https://pkg.go.dev/github.com/golang-jwt/jwt#example-Parse-Hmac)
-* [Simple example of building and signing a token](https://pkg.go.dev/github.com/golang-jwt/jwt#example-New-Hmac)
-* [Directory of Examples](https://pkg.go.dev/github.com/golang-jwt/jwt#pkg-examples)
+* [Simple example of parsing and validating a token](https://pkg.go.dev/github.com/golang-jwt/jwt/v4#example-Parse-Hmac)
+* [Simple example of building and signing a token](https://pkg.go.dev/github.com/golang-jwt/jwt/v4#example-New-Hmac)
+* [Directory of Examples](https://pkg.go.dev/github.com/golang-jwt/jwt/v4#pkg-examples)
 
 ## Extensions
 
