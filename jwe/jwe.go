@@ -16,23 +16,27 @@ func NewJWE(alg KeyAlgorithm, key interface{}, method EncryptionType, plaintext 
 		return nil, err
 	}
 
+	// Generate a random Content Encryption Key (CEK).
 	cek, err := generateKey(chipher.keySize)
 	if err != nil {
 		return nil, err
 	}
 
+	// Encrypt the CEK with the recipient's public key to produce the JWE Encrypted Key.
 	jwe.protected["alg"] = string(alg)
 	jwe.recipientKey, err = encryptKey(key, cek, alg)
 	if err != nil {
 		return nil, err
 	}
 
+	// Serialize Authenticated Data
 	rawProtected, err := json.Marshal(jwe.protected)
 	if err != nil {
 		return nil, err
 	}
 	rawProtectedBase64 := base64.RawURLEncoding.EncodeToString(rawProtected)
 
+	// Perform authenticated encryption on the plaintext
 	jwe.iv, jwe.ciphertext, jwe.tag, err = chipher.encrypt(cek, []byte(rawProtectedBase64), plaintext)
 	if err != nil {
 		return nil, err
