@@ -30,7 +30,7 @@ func parseEncryptedCompact(input string) (*jwe, error) {
 		return nil, err
 	}
 
-	if rawProtected == nil || len(rawProtected) == 0 {
+	if len(rawProtected) == 0 {
 		return nil, errors.New("protected headers are empty")
 	}
 
