@@ -3,8 +3,8 @@ package jwe
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/rand"
 	"errors"
+	"io"
 )
 
 var (
@@ -18,7 +18,7 @@ const TagSizeAESGCM = 16
 
 type EncryptionType string
 
-var A256GCM = EncryptionType("A256GCM")
+var EncryptionTypeA256GCM = EncryptionType("A256GCM")
 
 type cipherAESGCM struct {
 	keySize int
@@ -36,7 +36,7 @@ func (ci cipherAESGCM) encrypt(key, aad, plaintext []byte) (iv []byte, ciphertex
 	}
 
 	iv = make([]byte, aead.NonceSize())
-	_, err = rand.Read(iv)
+	_, err = io.ReadFull(RandReader, iv)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -84,7 +84,7 @@ func newAESGCM(keySize int) *cipherAESGCM {
 
 func getCipher(alg EncryptionType) (*cipherAESGCM, error) {
 	switch alg {
-	case A256GCM:
+	case EncryptionTypeA256GCM:
 		return newAESGCM(32), nil
 	default:
 		return nil, ErrUnsupportedEncryptionType

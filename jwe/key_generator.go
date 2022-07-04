@@ -1,11 +1,16 @@
 package jwe
 
-import "crypto/rand"
+import (
+	"crypto/rand"
+	"io"
+)
+
+var RandReader = rand.Reader
 
 func generateKey(keySize int) ([]byte, error) {
 	key := make([]byte, keySize)
 
-	_, err := rand.Read(key)
+	_, err := io.ReadFull(RandReader, key)
 	if err != nil {
 		return nil, err
 	}

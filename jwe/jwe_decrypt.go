@@ -8,8 +8,8 @@ import (
 
 func (jwe jwe) Decrypt(key interface{}) ([]byte, error) {
 
-	method, ok := jwe.protected["enc"]
-	if !ok {
+	method := jwe.protected.Enc
+	if len(method) == 0 {
 		return nil, errors.New("no \"enc\" header")
 	}
 	cipher, err := getCipher(EncryptionType(method))
@@ -17,12 +17,16 @@ func (jwe jwe) Decrypt(key interface{}) ([]byte, error) {
 		return nil, err
 	}
 
-	alg, ok := jwe.protected["alg"]
-	if !ok {
+	alg := jwe.protected.Alg
+	if len(alg) == 0 {
 		return nil, errors.New("no \"alg\" header")
 	}
+	decrypter, err := createDecrypter(key)
+	if err != nil {
+		return nil, err
+	}
 	// Decrypt JWE Encrypted Key with the recipient's private key to produce CEK.
-	cek, err := decryptKey(key, jwe.recipientKey, KeyAlgorithm(alg))
+	cek, err := decrypter.Decrypt(jwe.recipientKey, alg)
 	if err != nil {
 		return nil, err
 	}
