@@ -3,6 +3,7 @@ package request
 import (
 	"errors"
 	"net/http"
+	"strings"
 )
 
 // Errors
@@ -78,4 +79,17 @@ func (e *PostExtractionFilter) ExtractToken(req *http.Request) (string, error) {
 	} else {
 		return "", err
 	}
+}
+
+// BearerExtractor extracts a token from the Authorization header.
+// The header is expected to match the format "Bearer XX", where "XX" is the
+// JWT token.
+type BearerExtractor struct{}
+
+func (e BearerExtractor) ExtractToken(req *http.Request) (string, error) {
+	tokenHeader := req.Header.Get("Authorization")
+	if tokenHeader == "" || !strings.HasPrefix(tokenHeader, "Bearer ") {
+		return "", ErrNoTokenInRequest
+	}
+	return strings.TrimPrefix(tokenHeader, "Bearer "), nil
 }

@@ -89,3 +89,18 @@ func makeExampleRequest(method, path string, headers map[string]string, urlArgs 
 	}
 	return r
 }
+
+func TestBearerExtractor(t *testing.T) {
+	request := makeExampleRequest("POST", "https://example.com/", map[string]string{"Authorization": "Bearer 123"}, nil)
+	token, err := BearerExtractor{}.ExtractToken(request)
+	if err != nil || token != "123" {
+		t.Errorf("ExtractToken did not return token, returned: %v, %v", token, err)
+	}
+
+	request = makeExampleRequest("POST", "https://example.com/", map[string]string{"Authorization": "Bearo 123"}, nil)
+
+	token, err = BearerExtractor{}.ExtractToken(request)
+	if err == nil || token != "" {
+		t.Errorf("ExtractToken did not return error, returned: %v, %v", token, err)
+	}
+}
