@@ -88,8 +88,10 @@ type BearerExtractor struct{}
 
 func (e BearerExtractor) ExtractToken(req *http.Request) (string, error) {
 	tokenHeader := req.Header.Get("Authorization")
-	if tokenHeader == "" || !strings.HasPrefix(tokenHeader, "Bearer ") {
+	// The usual convention is for "Bearer" to be title-cased. However, there's no
+	// strict rule around this, and it's best to follow the robustness principle here.
+	if tokenHeader == "" || !strings.HasPrefix(strings.ToLower(tokenHeader), "bearer ") {
 		return "", ErrNoTokenInRequest
 	}
-	return strings.TrimPrefix(tokenHeader, "Bearer "), nil
+	return tokenHeader[7:], nil
 }

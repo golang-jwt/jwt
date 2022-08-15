@@ -91,16 +91,21 @@ func makeExampleRequest(method, path string, headers map[string]string, urlArgs 
 }
 
 func TestBearerExtractor(t *testing.T) {
-	request := makeExampleRequest("POST", "https://example.com/", map[string]string{"Authorization": "Bearer 123"}, nil)
+	request := makeExampleRequest("POST", "https://example.com/", map[string]string{"Authorization": "Bearer ToKen"}, nil)
 	token, err := BearerExtractor{}.ExtractToken(request)
-	if err != nil || token != "123" {
+	if err != nil || token != "ToKen" {
 		t.Errorf("ExtractToken did not return token, returned: %v, %v", token, err)
 	}
 
-	request = makeExampleRequest("POST", "https://example.com/", map[string]string{"Authorization": "Bearo 123"}, nil)
-
+	request = makeExampleRequest("POST", "https://example.com/", map[string]string{"Authorization": "Bearo ToKen"}, nil)
 	token, err = BearerExtractor{}.ExtractToken(request)
 	if err == nil || token != "" {
 		t.Errorf("ExtractToken did not return error, returned: %v, %v", token, err)
+	}
+
+	request = makeExampleRequest("POST", "https://example.com/", map[string]string{"Authorization": "BeArEr HeLO"}, nil)
+	token, err = BearerExtractor{}.ExtractToken(request)
+	if err != nil || token != "HeLO" {
+		t.Errorf("ExtractToken did not return token, returned: %v, %v", token, err)
 	}
 }
