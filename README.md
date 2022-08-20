@@ -96,7 +96,7 @@ A token is simply a JSON object that is signed by its author. this tells you exa
 * The author of the token was in the possession of the signing secret
 * The data has not been modified since it was signed
 
-It's important to know that JWT does not provide encryption, which means anyone who has access to the token can read its contents. If you need to protect (encrypt) the data, there is a companion spec, `JWE`, that provides this functionality. JWE is currently outside the scope of this library.
+It's important to know that JWT does not provide encryption, which means anyone who has access to the token can read its contents. If you need to protect (encrypt) the data, there is a companion spec, `JWE`, that provides this functionality. The companion project https://github.com/golang-jwt/jwe aims at a (very) experimental implementation of the JWE standard.
 
 ### Choosing a Signing Method
 
