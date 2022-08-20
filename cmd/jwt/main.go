@@ -3,7 +3,8 @@
 //
 // Example usage:
 // The following will create and sign a token, then verify it and output the original claims.
-//     echo {\"foo\":\"bar\"} | bin/jwt -key test/sample_key -alg RS256 -sign - | bin/jwt -key test/sample_key.pub -verify -
+//
+//	echo {\"foo\":\"bar\"} | bin/jwt -key test/sample_key -alg RS256 -sign - | bin/jwt -key test/sample_key.pub -verify -
 package main
 
 import (
