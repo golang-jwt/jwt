@@ -61,7 +61,7 @@ func (t *Token) SignedString(key interface{}) (string, error) {
 	if sstr, err = t.SigningString(); err != nil {
 		return "", err
 	}
-	if sig, err = t.Method.Sign(sstr, key); err != nil {
+	if sig, err = t.Method.Sign(sstr, ByteArrayVal(key)); err != nil {
 		return "", err
 	}
 	return strings.Join([]string{sstr, sig}, "."), nil
