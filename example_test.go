@@ -70,7 +70,7 @@ func ExampleNewWithClaims_customClaimsType() {
 	//Output: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJpc3MiOiJ0ZXN0IiwiZXhwIjoxNTE2MjM5MDIyfQ.xVuY2FZ_MRXMIEgVQ7J-TFtaucVFRXUzHm9LmV41goM <nil>
 }
 
-// Example creating a token using a custom claims type.  The StandardClaim is embedded
+// Example creating a token using a custom claims type.  The RegisteredClaims is embedded
 // in the custom type to allow for easy encoding, parsing and validation of standard claims.
 func ExampleParseWithClaims_customClaimsType() {
 	tokenString := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJpc3MiOiJ0ZXN0IiwiYXVkIjoic2luZ2xlIn0.QAWg1vGvnqRuCFTMcPkjZljXHh8U3L_qUjszOtQbeaA"
@@ -83,6 +83,30 @@ func ExampleParseWithClaims_customClaimsType() {
 	token, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte("AllYourBase"), nil
 	})
+
+	if claims, ok := token.Claims.(*MyCustomClaims); ok && token.Valid {
+		fmt.Printf("%v %v", claims.Foo, claims.RegisteredClaims.Issuer)
+	} else {
+		fmt.Println(err)
+	}
+
+	// Output: bar test
+}
+
+// Example creating a token using a custom claims type and validation options.  The RegisteredClaims is embedded
+// in the custom type to allow for easy encoding, parsing and validation of standard claims.
+func ExampleParseWithClaims_customValidator() {
+	tokenString := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJpc3MiOiJ0ZXN0IiwiYXVkIjoic2luZ2xlIn0.QAWg1vGvnqRuCFTMcPkjZljXHh8U3L_qUjszOtQbeaA"
+
+	type MyCustomClaims struct {
+		Foo string `json:"foo"`
+		jwt.RegisteredClaims
+	}
+
+	validator := jwt.NewValidator(jwt.WithLeeway(5 * time.Second))
+	token, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte("AllYourBase"), nil
+	}, jwt.WithValidator(validator))
 
 	if claims, ok := token.Claims.(*MyCustomClaims); ok && token.Valid {
 		fmt.Printf("%v %v", claims.Foo, claims.RegisteredClaims.Issuer)
