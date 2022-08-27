@@ -25,10 +25,17 @@ func WithTimeFunc(f func() time.Time) ValidatorOption {
 	}
 }
 
-// WithIssuedAtVerification returns the ValidatorOption to enable verification
+// WithIssuedAt returns the ValidatorOption to enable verification
 // of issued-at.
-func WithIssuedAtVerification() ValidatorOption {
+func WithIssuedAt() ValidatorOption {
 	return func(v *Validator) {
 		v.verifyIat = true
+	}
+}
+
+// WithAudience returns the ValidatorOption to set the expected audience.
+func WithAudience(aud string) ValidatorOption {
+	return func(v *Validator) {
+		v.expectedAud = aud
 	}
 }

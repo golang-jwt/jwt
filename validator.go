@@ -21,6 +21,10 @@ type Validator struct {
 	// necessary. However, if wanted, it can be checked if the iat is
 	// unrealistic, i.e., in the future.
 	verifyIat bool
+
+	// expectedAud contains the audiences this token expects. Supplying an empty
+	// string will disable aud checking.
+	expectedAud string
 }
 
 type customValidationType interface {
@@ -63,6 +67,11 @@ func (v *Validator) Validate(claims Claims) error {
 	}
 
 	if !v.VerifyNotBefore(claims, now, false) {
+		vErr.Inner = ErrTokenNotValidYet
+		vErr.Errors |= ValidationErrorNotValidYet
+	}
+
+	if v.expectedAud != "" && !v.VerifyAudience(claims, v.expectedAud, false) {
 		vErr.Inner = ErrTokenNotValidYet
 		vErr.Errors |= ValidationErrorNotValidYet
 	}
