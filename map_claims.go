@@ -56,23 +56,23 @@ func (m MapClaims) ParseNumericDate(key string) *NumericDate {
 }
 
 func (m MapClaims) ParseClaimsString(key string) ClaimStrings {
-	var aud []string
+	var cs []string
 	switch v := m[key].(type) {
 	case string:
-		aud = append(aud, v)
+		cs = append(cs, v)
 	case []string:
-		aud = v
+		cs = v
 	case []interface{}:
 		for _, a := range v {
 			vs, ok := a.(string)
 			if !ok {
 				return nil
 			}
-			aud = append(aud, vs)
+			cs = append(cs, vs)
 		}
 	}
 
-	return nil
+	return cs
 }
 
 func (m MapClaims) ParseString(key string) string {
