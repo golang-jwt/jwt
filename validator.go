@@ -15,7 +15,7 @@ func (v *Validator) Validate(claims Claims) error {
 	now := TimeFunc()
 
 	if !v.VerifyExpiresAt(claims, now, false) {
-		exp := claims.GetExpiryAt()
+		exp := claims.GetExpirationTime()
 		delta := now.Sub(exp.Time)
 		vErr.Inner = fmt.Errorf("%s by %s", ErrTokenExpired, delta)
 		vErr.Errors |= ValidationErrorExpired
@@ -47,7 +47,7 @@ func (v *Validator) VerifyAudience(claims Claims, cmp string, req bool) bool {
 // VerifyExpiresAt compares the exp claim against cmp (cmp < exp).
 // If req is false, it will return true, if exp is unset.
 func (v *Validator) VerifyExpiresAt(claims Claims, cmp time.Time, req bool) bool {
-	exp := claims.GetExpiryAt()
+	exp := claims.GetExpirationTime()
 	if exp == nil {
 		return verifyExp(nil, cmp, req, v.leeway)
 	}

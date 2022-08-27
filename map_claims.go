@@ -8,8 +8,8 @@ import (
 // This is the default claims type if you don't supply one
 type MapClaims map[string]interface{}
 
-// GetExpiryAt implements the Claims interface.
-func (m MapClaims) GetExpiryAt() *NumericDate {
+// GetExpirationTime implements the Claims interface.
+func (m MapClaims) GetExpirationTime() *NumericDate {
 	return m.ParseNumericDate("exp")
 }
 
@@ -33,6 +33,9 @@ func (m MapClaims) GetIssuer() string {
 	return m.ParseString("iss")
 }
 
+// ParseNumericDate tries to parse a key in the map claims type as a number
+// date. This will succeed, if the underlying type is either a [float64] or a
+// [json.Number]. Otherwise, nil will be returned.
 func (m MapClaims) ParseNumericDate(key string) *NumericDate {
 	v, ok := m[key]
 	if !ok {
@@ -55,6 +58,8 @@ func (m MapClaims) ParseNumericDate(key string) *NumericDate {
 	return nil
 }
 
+// ParseClaimsString tries to parse a key in the map claims type as a
+// [ClaimsStrings] type, which can either be a string or an array of string.
 func (m MapClaims) ParseClaimsString(key string) ClaimStrings {
 	var cs []string
 	switch v := m[key].(type) {
@@ -75,6 +80,8 @@ func (m MapClaims) ParseClaimsString(key string) ClaimStrings {
 	return cs
 }
 
+// ParseString tries to parse a key in the map claims type as a
+// [string] type. Otherwise, an empty string is returned.
 func (m MapClaims) ParseString(key string) string {
 	iss, _ := m[key].(string)
 
