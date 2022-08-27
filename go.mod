@@ -1,7 +1,3 @@
-module github.com/golang-jwt/jwt/v4
+module github.com/golang-jwt/jwt/v5
 
 go 1.16
-
-retract (
-    v4.4.0 // Contains a backwards incompatible change to the Claims interface.
-)
