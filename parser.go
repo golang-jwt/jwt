@@ -7,6 +7,9 @@ import (
 	"strings"
 )
 
+// DefaultValidator is the default validator that is used, if no custom validator is supplied in a Parser.
+var DefaultValidator = NewValidator()
+
 type Parser struct {
 	// If populated, only these methods will be considered valid.
 	//
@@ -28,12 +31,9 @@ type Parser struct {
 
 // NewParser creates a new Parser with the specified options
 func NewParser(options ...ParserOption) *Parser {
-	p := &Parser{
-		// Supply a default validator
-		validator: NewValidator(),
-	}
+	p := &Parser{}
 
-	// loop through our parsing options and apply them
+	// Loop through our parsing options and apply them
 	for _, option := range options {
 		option(p)
 	}
@@ -89,7 +89,7 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 	if !p.SkipClaimsValidation {
 		// Make sure we have at least a default validator
 		if p.validator == nil {
-			p.validator = NewValidator()
+			p.validator = DefaultValidator
 		}
 
 		if err := p.validator.Validate(claims); err != nil {

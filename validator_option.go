@@ -9,9 +9,26 @@ import "time"
 // accordingly.
 type ValidatorOption func(*Validator)
 
-// WithLeeway returns the ParserOption for specifying the leeway window.
+// WithLeeway returns the ValidatorOption for specifying the leeway window.
 func WithLeeway(leeway time.Duration) ValidatorOption {
 	return func(v *Validator) {
 		v.leeway = leeway
+	}
+}
+
+// WithTimeFunc returns the ValidatorOption for specifying the time func. The
+// primary use-case for this is testing. If you are looking for a way to account
+// for clock-skew, WithLeeway should be used instead.
+func WithTimeFunc(f func() time.Time) ValidatorOption {
+	return func(v *Validator) {
+		v.timeFunc = f
+	}
+}
+
+// WithIssuedAtVerification returns the ValidatorOption to enable verification
+// of issued-at.
+func WithIssuedAtVerification() ValidatorOption {
+	return func(v *Validator) {
+		v.verifyIat = true
 	}
 }

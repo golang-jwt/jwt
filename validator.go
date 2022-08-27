@@ -6,13 +6,48 @@ import (
 	"time"
 )
 
+// Validator is the core of the new Validation API. It is
 type Validator struct {
+	// leeway is an optional leeway that can be provided to account for clock skew.
 	leeway time.Duration
+
+	// timeFunc is used to supply the current time that is needed for
+	// validation. If unspecified, this defaults to time.Now.
+	timeFunc func() time.Time
+
+	// verifyIat specifies whether the iat (Issued At) claim will be verified.
+	// According to https://www.rfc-editor.org/rfc/rfc7519#section-4.1.6 this
+	// only specifies the age of the token, but no validation check is
+	// necessary. However, if wanted, it can be checked if the iat is
+	// unrealistic, i.e., in the future.
+	verifyIat bool
+}
+
+type customValidationType interface {
+	CustomValidation() error
+}
+
+func NewValidator(opts ...ValidatorOption) *Validator {
+	v := &Validator{}
+
+	// Apply the validator options
+	for _, o := range opts {
+		o(v)
+	}
+
+	return v
 }
 
 func (v *Validator) Validate(claims Claims) error {
+	var now time.Time
 	vErr := new(ValidationError)
-	now := TimeFunc()
+
+	// Check, if we have a time func
+	if v.timeFunc != nil {
+		now = v.timeFunc()
+	} else {
+		now = time.Now()
+	}
 
 	if !v.VerifyExpiresAt(claims, now, false) {
 		exp := claims.GetExpirationTime()
@@ -21,7 +56,8 @@ func (v *Validator) Validate(claims Claims) error {
 		vErr.Errors |= ValidationErrorExpired
 	}
 
-	if !v.VerifyIssuedAt(claims, now, false) {
+	// Check iat if the option is enabled
+	if v.verifyIat && !v.VerifyIssuedAt(claims, now, false) {
 		vErr.Inner = ErrTokenUsedBeforeIssued
 		vErr.Errors |= ValidationErrorIssuedAt
 	}
@@ -29,6 +65,16 @@ func (v *Validator) Validate(claims Claims) error {
 	if !v.VerifyNotBefore(claims, now, false) {
 		vErr.Inner = ErrTokenNotValidYet
 		vErr.Errors |= ValidationErrorNotValidYet
+	}
+
+	// Finally, we want to give the claim itself some possibility to do some
+	// additional custom validation based on their custom claims
+	cvt, ok := claims.(customValidationType)
+	if ok {
+		if err := cvt.CustomValidation(); err != nil {
+			vErr.Inner = err
+			vErr.Errors |= ValidationErrorClaimsInvalid
+		}
 	}
 
 	if vErr.valid() {
@@ -81,16 +127,6 @@ func (v *Validator) VerifyNotBefore(claims Claims, cmp time.Time, req bool) bool
 // If required is false, this method will return true if the value matches or is unset
 func (v *Validator) VerifyIssuer(claims Claims, cmp string, req bool) bool {
 	return verifyIss(claims.GetIssuer(), cmp, req)
-}
-
-func NewValidator(opts ...ValidatorOption) *Validator {
-	v := &Validator{}
-
-	for _, o := range opts {
-		o(v)
-	}
-
-	return v
 }
 
 // ----- helpers
