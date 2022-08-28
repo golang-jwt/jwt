@@ -200,19 +200,6 @@ var jwtTestData = []struct {
 		jwt.SigningMethodRS256,
 	},
 	{
-		"Standard Claims",
-		"",
-		defaultKeyFunc,
-		&jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Second * 10).Unix(),
-		},
-		true,
-		0,
-		nil,
-		&jwt.Parser{UseJSONNumber: true},
-		jwt.SigningMethodRS256,
-	},
-	{
 		"JSON Number - basic expired",
 		"", // autogen
 		defaultKeyFunc,
@@ -360,8 +347,6 @@ func TestParser_Parse(t *testing.T) {
 			switch data.claims.(type) {
 			case jwt.MapClaims:
 				token, err = parser.ParseWithClaims(data.tokenString, jwt.MapClaims{}, data.keyfunc)
-			case *jwt.StandardClaims:
-				token, err = parser.ParseWithClaims(data.tokenString, &jwt.StandardClaims{}, data.keyfunc)
 			case *jwt.RegisteredClaims:
 				token, err = parser.ParseWithClaims(data.tokenString, &jwt.RegisteredClaims{}, data.keyfunc)
 			}
@@ -454,8 +439,6 @@ func TestParser_ParseUnverified(t *testing.T) {
 			switch data.claims.(type) {
 			case jwt.MapClaims:
 				token, _, err = parser.ParseUnverified(data.tokenString, jwt.MapClaims{})
-			case *jwt.StandardClaims:
-				token, _, err = parser.ParseUnverified(data.tokenString, &jwt.StandardClaims{})
 			case *jwt.RegisteredClaims:
 				token, _, err = parser.ParseUnverified(data.tokenString, &jwt.RegisteredClaims{})
 			}
@@ -695,9 +678,9 @@ func BenchmarkParseUnverified(b *testing.B) {
 			b.Run("map_claims", func(b *testing.B) {
 				benchmarkParsing(b, parser, data.tokenString, jwt.MapClaims{})
 			})
-		case *jwt.StandardClaims:
-			b.Run("standard_claims", func(b *testing.B) {
-				benchmarkParsing(b, parser, data.tokenString, &jwt.StandardClaims{})
+		case *jwt.RegisteredClaims:
+			b.Run("registered_claims", func(b *testing.B) {
+				benchmarkParsing(b, parser, data.tokenString, &jwt.RegisteredClaims{})
 			})
 		}
 	}

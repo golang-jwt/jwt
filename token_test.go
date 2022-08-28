@@ -30,7 +30,7 @@ func TestToken_SigningString(t1 *testing.T) {
 					"typ": "JWT",
 					"alg": jwt.SigningMethodHS256.Alg(),
 				},
-				Claims:    jwt.StandardClaims{},
+				Claims:    jwt.RegisteredClaims{},
 				Signature: "",
 				Valid:     false,
 			},
@@ -67,7 +67,7 @@ func BenchmarkToken_SigningString(b *testing.B) {
 			"typ": "JWT",
 			"alg": jwt.SigningMethodHS256.Alg(),
 		},
-		Claims: jwt.StandardClaims{},
+		Claims: jwt.RegisteredClaims{},
 	}
 	b.Run("BenchmarkToken_SigningString", func(b *testing.B) {
 		b.ResetTimer()
