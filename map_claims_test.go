@@ -104,19 +104,19 @@ func TestMapClaimsVerifyExpiresAtExpire(t *testing.T) {
 	mapClaims := MapClaims{
 		"exp": float64(exp),
 	}
-	want := false
+	want := true
 	got := mapClaims.VerifyExpiresAt(exp, true)
 	if want != got {
 		t.Fatalf("Failed to verify claims, wanted: %v got %v", want, got)
 	}
 
-	got = mapClaims.VerifyExpiresAt(exp+1, true)
+	got = mapClaims.VerifyExpiresAt(exp-1, true)
 	if want != got {
 		t.Fatalf("Failed to verify claims, wanted: %v got %v", want, got)
 	}
 
-	want = true
-	got = mapClaims.VerifyExpiresAt(exp-1, true)
+	want = false
+	got = mapClaims.VerifyExpiresAt(exp+1, true)
 	if want != got {
 		t.Fatalf("Failed to verify claims, wanted: %v got %v", want, got)
 	}
