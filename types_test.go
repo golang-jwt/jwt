@@ -125,3 +125,47 @@ func TestNumericDate_MarshalJSON(t *testing.T) {
 		}
 	}
 }
+
+func TestNumericDate_UnmarshalJSON(t *testing.T) {
+	// Do not run this test in parallel because it's changing
+	// global state.
+	oldPrecision := jwt.TimePrecision
+	t.Cleanup(func() {
+		jwt.TimePrecision = oldPrecision
+	})
+
+	tt := []struct {
+		in        string
+		want      time.Time
+		precision time.Duration
+	}{
+		{"1171341224178364428", time.Unix(1171341224178364428, 0), time.Second},
+		{"6177993877186497701", time.Unix(6177993877186497701, 0), time.Second},
+		{"2972952087035143528", time.Unix(2972952087035143528, 0), time.Second},
+		{"3726679734411825289", time.Unix(3726679734411825289, 0), time.Second},
+		//
+		{"1558047135914538388.01664915", time.Unix(1558047135914538388, 16649150), time.Nanosecond},
+		{"6559213345742516891.991797301", time.Unix(6559213345742516891, 991797301), time.Nanosecond},
+		{"5442511928169084612.389300587", time.Unix(5442511928169084612, 389300587), time.Nanosecond},
+		{"7390680480197750952.11208761", time.Unix(7390680480197750952, 112087610), time.Nanosecond},
+		//
+		{"0.000000001", time.Unix(0, 1), time.Nanosecond},
+		{"0.999999999", time.Unix(0, 999999999), time.Nanosecond},
+		{"9223372036854775807.000000001", time.Unix(math.MaxInt64, 1), time.Nanosecond},
+		{"9223372036854775807.999999999", time.Unix(math.MaxInt64, 999999999), time.Nanosecond},
+	}
+
+	for i, tc := range tt {
+		jwt.TimePrecision = tc.precision
+		by := []byte(tc.in)
+		var got jwt.NumericDate
+		err := json.Unmarshal(by, &got)
+		if err != nil {
+			t.Fatal(err)
+		}
+		want := jwt.NewNumericDate(tc.want)
+		if got != *want {
+			t.Errorf("[%d]: failed encoding: got %q want %q", i, got, want)
+		}
+	}
+}
