@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"math/big"
 	"reflect"
 	"strconv"
 	"time"
@@ -46,6 +47,26 @@ func newNumericDateFromSeconds(f float64) *NumericDate {
 	return NewNumericDate(time.Unix(int64(round), int64(frac*1e9)))
 }
 
+// newNumericDateFromBigRational creates a new *NumericDate out of a *big.Rat representing a
+// UNIX epoch with the fraction representing non-integer seconds.
+func newNumericDateFromBigRational(rat *big.Rat) *NumericDate {
+	trunc := func(x *big.Rat) *big.Int {
+		round := new(big.Int)
+		num := x.Num()
+		denom := x.Denom()
+		return round.Div(num, denom)
+	}
+
+	round := trunc(rat)
+	rat = rat.Sub(rat, big.NewRat(round.Int64(), 1))
+
+	shift := big.NewRat(int64(time.Second), int64(time.Nanosecond))
+	rat = rat.Mul(rat, shift)
+
+	frac := trunc(rat)
+	return NewNumericDate(time.Unix(round.Int64(), frac.Int64()))
+}
+
 // MarshalJSON is an implementation of the json.RawMessage interface and serializes the UNIX epoch
 // represented in NumericDate to a byte array, using the precision specified in TimePrecision.
 func (date NumericDate) MarshalJSON() (b []byte, err error) {
@@ -78,18 +99,21 @@ func (date NumericDate) MarshalJSON() (b []byte, err error) {
 func (date *NumericDate) UnmarshalJSON(b []byte) (err error) {
 	var (
 		number json.Number
-		f      float64
+		rat    *big.Rat
 	)
 
 	if err = json.Unmarshal(b, &number); err != nil {
 		return fmt.Errorf("could not parse NumericData: %w", err)
 	}
 
-	if f, err = number.Float64(); err != nil {
-		return fmt.Errorf("could not convert json number value to float: %w", err)
+	rat = new(big.Rat)
+	_, err = fmt.Sscan(number.String(), rat)
+
+	if err != nil {
+		return fmt.Errorf("could not convert json number value to rational: %w", err)
 	}
 
-	n := newNumericDateFromSeconds(f)
+	n := newNumericDateFromBigRational(rat)
 	*date = *n
 
 	return nil
