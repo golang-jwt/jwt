@@ -28,6 +28,7 @@ func WithoutClaimsValidation() ParserOption {
 	}
 }
 
+// WithValidator is an option to include a claims validator.
 func WithValidator(v *Validator) ParserOption {
 	return func(p *Parser) {
 		p.validator = v

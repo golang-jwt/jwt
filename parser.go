@@ -89,7 +89,7 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 	if !p.SkipClaimsValidation {
 		// Make sure we have at least a default validator
 		if p.validator == nil {
-			p.validator = DefaultValidator
+			p.validator = NewValidator()
 		}
 
 		if err := p.validator.Validate(claims); err != nil {

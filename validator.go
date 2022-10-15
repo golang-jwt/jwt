@@ -42,6 +42,7 @@ func NewValidator(opts ...ValidatorOption) *Validator {
 	return v
 }
 
+// Validate validates the given claims. It will also perform any custom validation if claims implements the CustomValidator interface.
 func (v *Validator) Validate(claims Claims) error {
 	var now time.Time
 	vErr := new(ValidationError)
@@ -156,7 +157,7 @@ func verifyAud(aud []string, cmp string, required bool) bool {
 	}
 
 	// case where "" is sent in one or many aud claims
-	if len(stringClaims) == 0 {
+	if stringClaims == "" {
 		return !required
 	}
 
