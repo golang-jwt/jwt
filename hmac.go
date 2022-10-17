@@ -46,7 +46,19 @@ func (m *SigningMethodHMAC) Alg() string {
 }
 
 // Verify implements token verification for the SigningMethod. Returns nil if the signature is valid.
+<<<<<<< HEAD
 func (m *SigningMethodHMAC) Verify(signingString string, sig []byte, key interface{}) error {
+=======
+// Key must be []byte
+// Note it is not advised to provide a []byte which was converted from a 'human readable' string using a subset of ASCII characters.
+// To maximize entropy, you should ideally be providing a []byte key which was produced from a cryptographically random source.
+// i.e. crypto/rand https://pkg.go.dev/crypto/rand#Read
+//
+// Storing keys in the environment can be done by base64 encoding the cryptographically random []byte.
+// Reading keys from the environment can be done by base64 decoding the environment variable to retrieve the original cryptographically random []byte.
+// i.e. encoding/base64 https://pkg.go.dev/encoding/base64#Encoding.DecodeString
+func (m *SigningMethodHMAC) Verify(signingString, signature string, key interface{}) error {
+>>>>>>> a2dc764 (add documentation around Verify & Sign to detail why string is not an advisable input for key)
 	// Verify the key is the right type
 	keyBytes, ok := key.([]byte)
 	if !ok {
@@ -71,8 +83,14 @@ func (m *SigningMethodHMAC) Verify(signingString string, sig []byte, key interfa
 	return nil
 }
 
-// Sign implements token signing for the SigningMethod.
-// Key must be []byte
+// Sign implements token signing for the SigningMethod. Key must be []byte.
+//
+// Note it is not advised to provide a []byte which was converted from a 'human
+// readable' string using a subset of ASCII characters. To maximize entropy, you
+// should ideally be providing a []byte key which was produced from a
+// cryptographically random source, e.g. crypto/rand. Additional information
+// about this, and why we intentionally are not supporting string as a key can
+// be found on our usage guide https://golang-jwt.github.io/jwt/usage/signing_methods/.
 func (m *SigningMethodHMAC) Sign(signingString string, key interface{}) ([]byte, error) {
 	if keyBytes, ok := key.([]byte); ok {
 		if !m.Hash.Available() {
