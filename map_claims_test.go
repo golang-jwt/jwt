@@ -1,7 +1,10 @@
 package jwt
 
-/*
-TODO(oxisto): Re-enable tests with validation API
+import (
+	"testing"
+	"time"
+)
+
 func TestVerifyAud(t *testing.T) {
 	var nilInterface interface{}
 	var nilListInterface []interface{}
@@ -39,7 +42,7 @@ func TestVerifyAud(t *testing.T) {
 		{Name: "[]String Aud without match not required", MapClaims: MapClaims{"aud": []string{"not.example.com", "example.example.com"}}, Expected: false, Required: true, Comparison: "example.com"},
 
 		// Required = false
-		{Name: "Empty []String Aud without match required", MapClaims: MapClaims{"aud": []string{""}}, Expected: false, Required: true, Comparison: "example.com"},
+		{Name: "Empty []String Aud without match required", MapClaims: MapClaims{"aud": []string{""}}, Expected: true, Required: false, Comparison: "example.com"},
 
 		// []interface{}
 		{Name: "Empty []interface{} Aud without match required", MapClaims: MapClaims{"aud": nilListInterface}, Expected: true, Required: false, Comparison: "example.com"},
@@ -53,10 +56,17 @@ func TestVerifyAud(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
-			got := test.MapClaims.VerifyAudience(test.Comparison, test.Required)
+			var opts []ValidatorOption
 
-			if got != test.Expected {
-				t.Errorf("Expected %v, got %v", test.Expected, got)
+			if test.Required {
+				opts = append(opts, WithAudience(test.Comparison))
+			}
+
+			validator := NewValidator(opts...)
+			got := validator.Validate(test.MapClaims)
+
+			if (got == nil) != test.Expected {
+				t.Errorf("Expected %v, got %v", test.Expected, (got == nil))
 			}
 		})
 	}
@@ -67,9 +77,9 @@ func TestMapclaimsVerifyIssuedAtInvalidTypeString(t *testing.T) {
 		"iat": "foo",
 	}
 	want := false
-	got := mapClaims.VerifyIssuedAt(0, false)
-	if want != got {
-		t.Fatalf("Failed to verify claims, wanted: %v got %v", want, got)
+	got := NewValidator(WithIssuedAt()).Validate(mapClaims)
+	if want != (got == nil) {
+		t.Fatalf("Failed to verify claims, wanted: %v got %v", want, (got == nil))
 	}
 }
 
@@ -78,9 +88,9 @@ func TestMapclaimsVerifyNotBeforeInvalidTypeString(t *testing.T) {
 		"nbf": "foo",
 	}
 	want := false
-	got := mapClaims.VerifyNotBefore(0, false)
-	if want != got {
-		t.Fatalf("Failed to verify claims, wanted: %v got %v", want, got)
+	got := NewValidator().Validate(mapClaims)
+	if want != (got == nil) {
+		t.Fatalf("Failed to verify claims, wanted: %v got %v", want, (got == nil))
 	}
 }
 
@@ -89,33 +99,38 @@ func TestMapclaimsVerifyExpiresAtInvalidTypeString(t *testing.T) {
 		"exp": "foo",
 	}
 	want := false
-	got := mapClaims.VerifyExpiresAt(0, false)
+	got := NewValidator().Validate(mapClaims)
 
-	if want != got {
-		t.Fatalf("Failed to verify claims, wanted: %v got %v", want, got)
+	if want != (got == nil) {
+		t.Fatalf("Failed to verify claims, wanted: %v got %v", want, (got == nil))
 	}
 }
 
 func TestMapClaimsVerifyExpiresAtExpire(t *testing.T) {
-	exp := time.Now().Unix()
+	exp := time.Now()
 	mapClaims := MapClaims{
-		"exp": float64(exp),
+		"exp": float64(exp.Unix()),
 	}
 	want := false
-	got := mapClaims.VerifyExpiresAt(exp, true)
-	if want != got {
-		t.Fatalf("Failed to verify claims, wanted: %v got %v", want, got)
+	got := NewValidator(WithTimeFunc(func() time.Time {
+		return exp
+	})).Validate(mapClaims)
+	if want != (got == nil) {
+		t.Fatalf("Failed to verify claims, wanted: %v got %v", want, (got == nil))
 	}
 
-	got = mapClaims.VerifyExpiresAt(exp+1, true)
-	if want != got {
-		t.Fatalf("Failed to verify claims, wanted: %v got %v", want, got)
+	got = NewValidator(WithTimeFunc(func() time.Time {
+		return exp.Add(1 * time.Second)
+	})).Validate(mapClaims)
+	if want != (got == nil) {
+		t.Fatalf("Failed to verify claims, wanted: %v got %v", want, (got == nil))
 	}
 
 	want = true
-	got = mapClaims.VerifyExpiresAt(exp-1, true)
-	if want != got {
-		t.Fatalf("Failed to verify claims, wanted: %v got %v", want, got)
+	got = NewValidator(WithTimeFunc(func() time.Time {
+		return exp.Add(-1 * time.Second)
+	})).Validate(mapClaims)
+	if want != (got == nil) {
+		t.Fatalf("Failed to verify claims, wanted: %v got %v", want, (got == nil))
 	}
 }
-*/

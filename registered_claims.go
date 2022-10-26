@@ -33,26 +33,26 @@ type RegisteredClaims struct {
 }
 
 // GetExpirationTime implements the Claims interface.
-func (c RegisteredClaims) GetExpirationTime() *NumericDate {
-	return c.ExpiresAt
+func (c RegisteredClaims) GetExpirationTime() (*NumericDate, error) {
+	return c.ExpiresAt, nil
 }
 
 // GetNotBefore implements the Claims interface.
-func (c RegisteredClaims) GetNotBefore() *NumericDate {
-	return c.NotBefore
+func (c RegisteredClaims) GetNotBefore() (*NumericDate, error) {
+	return c.NotBefore, nil
 }
 
 // GetIssuedAt implements the Claims interface.
-func (c RegisteredClaims) GetIssuedAt() *NumericDate {
-	return c.IssuedAt
+func (c RegisteredClaims) GetIssuedAt() (*NumericDate, error) {
+	return c.IssuedAt, nil
 }
 
 // GetAudience implements the Claims interface.
-func (c RegisteredClaims) GetAudience() ClaimStrings {
-	return c.Audience
+func (c RegisteredClaims) GetAudience() (ClaimStrings, error) {
+	return c.Audience, nil
 }
 
 // GetIssuer implements the Claims interface.
-func (c RegisteredClaims) GetIssuer() string {
-	return c.Issuer
+func (c RegisteredClaims) GetIssuer() (string, error) {
+	return c.Issuer, nil
 }

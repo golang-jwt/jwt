@@ -7,9 +7,9 @@ package jwt
 // https://datatracker.ietf.org/doc/html/rfc7519#section-4.1 namely `exp`,
 // `iat`, `nbf`, `iss` and `aud`.
 type Claims interface {
-	GetExpirationTime() *NumericDate
-	GetIssuedAt() *NumericDate
-	GetNotBefore() *NumericDate
-	GetIssuer() string
-	GetAudience() ClaimStrings
+	GetExpirationTime() (*NumericDate, error)
+	GetIssuedAt() (*NumericDate, error)
+	GetNotBefore() (*NumericDate, error)
+	GetIssuer() (string, error)
+	GetAudience() (ClaimStrings, error)
 }

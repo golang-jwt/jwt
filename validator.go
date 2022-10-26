@@ -2,7 +2,6 @@ package jwt
 
 import (
 	"crypto/subtle"
-	"fmt"
 	"time"
 )
 
@@ -62,9 +61,7 @@ func (v *Validator) Validate(claims Claims) error {
 	}
 
 	if !v.VerifyExpiresAt(claims, now, false) {
-		exp := claims.GetExpirationTime()
-		delta := now.Sub(exp.Time)
-		vErr.Inner = fmt.Errorf("%s by %s", ErrTokenExpired, delta)
+		vErr.Inner = ErrTokenExpired
 		vErr.Errors |= ValidationErrorExpired
 	}
 
@@ -79,9 +76,10 @@ func (v *Validator) Validate(claims Claims) error {
 		vErr.Errors |= ValidationErrorNotValidYet
 	}
 
-	if v.expectedAud != "" && !v.VerifyAudience(claims, v.expectedAud, false) {
-		vErr.Inner = ErrTokenNotValidYet
-		vErr.Errors |= ValidationErrorNotValidYet
+	// If we have an expected audience, we also require the audience claim
+	if v.expectedAud != "" && !v.VerifyAudience(claims, v.expectedAud, true) {
+		vErr.Inner = ErrTokenInvalidAudience
+		vErr.Errors |= ValidationErrorAudience
 	}
 
 	// Finally, we want to give the claim itself some possibility to do some
@@ -104,46 +102,68 @@ func (v *Validator) Validate(claims Claims) error {
 // VerifyAudience compares the aud claim against cmp.
 // If required is false, this method will return true if the value matches or is unset
 func (v *Validator) VerifyAudience(claims Claims, cmp string, req bool) bool {
-	return verifyAud(claims.GetAudience(), cmp, req)
+	aud, err := claims.GetAudience()
+	if err != nil {
+		return false
+	}
+
+	return verifyAud(aud, cmp, req)
 }
 
 // VerifyExpiresAt compares the exp claim against cmp (cmp < exp).
 // If req is false, it will return true, if exp is unset.
 func (v *Validator) VerifyExpiresAt(claims Claims, cmp time.Time, req bool) bool {
-	exp := claims.GetExpirationTime()
-	if exp == nil {
-		return verifyExp(nil, cmp, req, v.leeway)
+	var time *time.Time = nil
+
+	exp, err := claims.GetExpirationTime()
+	if err != nil {
+		return false
+	} else if exp != nil {
+		time = &exp.Time
 	}
 
-	return verifyExp(&exp.Time, cmp, req, v.leeway)
+	return verifyExp(time, cmp, req, v.leeway)
 }
 
 // VerifyIssuedAt compares the iat claim against cmp (cmp >= iat).
 // If req is false, it will return true, if iat is unset.
 func (v *Validator) VerifyIssuedAt(claims Claims, cmp time.Time, req bool) bool {
-	iat := claims.GetIssuedAt()
-	if iat == nil {
-		return verifyIat(nil, cmp, req, v.leeway)
+	var time *time.Time = nil
+
+	iat, err := claims.GetIssuedAt()
+	if err != nil {
+		return false
+	} else if iat != nil {
+		time = &iat.Time
 	}
 
-	return verifyIat(&iat.Time, cmp, req, v.leeway)
+	return verifyIat(time, cmp, req, v.leeway)
 }
 
 // VerifyNotBefore compares the nbf claim against cmp (cmp >= nbf).
 // If req is false, it will return true, if nbf is unset.
 func (v *Validator) VerifyNotBefore(claims Claims, cmp time.Time, req bool) bool {
-	nbf := claims.GetNotBefore()
-	if nbf == nil {
-		return verifyNbf(nil, cmp, req, v.leeway)
+	var time *time.Time = nil
+
+	nbf, err := claims.GetNotBefore()
+	if err != nil {
+		return false
+	} else if nbf != nil {
+		time = &nbf.Time
 	}
 
-	return verifyNbf(&nbf.Time, cmp, req, v.leeway)
+	return verifyNbf(time, cmp, req, v.leeway)
 }
 
 // VerifyIssuer compares the iss claim against cmp.
 // If required is false, this method will return true if the value matches or is unset
 func (v *Validator) VerifyIssuer(claims Claims, cmp string, req bool) bool {
-	return verifyIss(claims.GetIssuer(), cmp, req)
+	iss, err := claims.GetIssuer()
+	if err != nil {
+		return false
+	}
+
+	return verifyIss(iss, cmp, req)
 }
 
 // ----- helpers
