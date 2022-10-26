@@ -7,9 +7,6 @@ import (
 	"strings"
 )
 
-// DefaultValidator is the default validator that is used, if no custom validator is supplied in a Parser.
-var DefaultValidator = NewValidator()
-
 type Parser struct {
 	// If populated, only these methods will be considered valid.
 	//

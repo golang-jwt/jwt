@@ -6,7 +6,10 @@ import (
 	"time"
 )
 
-// Validator is the core of the new Validation API. It is
+// Validator is the core of the new Validation API. It can either be used to
+// modify the validation used during parsing with the [WithValidator] parser
+// option or used standalone to validate an already parsed [Claim]. It can be
+// further customized with a range of specified [ValidatorOption]s.
 type Validator struct {
 	// leeway is an optional leeway that can be provided to account for clock skew.
 	leeway time.Duration
@@ -28,6 +31,8 @@ type Validator struct {
 }
 
 type customValidationType interface {
+	// CustomValidation can be implemented by a user-specific claim to support
+	// additional validation steps in addition to the regular validation.
 	CustomValidation() error
 }
 
@@ -177,8 +182,8 @@ func verifyIat(iat *time.Time, now time.Time, required bool, skew time.Duration)
 		return !required
 	}
 
-	t := (*iat).Add(-skew)
-	return now.After(t) || now.Equal(t)
+	t := iat.Add(-skew)
+	return !now.Before(t)
 }
 
 func verifyNbf(nbf *time.Time, now time.Time, required bool, skew time.Duration) bool {
@@ -186,8 +191,8 @@ func verifyNbf(nbf *time.Time, now time.Time, required bool, skew time.Duration)
 		return !required
 	}
 
-	t := (*nbf).Add(-skew)
-	return now.After(t) || now.Equal(t)
+	t := nbf.Add(-skew)
+	return !now.Before(t)
 }
 
 func verifyIss(iss string, cmp string, required bool) bool {
