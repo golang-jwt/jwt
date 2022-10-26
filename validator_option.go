@@ -33,9 +33,41 @@ func WithIssuedAt() ValidatorOption {
 	}
 }
 
-// WithAudience returns the ValidatorOption to set the expected audience.
+// WithAudience configures the validator to require the specified audience in
+// the `aud` claim. Validation will fail if the audience is not listed in the
+// token or the `aud` claim is missing.
+//
+// NOTE: While the `aud` claim is OPTIONAL is a JWT, the handling of it is
+// application-specific. Since this validation API is helping developers in
+// writing secure application, we decided to REQUIRE the existence of the claim.
 func WithAudience(aud string) ValidatorOption {
 	return func(v *Validator) {
 		v.expectedAud = aud
+	}
+}
+
+// WithIssuer configures the validator to require the specified issuer in the
+// `iss` claim. Validation will fail if a different issuer is specified in the
+// token or the `iss` claim is missing.
+//
+// NOTE: While the `iss` claim is OPTIONAL is a JWT, the handling of it is
+// application-specific. Since this validation API is helping developers in
+// writing secure application, we decided to REQUIRE the existence of the claim.
+func WithIssuer(iss string) ValidatorOption {
+	return func(v *Validator) {
+		v.expectedIss = iss
+	}
+}
+
+// WithSubject configures the validator to require the specified subject in the
+// `sub` claim. Validation will fail if a different subject is specified in the
+// token or the `sub` claim is missing.
+//
+// NOTE: While the `sub` claim is OPTIONAL is a JWT, the handling of it is
+// application-specific. Since this validation API is helping developers in
+// writing secure application, we decided to REQUIRE the existence of the claim.
+func WithSubject(sub string) ValidatorOption {
+	return func(v *Validator) {
+		v.expectedSub = sub
 	}
 }

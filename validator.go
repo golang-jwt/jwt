@@ -24,9 +24,17 @@ type Validator struct {
 	// unrealistic, i.e., in the future.
 	verifyIat bool
 
-	// expectedAud contains the audiences this token expects. Supplying an empty
+	// expectedAud contains the audience this token expects. Supplying an empty
 	// string will disable aud checking.
 	expectedAud string
+
+	// expectedIss contains the issuer this token expects. Supplying an empty
+	// string will disable iss checking.
+	expectedIss string
+
+	// expectedSub contains the subject this token expects. Supplying an empty
+	// string will disable sub checking.
+	expectedSub string
 }
 
 // CustomClaims represents a custom claims interface, which can be built upon the integrated
@@ -60,26 +68,40 @@ func (v *Validator) Validate(claims Claims) error {
 		now = time.Now()
 	}
 
+	// We always need to check the expiration time, but the claim itself is OPTIONAL
 	if !v.VerifyExpiresAt(claims, now, false) {
 		vErr.Inner = ErrTokenExpired
 		vErr.Errors |= ValidationErrorExpired
 	}
 
-	// Check iat if the option is enabled
-	if v.verifyIat && !v.VerifyIssuedAt(claims, now, false) {
-		vErr.Inner = ErrTokenUsedBeforeIssued
-		vErr.Errors |= ValidationErrorIssuedAt
-	}
-
+	// We always need to check not-before, but the claim itself is OPTIONAL
 	if !v.VerifyNotBefore(claims, now, false) {
 		vErr.Inner = ErrTokenNotValidYet
 		vErr.Errors |= ValidationErrorNotValidYet
+	}
+
+	// Check issued-at if the option is enabled
+	if v.verifyIat && !v.VerifyIssuedAt(claims, now, false) {
+		vErr.Inner = ErrTokenUsedBeforeIssued
+		vErr.Errors |= ValidationErrorIssuedAt
 	}
 
 	// If we have an expected audience, we also require the audience claim
 	if v.expectedAud != "" && !v.VerifyAudience(claims, v.expectedAud, true) {
 		vErr.Inner = ErrTokenInvalidAudience
 		vErr.Errors |= ValidationErrorAudience
+	}
+
+	// If we have an expected issuer, we also require the issuer claim
+	if v.expectedIss != "" && !v.VerifyIssuer(claims, v.expectedIss, true) {
+		vErr.Inner = ErrTokenInvalidIssuer
+		vErr.Errors |= ValidationErrorIssuer
+	}
+
+	// If we have an expected subject, we also require the subject claim
+	if v.expectedSub != "" && !v.VerifySubject(claims, v.expectedSub, true) {
+		vErr.Inner = ErrTokenInvalidSubject
+		vErr.Errors |= ValidationErrorSubject
 	}
 
 	// Finally, we want to give the claim itself some possibility to do some
@@ -166,6 +188,17 @@ func (v *Validator) VerifyIssuer(claims Claims, cmp string, req bool) bool {
 	return verifyIss(iss, cmp, req)
 }
 
+// VerifySubject compares the sub claim against cmp.
+// If required is false, this method will return true if the value matches or is unset
+func (v *Validator) VerifySubject(claims Claims, cmp string, req bool) bool {
+	iss, err := claims.GetSubject()
+	if err != nil {
+		return false
+	}
+
+	return verifySub(iss, cmp, req)
+}
+
 // ----- helpers
 
 func verifyAud(aud []string, cmp string, required bool) bool {
@@ -221,9 +254,14 @@ func verifyIss(iss string, cmp string, required bool) bool {
 	if iss == "" {
 		return !required
 	}
-	if subtle.ConstantTimeCompare([]byte(iss), []byte(cmp)) != 0 {
-		return true
-	} else {
-		return false
+
+	return iss == cmp
+}
+
+func verifySub(sub string, cmp string, required bool) bool {
+	if sub == "" {
+		return !required
 	}
+
+	return sub == cmp
 }

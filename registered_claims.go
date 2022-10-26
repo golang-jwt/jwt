@@ -56,3 +56,8 @@ func (c RegisteredClaims) GetAudience() (ClaimStrings, error) {
 func (c RegisteredClaims) GetIssuer() (string, error) {
 	return c.Issuer, nil
 }
+
+// GetSubject implements the Claims interface.
+func (c RegisteredClaims) GetSubject() (string, error) {
+	return c.Subject, nil
+}

@@ -36,6 +36,11 @@ func (m MapClaims) GetIssuer() (string, error) {
 	return m.ParseString("iss")
 }
 
+// GetSubject implements the Claims interface.
+func (m MapClaims) GetSubject() (string, error) {
+	return m.ParseString("sub")
+}
+
 // ParseNumericDate tries to parse a key in the map claims type as a number
 // date. This will succeed, if the underlying type is either a [float64] or a
 // [json.Number]. Otherwise, nil will be returned.
