@@ -1,6 +1,9 @@
 package jwt
 
-import "time"
+import (
+	"strings"
+	"time"
+)
 
 // ValidatorOption is used to implement functional-style options that modify the
 // behavior of the validator. To add new options, just create a function
@@ -8,6 +11,20 @@ import "time"
 // that takes a *Parser type as input and manipulates its configuration
 // accordingly.
 type ValidatorOption func(*Validator)
+
+type PatternFunc func(s string) bool
+
+func HasPrefix(prefix string) PatternFunc {
+	return func(s string) bool {
+		return strings.HasPrefix(s, prefix)
+	}
+}
+
+func Equals(cmp string) PatternFunc {
+	return func(s string) bool {
+		return cmp == s
+	}
+}
 
 // WithLeeway returns the ValidatorOption for specifying the leeway window.
 func WithLeeway(leeway time.Duration) ValidatorOption {
@@ -68,6 +85,12 @@ func WithIssuer(iss string) ValidatorOption {
 // writing secure application, we decided to REQUIRE the existence of the claim.
 func WithSubject(sub string) ValidatorOption {
 	return func(v *Validator) {
-		v.expectedSub = sub
+		v.expectedSubPattern = Equals(sub)
+	}
+}
+
+func WithSubjectPattern(pattern PatternFunc) ValidatorOption {
+	return func(v *Validator) {
+		v.expectedSubPattern = pattern
 	}
 }

@@ -32,9 +32,7 @@ type Validator struct {
 	// string will disable iss checking.
 	expectedIss string
 
-	// expectedSub contains the subject this token expects. Supplying an empty
-	// string will disable sub checking.
-	expectedSub string
+	expectedSubPattern PatternFunc
 }
 
 // CustomClaims represents a custom claims interface, which can be built upon the integrated
@@ -99,7 +97,7 @@ func (v *Validator) Validate(claims Claims) error {
 	}
 
 	// If we have an expected subject, we also require the subject claim
-	if v.expectedSub != "" && !v.VerifySubject(claims, v.expectedSub, true) {
+	if v.expectedSubPattern != nil && !v.VerifySubject(claims, v.expectedSubPattern, true) {
 		vErr.Inner = ErrTokenInvalidSubject
 		vErr.Errors |= ValidationErrorSubject
 	}
@@ -190,7 +188,7 @@ func (v *Validator) VerifyIssuer(claims Claims, cmp string, req bool) bool {
 
 // VerifySubject compares the sub claim against cmp.
 // If required is false, this method will return true if the value matches or is unset
-func (v *Validator) VerifySubject(claims Claims, cmp string, req bool) bool {
+func (v *Validator) VerifySubject(claims Claims, cmp PatternFunc, req bool) bool {
 	iss, err := claims.GetSubject()
 	if err != nil {
 		return false
@@ -258,10 +256,10 @@ func verifyIss(iss string, cmp string, required bool) bool {
 	return iss == cmp
 }
 
-func verifySub(sub string, cmp string, required bool) bool {
+func verifySub(sub string, cmp PatternFunc, required bool) bool {
 	if sub == "" {
 		return !required
 	}
 
-	return sub == cmp
+	return cmp(sub)
 }
