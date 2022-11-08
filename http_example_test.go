@@ -73,7 +73,7 @@ type CustomerInfo struct {
 }
 
 type CustomClaimsExample struct {
-	*jwt.RegisteredClaims
+	jwt.RegisteredClaims
 	TokenType string
 	CustomerInfo
 }
@@ -142,7 +142,7 @@ func createToken(user string) (string, error) {
 
 	// set our claims
 	t.Claims = &CustomClaimsExample{
-		&jwt.RegisteredClaims{
+		jwt.RegisteredClaims{
 			// set the expire time
 			// see https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.4
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 1)),
