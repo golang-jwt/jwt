@@ -127,19 +127,19 @@ func (m MapClaims) Valid() error {
 
 	if !m.VerifyExpiresAt(now, false) {
 		// TODO(oxisto): this should be replaced with ErrTokenExpired
-		vErr.Inner = errors.New("Token is expired")
+		vErr.Inner = ErrTokenExpired
 		vErr.Errors |= ValidationErrorExpired
 	}
 
 	if !m.VerifyIssuedAt(now, false) {
 		// TODO(oxisto): this should be replaced with ErrTokenUsedBeforeIssued
-		vErr.Inner = errors.New("Token used before issued")
+		vErr.Inner = ErrTokenUsedBeforeIssued
 		vErr.Errors |= ValidationErrorIssuedAt
 	}
 
 	if !m.VerifyNotBefore(now, false) {
 		// TODO(oxisto): this should be replaced with ErrTokenNotValidYet
-		vErr.Inner = errors.New("Token is not valid yet")
+		vErr.Inner = ErrTokenNotValidYet
 		vErr.Errors |= ValidationErrorNotValidYet
 	}
 
