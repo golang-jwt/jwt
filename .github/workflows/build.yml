@@ -33,6 +33,8 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: "${{ matrix.go }}"
+          check-latest: true
+          cache: true
       - name: Check Go code formatting
         run: |
           if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
@@ -44,5 +46,5 @@ jobs:
         run: |
           go install github.com/mfridman/tparse@latest
           go vet ./...
-          go test -v -coverpkg ./...  ./... -json | tparse -follow
+          go test -v -race -count=1 -json -coverpkg=$(go list ./...) ./... | tparse -follow -notests
           go build ./...
