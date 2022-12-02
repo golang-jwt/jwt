@@ -489,6 +489,7 @@ var setPaddingTestData = []struct {
 	tokenString   string
 	claims        jwt.Claims
 	paddedDecode  bool
+	strictDecode  bool
 	signingMethod jwt.SigningMethod
 	keyfunc       jwt.Keyfunc
 	valid         bool
@@ -547,19 +548,108 @@ var setPaddingTestData = []struct {
 		keyfunc:       paddedKeyFunc,
 		valid:         true,
 	},
+	// DecodeStrict tests, DecodePaddingAllowed=false
+	{
+		name: "Validated non-padded token with padding disabled, non-strict decode, non-tweaked signature",
+		tokenString: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJwYWRkZWRiYXIifQ.bI15h-7mN0f-2diX5I4ErgNQy1uM-rJS5Sz7O0iTWtWSBxY1h6wy8Ywxe5EZTEO6GiIfk7Lk-72Ex-c5aA40QKhPwWB9BJ8O_LfKpezUVBOn0jRItDnVdsk4ccl2zsOVkbA4U4QvdrSbOYMbwoRHzDXfTFpoeMWtn3ez0aENJ8dh4E1echHp5ByI9Pu2aBsvM1WVcMt_BySweCL3f4T7jNZeXDr7Txd00yUd2gdsHYPjXorOvsgaBKN5GLsWd1zIY5z-2gCC8CRSN-IJ4NNX5ifh7l-bOXE2q7szTqa9pvyE9y6TQJhNMSE2FotRce_TOPBWgGpQ-K2I7E8x7wZ8O" +
+			"g",
+		claims:        nil,
+		paddedDecode:  false,
+		strictDecode:  false,
+		signingMethod: jwt.SigningMethodRS256,
+		keyfunc:       defaultKeyFunc,
+		valid:         true,
+	},
+	{
+		name: "Validated non-padded token with padding disabled, non-strict decode, tweaked signature",
+		tokenString: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJwYWRkZWRiYXIifQ.bI15h-7mN0f-2diX5I4ErgNQy1uM-rJS5Sz7O0iTWtWSBxY1h6wy8Ywxe5EZTEO6GiIfk7Lk-72Ex-c5aA40QKhPwWB9BJ8O_LfKpezUVBOn0jRItDnVdsk4ccl2zsOVkbA4U4QvdrSbOYMbwoRHzDXfTFpoeMWtn3ez0aENJ8dh4E1echHp5ByI9Pu2aBsvM1WVcMt_BySweCL3f4T7jNZeXDr7Txd00yUd2gdsHYPjXorOvsgaBKN5GLsWd1zIY5z-2gCC8CRSN-IJ4NNX5ifh7l-bOXE2q7szTqa9pvyE9y6TQJhNMSE2FotRce_TOPBWgGpQ-K2I7E8x7wZ8O" +
+			"h",
+		claims:        nil,
+		paddedDecode:  false,
+		strictDecode:  false,
+		signingMethod: jwt.SigningMethodRS256,
+		keyfunc:       defaultKeyFunc,
+		valid:         true,
+	},
+	{
+		name: "Validated non-padded token with padding disabled, strict decode, non-tweaked signature",
+		tokenString: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJwYWRkZWRiYXIifQ.bI15h-7mN0f-2diX5I4ErgNQy1uM-rJS5Sz7O0iTWtWSBxY1h6wy8Ywxe5EZTEO6GiIfk7Lk-72Ex-c5aA40QKhPwWB9BJ8O_LfKpezUVBOn0jRItDnVdsk4ccl2zsOVkbA4U4QvdrSbOYMbwoRHzDXfTFpoeMWtn3ez0aENJ8dh4E1echHp5ByI9Pu2aBsvM1WVcMt_BySweCL3f4T7jNZeXDr7Txd00yUd2gdsHYPjXorOvsgaBKN5GLsWd1zIY5z-2gCC8CRSN-IJ4NNX5ifh7l-bOXE2q7szTqa9pvyE9y6TQJhNMSE2FotRce_TOPBWgGpQ-K2I7E8x7wZ8O" +
+			"g",
+		claims:        nil,
+		paddedDecode:  false,
+		strictDecode:  true,
+		signingMethod: jwt.SigningMethodRS256,
+		keyfunc:       defaultKeyFunc,
+		valid:         true,
+	},
+	{
+		name: "Error for non-padded token with padding disabled, strict decode, tweaked signature",
+		tokenString: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJwYWRkZWRiYXIifQ.bI15h-7mN0f-2diX5I4ErgNQy1uM-rJS5Sz7O0iTWtWSBxY1h6wy8Ywxe5EZTEO6GiIfk7Lk-72Ex-c5aA40QKhPwWB9BJ8O_LfKpezUVBOn0jRItDnVdsk4ccl2zsOVkbA4U4QvdrSbOYMbwoRHzDXfTFpoeMWtn3ez0aENJ8dh4E1echHp5ByI9Pu2aBsvM1WVcMt_BySweCL3f4T7jNZeXDr7Txd00yUd2gdsHYPjXorOvsgaBKN5GLsWd1zIY5z-2gCC8CRSN-IJ4NNX5ifh7l-bOXE2q7szTqa9pvyE9y6TQJhNMSE2FotRce_TOPBWgGpQ-K2I7E8x7wZ8O" +
+			"h",
+		claims:        nil,
+		paddedDecode:  false,
+		strictDecode:  true,
+		signingMethod: jwt.SigningMethodRS256,
+		keyfunc:       defaultKeyFunc,
+		valid:         false,
+	},
+	// DecodeStrict tests, DecodePaddingAllowed=true
+	{
+		name: "Validated padded token with padding enabled, non-strict decode, non-tweaked signature",
+		tokenString: "eyJ0eXAiOiJKV1QiLCJraWQiOiIxMjM0NTY3OC1hYmNkLTEyMzQtYWJjZC0xMjM0NTY3OGFiY2QiLCJhbGciOiJFUzI1NiIsImlzcyI6Imh0dHBzOi8vY29nbml0by1pZHAuZXUtd2VzdC0yLmFtYXpvbmF3cy5jb20vIiwiY2xpZW50IjoiN0xUY29QWnJWNDR6ZVg2WUs5VktBcHZPM3EiLCJzaWduZXIiOiJhcm46YXdzOmVsYXN0aWNsb2FkYmFsYW5jaW5nIiwiZXhwIjoxNjI5NDcwMTAxfQ==.eyJzdWIiOiIxMjM0NTY3OC1hYmNkLTEyMzQtYWJjZC0xMjM0NTY3OGFiY2QiLCJlbWFpbF92ZXJpZmllZCI6InRydWUiLCJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6IjEyMzQ1Njc4LWFiY2QtMTIzNC1hYmNkLTEyMzQ1Njc4YWJjZCIsImV4cCI6MTYyOTQ3MDEwMSwiaXNzIjoiaHR0cHM6Ly9jb2duaXRvLWlkcC5ldS13ZXN0LTIuYW1hem9uYXdzLmNvbS8ifQ==.sx0muJ754glJvwWgkHaPrOI3L1gaPjRLLUvOQRk0WitnqC5Dtt1knorcbOzlEcH9zwPM2jYYIAYQz_qEyM3gr" +
+			"w==",
+		claims:        nil,
+		paddedDecode:  true,
+		strictDecode:  false,
+		signingMethod: jwt.SigningMethodES256,
+		keyfunc:       paddedKeyFunc,
+		valid:         true,
+	},
+	{
+		name: "Validated padded token with padding enabled, non-strict decode, tweaked signature",
+		tokenString: "eyJ0eXAiOiJKV1QiLCJraWQiOiIxMjM0NTY3OC1hYmNkLTEyMzQtYWJjZC0xMjM0NTY3OGFiY2QiLCJhbGciOiJFUzI1NiIsImlzcyI6Imh0dHBzOi8vY29nbml0by1pZHAuZXUtd2VzdC0yLmFtYXpvbmF3cy5jb20vIiwiY2xpZW50IjoiN0xUY29QWnJWNDR6ZVg2WUs5VktBcHZPM3EiLCJzaWduZXIiOiJhcm46YXdzOmVsYXN0aWNsb2FkYmFsYW5jaW5nIiwiZXhwIjoxNjI5NDcwMTAxfQ==.eyJzdWIiOiIxMjM0NTY3OC1hYmNkLTEyMzQtYWJjZC0xMjM0NTY3OGFiY2QiLCJlbWFpbF92ZXJpZmllZCI6InRydWUiLCJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6IjEyMzQ1Njc4LWFiY2QtMTIzNC1hYmNkLTEyMzQ1Njc4YWJjZCIsImV4cCI6MTYyOTQ3MDEwMSwiaXNzIjoiaHR0cHM6Ly9jb2duaXRvLWlkcC5ldS13ZXN0LTIuYW1hem9uYXdzLmNvbS8ifQ==.sx0muJ754glJvwWgkHaPrOI3L1gaPjRLLUvOQRk0WitnqC5Dtt1knorcbOzlEcH9zwPM2jYYIAYQz_qEyM3gr" +
+			"x==",
+		claims:        nil,
+		paddedDecode:  true,
+		strictDecode:  false,
+		signingMethod: jwt.SigningMethodES256,
+		keyfunc:       paddedKeyFunc,
+		valid:         true,
+	},
+	{
+		name: "Validated padded token with padding enabled, strict decode, non-tweaked signature",
+		tokenString: "eyJ0eXAiOiJKV1QiLCJraWQiOiIxMjM0NTY3OC1hYmNkLTEyMzQtYWJjZC0xMjM0NTY3OGFiY2QiLCJhbGciOiJFUzI1NiIsImlzcyI6Imh0dHBzOi8vY29nbml0by1pZHAuZXUtd2VzdC0yLmFtYXpvbmF3cy5jb20vIiwiY2xpZW50IjoiN0xUY29QWnJWNDR6ZVg2WUs5VktBcHZPM3EiLCJzaWduZXIiOiJhcm46YXdzOmVsYXN0aWNsb2FkYmFsYW5jaW5nIiwiZXhwIjoxNjI5NDcwMTAxfQ==.eyJzdWIiOiIxMjM0NTY3OC1hYmNkLTEyMzQtYWJjZC0xMjM0NTY3OGFiY2QiLCJlbWFpbF92ZXJpZmllZCI6InRydWUiLCJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6IjEyMzQ1Njc4LWFiY2QtMTIzNC1hYmNkLTEyMzQ1Njc4YWJjZCIsImV4cCI6MTYyOTQ3MDEwMSwiaXNzIjoiaHR0cHM6Ly9jb2duaXRvLWlkcC5ldS13ZXN0LTIuYW1hem9uYXdzLmNvbS8ifQ==.sx0muJ754glJvwWgkHaPrOI3L1gaPjRLLUvOQRk0WitnqC5Dtt1knorcbOzlEcH9zwPM2jYYIAYQz_qEyM3gr" +
+			"w==",
+		claims:        nil,
+		paddedDecode:  true,
+		strictDecode:  true,
+		signingMethod: jwt.SigningMethodES256,
+		keyfunc:       paddedKeyFunc,
+		valid:         true,
+	},
+	{
+		name: "Error for padded token with padding enabled, strict decode, tweaked signature",
+		tokenString: "eyJ0eXAiOiJKV1QiLCJraWQiOiIxMjM0NTY3OC1hYmNkLTEyMzQtYWJjZC0xMjM0NTY3OGFiY2QiLCJhbGciOiJFUzI1NiIsImlzcyI6Imh0dHBzOi8vY29nbml0by1pZHAuZXUtd2VzdC0yLmFtYXpvbmF3cy5jb20vIiwiY2xpZW50IjoiN0xUY29QWnJWNDR6ZVg2WUs5VktBcHZPM3EiLCJzaWduZXIiOiJhcm46YXdzOmVsYXN0aWNsb2FkYmFsYW5jaW5nIiwiZXhwIjoxNjI5NDcwMTAxfQ==.eyJzdWIiOiIxMjM0NTY3OC1hYmNkLTEyMzQtYWJjZC0xMjM0NTY3OGFiY2QiLCJlbWFpbF92ZXJpZmllZCI6InRydWUiLCJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6IjEyMzQ1Njc4LWFiY2QtMTIzNC1hYmNkLTEyMzQ1Njc4YWJjZCIsImV4cCI6MTYyOTQ3MDEwMSwiaXNzIjoiaHR0cHM6Ly9jb2duaXRvLWlkcC5ldS13ZXN0LTIuYW1hem9uYXdzLmNvbS8ifQ==.sx0muJ754glJvwWgkHaPrOI3L1gaPjRLLUvOQRk0WitnqC5Dtt1knorcbOzlEcH9zwPM2jYYIAYQz_qEyM3gr" +
+			"x==",
+		claims:        nil,
+		paddedDecode:  true,
+		strictDecode:  true,
+		signingMethod: jwt.SigningMethodES256,
+		keyfunc:       paddedKeyFunc,
+		valid:         false,
+	},
 }
 
 // Extension of Parsing, this is to test out functionality specific to switching codecs with padding.
 func TestSetPadding(t *testing.T) {
 	for _, data := range setPaddingTestData {
 		t.Run(data.name, func(t *testing.T) {
+			jwt.DecodePaddingAllowed = data.paddedDecode
+			jwt.DecodeStrict = data.strictDecode
 
 			// If the token string is blank, use helper function to generate string
-			jwt.DecodePaddingAllowed = data.paddedDecode
-
 			if data.tokenString == "" {
 				data.tokenString = signToken(data.claims, data.signingMethod)
-
 			}
 
 			// Parse the token
@@ -581,7 +671,7 @@ func TestSetPadding(t *testing.T) {
 
 		})
 		jwt.DecodePaddingAllowed = false
-
+		jwt.DecodeStrict = false
 	}
 }
 
