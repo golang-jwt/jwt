@@ -46,5 +46,6 @@ jobs:
         run: |
           go install github.com/mfridman/tparse@latest
           go vet ./...
-          go test -v -race -count=1 -json -coverpkg=$(go list ./...) ./... | tparse -follow -notests
+          go test -v -race -count=1 -json -coverpkg=$(go list ./...) ./... | tee output.json | tparse -follow -notests || true
+          tparse -format markdown -file output.json
           go build ./...
