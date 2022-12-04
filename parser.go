@@ -17,13 +17,13 @@ type Parser struct {
 	// Skip claims validation during token parsing.
 	skipClaimsValidation bool
 
-	validator *Validator
+	validator *validator
 }
 
 // NewParser creates a new Parser with the specified options
 func NewParser(options ...ParserOption) *Parser {
 	p := &Parser{
-		validator: &Validator{},
+		validator: &validator{},
 	}
 
 	// Loop through our parsing options and apply them
@@ -82,7 +82,7 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 	if !p.skipClaimsValidation {
 		// Make sure we have at least a default validator
 		if p.validator == nil {
-			p.validator = NewValidator()
+			p.validator = newValidator()
 		}
 
 		if err := p.validator.Validate(claims); err != nil {

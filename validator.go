@@ -5,11 +5,12 @@ import (
 	"time"
 )
 
-// Validator is the core of the new Validation API. It can either be used to
-// modify the validation used during parsing with the [WithValidator] parser
-// option or used standalone to validate an already parsed [Claim]. It can be
-// further customized with a range of specified [ValidatorOption]s.
-type Validator struct {
+// validator is the core of the new Validation API. It is automatically used by
+// a [Parser] during parsing and can be modified with various parser options.
+//
+// Note: This struct is intentionally not exported (yet) as we want to
+// internally finalize its API. In the future, we might make it publicly available.
+type validator struct {
 	// leeway is an optional leeway that can be provided to account for clock skew.
 	leeway time.Duration
 
@@ -45,15 +46,15 @@ type CustomClaims interface {
 	CustomValidation() error
 }
 
-// NewValidator can be used to create a stand-alone validator with the supplied
+// newValidator can be used to create a stand-alone validator with the supplied
 // options. This validator can then be used to validate already parsed claims.
-func NewValidator(opts ...ParserOption) *Validator {
+func newValidator(opts ...ParserOption) *validator {
 	p := NewParser(opts...)
 	return p.validator
 }
 
 // Validate validates the given claims. It will also perform any custom validation if claims implements the CustomValidator interface.
-func (v *Validator) Validate(claims Claims) error {
+func (v *validator) Validate(claims Claims) error {
 	var now time.Time
 	vErr := new(ValidationError)
 
@@ -119,7 +120,7 @@ func (v *Validator) Validate(claims Claims) error {
 
 // VerifyAudience compares the aud claim against cmp.
 // If required is false, this method will return true if the value matches or is unset
-func (v *Validator) VerifyAudience(claims Claims, cmp string, req bool) bool {
+func (v *validator) VerifyAudience(claims Claims, cmp string, req bool) bool {
 	aud, err := claims.GetAudience()
 	if err != nil {
 		return false
@@ -130,7 +131,7 @@ func (v *Validator) VerifyAudience(claims Claims, cmp string, req bool) bool {
 
 // VerifyExpiresAt compares the exp claim against cmp (cmp < exp).
 // If req is false, it will return true, if exp is unset.
-func (v *Validator) VerifyExpiresAt(claims Claims, cmp time.Time, req bool) bool {
+func (v *validator) VerifyExpiresAt(claims Claims, cmp time.Time, req bool) bool {
 	var time *time.Time = nil
 
 	exp, err := claims.GetExpirationTime()
@@ -145,7 +146,7 @@ func (v *Validator) VerifyExpiresAt(claims Claims, cmp time.Time, req bool) bool
 
 // VerifyIssuedAt compares the iat claim against cmp (cmp >= iat).
 // If req is false, it will return true, if iat is unset.
-func (v *Validator) VerifyIssuedAt(claims Claims, cmp time.Time, req bool) bool {
+func (v *validator) VerifyIssuedAt(claims Claims, cmp time.Time, req bool) bool {
 	var time *time.Time = nil
 
 	iat, err := claims.GetIssuedAt()
@@ -160,7 +161,7 @@ func (v *Validator) VerifyIssuedAt(claims Claims, cmp time.Time, req bool) bool 
 
 // VerifyNotBefore compares the nbf claim against cmp (cmp >= nbf).
 // If req is false, it will return true, if nbf is unset.
-func (v *Validator) VerifyNotBefore(claims Claims, cmp time.Time, req bool) bool {
+func (v *validator) VerifyNotBefore(claims Claims, cmp time.Time, req bool) bool {
 	var time *time.Time = nil
 
 	nbf, err := claims.GetNotBefore()
@@ -175,7 +176,7 @@ func (v *Validator) VerifyNotBefore(claims Claims, cmp time.Time, req bool) bool
 
 // VerifyIssuer compares the iss claim against cmp.
 // If required is false, this method will return true if the value matches or is unset
-func (v *Validator) VerifyIssuer(claims Claims, cmp string, req bool) bool {
+func (v *validator) VerifyIssuer(claims Claims, cmp string, req bool) bool {
 	iss, err := claims.GetIssuer()
 	if err != nil {
 		return false
@@ -186,7 +187,7 @@ func (v *Validator) VerifyIssuer(claims Claims, cmp string, req bool) bool {
 
 // VerifySubject compares the sub claim against cmp.
 // If required is false, this method will return true if the value matches or is unset
-func (v *Validator) VerifySubject(claims Claims, cmp string, req bool) bool {
+func (v *validator) VerifySubject(claims Claims, cmp string, req bool) bool {
 	iss, err := claims.GetSubject()
 	if err != nil {
 		return false
