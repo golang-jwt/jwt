@@ -152,7 +152,7 @@ var jwtTestData = []struct {
 		false,
 		jwt.ValidationErrorSignatureInvalid,
 		[]error{jwt.ErrTokenSignatureInvalid},
-		&jwt.Parser{ValidMethods: []string{"HS256"}},
+		jwt.NewParser(jwt.WithValidMethods([]string{"HS256"})),
 		jwt.SigningMethodRS256,
 	},
 	{
@@ -163,7 +163,7 @@ var jwtTestData = []struct {
 		true,
 		0,
 		nil,
-		&jwt.Parser{ValidMethods: []string{"RS256", "HS256"}},
+		jwt.NewParser(jwt.WithValidMethods([]string{"RS256", "HS256"})),
 		jwt.SigningMethodRS256,
 	},
 	{
@@ -174,7 +174,7 @@ var jwtTestData = []struct {
 		false,
 		jwt.ValidationErrorSignatureInvalid,
 		[]error{jwt.ErrTokenSignatureInvalid},
-		&jwt.Parser{ValidMethods: []string{"RS256", "HS256"}},
+		jwt.NewParser(jwt.WithValidMethods([]string{"RS256", "HS256"})),
 		jwt.SigningMethodES256,
 	},
 	{
@@ -185,7 +185,7 @@ var jwtTestData = []struct {
 		true,
 		0,
 		nil,
-		&jwt.Parser{ValidMethods: []string{"HS256", "ES256"}},
+		jwt.NewParser(jwt.WithValidMethods([]string{"HS256", "ES256"})),
 		jwt.SigningMethodES256,
 	},
 	{
@@ -196,7 +196,7 @@ var jwtTestData = []struct {
 		true,
 		0,
 		nil,
-		&jwt.Parser{UseJSONNumber: true},
+		jwt.NewParser(jwt.WithJSONNumber()),
 		jwt.SigningMethodRS256,
 	},
 	{
@@ -207,7 +207,7 @@ var jwtTestData = []struct {
 		false,
 		jwt.ValidationErrorExpired,
 		[]error{jwt.ErrTokenExpired},
-		&jwt.Parser{UseJSONNumber: true},
+		jwt.NewParser(jwt.WithJSONNumber()),
 		jwt.SigningMethodRS256,
 	},
 	{
@@ -218,7 +218,7 @@ var jwtTestData = []struct {
 		false,
 		jwt.ValidationErrorNotValidYet,
 		[]error{jwt.ErrTokenNotValidYet},
-		&jwt.Parser{UseJSONNumber: true},
+		jwt.NewParser(jwt.WithJSONNumber()),
 		jwt.SigningMethodRS256,
 	},
 	{
@@ -229,7 +229,7 @@ var jwtTestData = []struct {
 		false,
 		jwt.ValidationErrorNotValidYet | jwt.ValidationErrorExpired,
 		[]error{jwt.ErrTokenNotValidYet},
-		&jwt.Parser{UseJSONNumber: true},
+		jwt.NewParser(jwt.WithJSONNumber()),
 		jwt.SigningMethodRS256,
 	},
 	{
@@ -240,7 +240,7 @@ var jwtTestData = []struct {
 		true,
 		0,
 		nil,
-		&jwt.Parser{UseJSONNumber: true, SkipClaimsValidation: true},
+		jwt.NewParser(jwt.WithJSONNumber(), jwt.WithoutClaimsValidation()),
 		jwt.SigningMethodRS256,
 	},
 	{
@@ -253,7 +253,7 @@ var jwtTestData = []struct {
 		true,
 		0,
 		nil,
-		&jwt.Parser{UseJSONNumber: true},
+		jwt.NewParser(jwt.WithJSONNumber()),
 		jwt.SigningMethodRS256,
 	},
 	{
@@ -266,7 +266,7 @@ var jwtTestData = []struct {
 		true,
 		0,
 		nil,
-		&jwt.Parser{UseJSONNumber: true},
+		jwt.NewParser(jwt.WithJSONNumber()),
 		jwt.SigningMethodRS256,
 	},
 	{
@@ -279,7 +279,7 @@ var jwtTestData = []struct {
 		true,
 		0,
 		nil,
-		&jwt.Parser{UseJSONNumber: true},
+		jwt.NewParser(jwt.WithJSONNumber()),
 		jwt.SigningMethodRS256,
 	},
 	{
@@ -292,7 +292,7 @@ var jwtTestData = []struct {
 		false,
 		jwt.ValidationErrorMalformed,
 		[]error{jwt.ErrTokenMalformed},
-		&jwt.Parser{UseJSONNumber: true},
+		jwt.NewParser(jwt.WithJSONNumber()),
 		jwt.SigningMethodRS256,
 	},
 	{
@@ -305,7 +305,7 @@ var jwtTestData = []struct {
 		false,
 		jwt.ValidationErrorMalformed,
 		[]error{jwt.ErrTokenMalformed},
-		&jwt.Parser{UseJSONNumber: true},
+		jwt.NewParser(jwt.WithJSONNumber()),
 		jwt.SigningMethodRS256,
 	},
 	{
@@ -316,7 +316,7 @@ var jwtTestData = []struct {
 		false,
 		jwt.ValidationErrorNotValidYet,
 		[]error{jwt.ErrTokenNotValidYet},
-		jwt.NewParser(jwt.WithValidator(jwt.NewValidator(jwt.WithLeeway(time.Minute)))),
+		jwt.NewParser(jwt.WithLeeway(time.Minute)),
 		jwt.SigningMethodRS256,
 	},
 	{
@@ -327,7 +327,7 @@ var jwtTestData = []struct {
 		true,
 		0,
 		nil,
-		jwt.NewParser(jwt.WithValidator(jwt.NewValidator(jwt.WithLeeway(2 * time.Minute)))),
+		jwt.NewParser(jwt.WithLeeway(2 * time.Minute)),
 		jwt.SigningMethodRS256,
 	},
 }
@@ -570,8 +570,7 @@ func TestSetPadding(t *testing.T) {
 			// Parse the token
 			var token *jwt.Token
 			var err error
-			parser := new(jwt.Parser)
-			parser.SkipClaimsValidation = true
+			parser := jwt.NewParser(jwt.WithoutClaimsValidation())
 
 			// Figure out correct claims type
 			token, err = parser.ParseWithClaims(data.tokenString, jwt.MapClaims{}, data.keyfunc)

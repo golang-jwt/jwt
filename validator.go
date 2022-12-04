@@ -45,15 +45,11 @@ type CustomClaims interface {
 	CustomValidation() error
 }
 
-func NewValidator(opts ...ValidatorOption) *Validator {
-	v := &Validator{}
-
-	// Apply the validator options
-	for _, o := range opts {
-		o(v)
-	}
-
-	return v
+// NewValidator can be used to create a stand-alone validator with the supplied
+// options. This validator can then be used to validate already parsed claims.
+func NewValidator(opts ...ParserOption) *Validator {
+	p := NewParser(opts...)
+	return p.validator
 }
 
 // Validate validates the given claims. It will also perform any custom validation if claims implements the CustomValidator interface.

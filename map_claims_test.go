@@ -56,7 +56,7 @@ func TestVerifyAud(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
-			var opts []ValidatorOption
+			var opts []ParserOption
 
 			if test.Required {
 				opts = append(opts, WithAudience(test.Comparison))
