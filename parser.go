@@ -9,26 +9,24 @@ import (
 
 type Parser struct {
 	// If populated, only these methods will be considered valid.
-	//
-	// Deprecated: In future releases, this field will not be exported anymore and should be set with an option to NewParser instead.
-	ValidMethods []string
+	validMethods []string
 
 	// Use JSON Number format in JSON decoder.
-	//
-	// Deprecated: In future releases, this field will not be exported anymore and should be set with an option to NewParser instead.
-	UseJSONNumber bool
+	useJSONNumber bool
 
 	// Skip claims validation during token parsing.
-	//
-	// Deprecated: In future releases, this field will not be exported anymore and should be set with an option to NewParser instead.
-	SkipClaimsValidation bool
+	skipClaimsValidation bool
+
+	validator *validator
 }
 
 // NewParser creates a new Parser with the specified options
 func NewParser(options ...ParserOption) *Parser {
-	p := &Parser{}
+	p := &Parser{
+		validator: &validator{},
+	}
 
-	// loop through our parsing options and apply them
+	// Loop through our parsing options and apply them
 	for _, option := range options {
 		option(p)
 	}
@@ -56,10 +54,10 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 	}
 
 	// Verify signing method is in the required set
-	if p.ValidMethods != nil {
+	if p.validMethods != nil {
 		var signingMethodValid = false
 		var alg = token.Method.Alg()
-		for _, m := range p.ValidMethods {
+		for _, m := range p.validMethods {
 			if m == alg {
 				signingMethodValid = true
 				break
@@ -88,9 +86,13 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 	vErr := &ValidationError{}
 
 	// Validate Claims
-	if !p.SkipClaimsValidation {
-		if err := token.Claims.Valid(); err != nil {
+	if !p.skipClaimsValidation {
+		// Make sure we have at least a default validator
+		if p.validator == nil {
+			p.validator = newValidator()
+		}
 
+		if err := p.validator.Validate(claims); err != nil {
 			// If the Claims Valid returned an error, check if it is a validation error,
 			// If it was another error type, create a ValidationError with a generic ClaimsInvalid flag set
 			if e, ok := err.(*ValidationError); !ok {
@@ -150,7 +152,7 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 		return token, parts, &ValidationError{Inner: err, Errors: ValidationErrorMalformed}
 	}
 	dec := json.NewDecoder(bytes.NewBuffer(claimBytes))
-	if p.UseJSONNumber {
+	if p.useJSONNumber {
 		dec.UseNumber()
 	}
 	// JSON Decode.  Special case for map type to avoid weird pointer behavior

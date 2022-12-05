@@ -18,6 +18,7 @@ var (
 	ErrTokenExpired          = errors.New("token is expired")
 	ErrTokenUsedBeforeIssued = errors.New("token used before issued")
 	ErrTokenInvalidIssuer    = errors.New("token has invalid issuer")
+	ErrTokenInvalidSubject   = errors.New("token has invalid subject")
 	ErrTokenNotValidYet      = errors.New("token is not valid yet")
 	ErrTokenInvalidId        = errors.New("token has invalid id")
 	ErrTokenInvalidClaims    = errors.New("token has invalid claims")
@@ -29,11 +30,12 @@ const (
 	ValidationErrorUnverifiable                        // Token could not be verified because of signing problems
 	ValidationErrorSignatureInvalid                    // Signature validation failed
 
-	// Standard Claim validation errors
+	// Registered Claim validation errors
 	ValidationErrorAudience      // AUD validation failed
 	ValidationErrorExpired       // EXP validation failed
 	ValidationErrorIssuedAt      // IAT validation failed
 	ValidationErrorIssuer        // ISS validation failed
+	ValidationErrorSubject       // SUB validation failed
 	ValidationErrorNotValidYet   // NBF validation failed
 	ValidationErrorId            // JTI validation failed
 	ValidationErrorClaimsInvalid // Generic claims validation error

@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"strings"
-	"time"
 )
 
 // DecodePaddingAllowed will switch the codec used for decoding JWTs respectively. Note that the JWS RFC7515
@@ -19,11 +18,6 @@ var DecodePaddingAllowed bool
 // Note that this is a global variable, and updating it will change the behavior on a package level, and is also NOT go-routine safe.
 // To use strict decoding, set this boolean to `true` prior to using this package.
 var DecodeStrict bool
-
-// TimeFunc provides the current time when parsing token to validate "exp" claim (expiration time).
-// You can override it to use another time value.  This is useful for testing or if your
-// server uses a different time zone than your tokens.
-var TimeFunc = time.Now
 
 // Keyfunc will be used by the Parse methods as a callback function to supply
 // the key for verification.  The function receives the parsed,
