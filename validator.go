@@ -53,7 +53,8 @@ func newValidator(opts ...ParserOption) *validator {
 	return p.validator
 }
 
-// Validate validates the given claims. It will also perform any custom validation if claims implements the CustomValidator interface.
+// Validate validates the given claims. It will also perform any custom
+// validation if claims implements the CustomValidator interface.
 func (v *validator) Validate(claims Claims) error {
 	var now time.Time
 	vErr := new(ValidationError)
@@ -65,13 +66,15 @@ func (v *validator) Validate(claims Claims) error {
 		now = time.Now()
 	}
 
-	// We always need to check the expiration time, but the claim itself is OPTIONAL
+	// We always need to check the expiration time, but usage of the claim
+	// itself is OPTIONAL
 	if !v.VerifyExpiresAt(claims, now, false) {
 		vErr.Inner = ErrTokenExpired
 		vErr.Errors |= ValidationErrorExpired
 	}
 
-	// We always need to check not-before, but the claim itself is OPTIONAL
+	// We always need to check not-before, but usage of the claim itself is
+	// OPTIONAL
 	if !v.VerifyNotBefore(claims, now, false) {
 		vErr.Inner = ErrTokenNotValidYet
 		vErr.Errors |= ValidationErrorNotValidYet
@@ -102,7 +105,7 @@ func (v *validator) Validate(claims Claims) error {
 	}
 
 	// Finally, we want to give the claim itself some possibility to do some
-	// additional custom validation based on their custom claims
+	// additional custom validation based on a custom function
 	cvt, ok := claims.(CustomClaims)
 	if ok {
 		if err := cvt.CustomValidation(); err != nil {
@@ -118,90 +121,86 @@ func (v *validator) Validate(claims Claims) error {
 	return vErr
 }
 
+// VerifyExpiresAt compares the exp claim in claims against cmp. This function
+// will return true if cmp < exp. Additional leeway is taken into account.
+//
+// If exp is not set, it will return true if the claim is not required,
+// otherwise false will be returned.
+//
+// Additionally, if any error occurs while retrieving the claim, e.g., when its
+// the wrong type, false will be returned.
+func (v *validator) VerifyExpiresAt(claims Claims, cmp time.Time, required bool) bool {
+	exp, err := claims.GetExpirationTime()
+	if err != nil {
+		return false
+	}
+
+	if exp != nil {
+		return cmp.Before((exp.Time).Add(+v.leeway))
+	} else {
+		return !required
+	}
+}
+
+// VerifyIssuedAt compares the iat claim in claims against cmp. This function
+// will return true if cmp >= iat. Additional leeway is taken into account.
+//
+// If iat is not set, it will return true if the claim is not required,
+// otherwise false will be returned.
+//
+// Additionally, if any error occurs while retrieving the claim, e.g., when its
+// the wrong type, false will be returned.
+func (v *validator) VerifyIssuedAt(claims Claims, cmp time.Time, required bool) bool {
+	iat, err := claims.GetIssuedAt()
+	if err != nil {
+		return false
+	}
+
+	if iat != nil {
+		return !cmp.Before(iat.Add(-v.leeway))
+	} else {
+		return !required
+	}
+}
+
+// VerifyNotBefore compares the nbf claim in claims against cmp. This function
+// will return true if cmp >= nbf. Additional leeway is taken into account.
+//
+// If nbf is not set, it will return true if the claim is not required,
+// otherwise false will be returned.
+//
+// Additionally, if any error occurs while retrieving the claim, e.g., when its
+// the wrong type, false will be returned.
+func (v *validator) VerifyNotBefore(claims Claims, cmp time.Time, required bool) bool {
+	nbf, err := claims.GetNotBefore()
+	if err != nil {
+		return false
+	}
+
+	if nbf != nil {
+		return !cmp.Before(nbf.Add(-v.leeway))
+	} else {
+		return !required
+	}
+}
+
 // VerifyAudience compares the aud claim against cmp.
-// If required is false, this method will return true if the value matches or is unset
-func (v *validator) VerifyAudience(claims Claims, cmp string, req bool) bool {
+//
+// If aud is not set or an empty list, it will return true if the claim is not
+// required, otherwise false will be returned.
+//
+// Additionally, if any error occurs while retrieving the claim, e.g., when its
+// the wrong type, false will be returned.
+func (v *validator) VerifyAudience(claims Claims, cmp string, required bool) bool {
 	aud, err := claims.GetAudience()
 	if err != nil {
 		return false
 	}
 
-	return verifyAud(aud, cmp, req)
-}
-
-// VerifyExpiresAt compares the exp claim against cmp (cmp < exp).
-// If req is false, it will return true, if exp is unset.
-func (v *validator) VerifyExpiresAt(claims Claims, cmp time.Time, req bool) bool {
-	var time *time.Time = nil
-
-	exp, err := claims.GetExpirationTime()
-	if err != nil {
-		return false
-	} else if exp != nil {
-		time = &exp.Time
-	}
-
-	return verifyExp(time, cmp, req, v.leeway)
-}
-
-// VerifyIssuedAt compares the iat claim against cmp (cmp >= iat).
-// If req is false, it will return true, if iat is unset.
-func (v *validator) VerifyIssuedAt(claims Claims, cmp time.Time, req bool) bool {
-	var time *time.Time = nil
-
-	iat, err := claims.GetIssuedAt()
-	if err != nil {
-		return false
-	} else if iat != nil {
-		time = &iat.Time
-	}
-
-	return verifyIat(time, cmp, req, v.leeway)
-}
-
-// VerifyNotBefore compares the nbf claim against cmp (cmp >= nbf).
-// If req is false, it will return true, if nbf is unset.
-func (v *validator) VerifyNotBefore(claims Claims, cmp time.Time, req bool) bool {
-	var time *time.Time = nil
-
-	nbf, err := claims.GetNotBefore()
-	if err != nil {
-		return false
-	} else if nbf != nil {
-		time = &nbf.Time
-	}
-
-	return verifyNbf(time, cmp, req, v.leeway)
-}
-
-// VerifyIssuer compares the iss claim against cmp.
-// If required is false, this method will return true if the value matches or is unset
-func (v *validator) VerifyIssuer(claims Claims, cmp string, req bool) bool {
-	iss, err := claims.GetIssuer()
-	if err != nil {
-		return false
-	}
-
-	return verifyIss(iss, cmp, req)
-}
-
-// VerifySubject compares the sub claim against cmp.
-// If required is false, this method will return true if the value matches or is unset
-func (v *validator) VerifySubject(claims Claims, cmp string, req bool) bool {
-	iss, err := claims.GetSubject()
-	if err != nil {
-		return false
-	}
-
-	return verifySub(iss, cmp, req)
-}
-
-// ----- helpers
-
-func verifyAud(aud []string, cmp string, required bool) bool {
 	if len(aud) == 0 {
 		return !required
 	}
+
 	// use a var here to keep constant time compare when looping over a number of claims
 	result := false
 
@@ -221,33 +220,19 @@ func verifyAud(aud []string, cmp string, required bool) bool {
 	return result
 }
 
-func verifyExp(exp *time.Time, now time.Time, required bool, skew time.Duration) bool {
-	if exp == nil {
-		return !required
+// VerifyIssuer compares the iss claim in claims against cmp.
+//
+// If iss is not set, it will return true if the claim is not required,
+// otherwise false will be returned.
+//
+// Additionally, if any error occurs while retrieving the claim, e.g., when its
+// the wrong type, false will be returned.
+func (v *validator) VerifyIssuer(claims Claims, cmp string, required bool) bool {
+	iss, err := claims.GetIssuer()
+	if err != nil {
+		return false
 	}
 
-	return now.Before((*exp).Add(+skew))
-}
-
-func verifyIat(iat *time.Time, now time.Time, required bool, skew time.Duration) bool {
-	if iat == nil {
-		return !required
-	}
-
-	t := iat.Add(-skew)
-	return !now.Before(t)
-}
-
-func verifyNbf(nbf *time.Time, now time.Time, required bool, skew time.Duration) bool {
-	if nbf == nil {
-		return !required
-	}
-
-	t := nbf.Add(-skew)
-	return !now.Before(t)
-}
-
-func verifyIss(iss string, cmp string, required bool) bool {
 	if iss == "" {
 		return !required
 	}
@@ -255,7 +240,19 @@ func verifyIss(iss string, cmp string, required bool) bool {
 	return iss == cmp
 }
 
-func verifySub(sub string, cmp string, required bool) bool {
+// VerifySubject compares the sub claim against cmp.
+//
+// If sub is not set, it will return true if the claim is not required,
+// otherwise false will be returned.
+//
+// Additionally, if any error occurs while retrieving the claim, e.g., when its
+// the wrong type, false will be returned.
+func (v *validator) VerifySubject(claims Claims, cmp string, required bool) bool {
+	sub, err := claims.GetSubject()
+	if err != nil {
+		return false
+	}
+
 	if sub == "" {
 		return !required
 	}

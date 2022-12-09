@@ -22,6 +22,8 @@ var (
 	ErrTokenNotValidYet      = errors.New("token is not valid yet")
 	ErrTokenInvalidId        = errors.New("token has invalid id")
 	ErrTokenInvalidClaims    = errors.New("token has invalid claims")
+
+	ErrInvalidType = errors.New("invalid type for claim")
 )
 
 // The errors that might occur when parsing and validating a token
@@ -51,9 +53,12 @@ func NewValidationError(errorText string, errorFlags uint32) *ValidationError {
 
 // ValidationError represents an error from Parse if token is not valid
 type ValidationError struct {
-	Inner  error  // stores the error returned by external dependencies, i.e.: KeyFunc
-	Errors uint32 // bitfield.  see ValidationError... constants
-	text   string // errors that do not have a valid error just have text
+	// Inner stores the error returned by external dependencies, e.g.: KeyFunc
+	Inner error
+	// Errors is a bit-field. See ValidationError... constants
+	Errors uint32
+	// Text can be used for errors that do not have a valid error just have text
+	text string
 }
 
 // Error is the implementation of the err interface.
@@ -77,9 +82,11 @@ func (e *ValidationError) valid() bool {
 	return e.Errors == 0
 }
 
-// Is checks if this ValidationError is of the supplied error. We are first checking for the exact error message
-// by comparing the inner error message. If that fails, we compare using the error flags. This way we can use
-// custom error messages (mainly for backwards compatability) and still leverage errors.Is using the global error variables.
+// Is checks if this ValidationError is of the supplied error. We are first
+// checking for the exact error message by comparing the inner error message. If
+// that fails, we compare using the error flags. This way we can use custom
+// error messages (mainly for backwards compatibility) and still leverage
+// errors.Is using the global error variables.
 func (e *ValidationError) Is(err error) bool {
 	// Check, if our inner error is a direct match
 	if errors.Is(errors.Unwrap(e), err) {
