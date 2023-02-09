@@ -2,14 +2,11 @@ package jwt
 
 import (
 	"encoding/json"
-	"errors"
 )
 
 // MapClaims is a claims type that uses the map[string]interface{} for JSON decoding.
 // This is the default claims type if you don't supply one
 type MapClaims map[string]interface{}
-
-var ErrInvalidType = errors.New("invalid type for claim")
 
 // GetExpirationTime implements the Claims interface.
 func (m MapClaims) GetExpirationTime() (*NumericDate, error) {
