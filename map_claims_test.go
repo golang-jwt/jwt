@@ -56,10 +56,10 @@ func TestVerifyAud(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
-			var opts []ParserOption[MapClaims]
+			var opts []ParserOption
 
 			if test.Required {
-				opts = append(opts, WithAudience[MapClaims](test.Comparison))
+				opts = append(opts, WithAudience(test.Comparison))
 			}
 
 			validator := newValidator[MapClaims](opts...)
@@ -77,7 +77,7 @@ func TestMapclaimsVerifyIssuedAtInvalidTypeString(t *testing.T) {
 		"iat": "foo",
 	}
 	want := false
-	got := newValidator[MapClaims](WithIssuedAt[MapClaims]()).Validate(mapClaims)
+	got := newValidator[MapClaims](WithIssuedAt()).Validate(mapClaims)
 	if want != (got == nil) {
 		t.Fatalf("Failed to verify claims, wanted: %v got %v", want, (got == nil))
 	}
@@ -112,14 +112,14 @@ func TestMapClaimsVerifyExpiresAtExpire(t *testing.T) {
 		"exp": float64(exp.Unix()),
 	}
 	want := false
-	got := newValidator[MapClaims](WithTimeFunc[MapClaims](func() time.Time {
+	got := newValidator[MapClaims](WithTimeFunc(func() time.Time {
 		return exp
 	})).Validate(mapClaims)
 	if want != (got == nil) {
 		t.Fatalf("Failed to verify claims, wanted: %v got %v", want, (got == nil))
 	}
 
-	got = newValidator[MapClaims](WithTimeFunc[MapClaims](func() time.Time {
+	got = newValidator[MapClaims](WithTimeFunc(func() time.Time {
 		return exp.Add(1 * time.Second)
 	})).Validate(mapClaims)
 	if want != (got == nil) {
@@ -127,7 +127,7 @@ func TestMapClaimsVerifyExpiresAtExpire(t *testing.T) {
 	}
 
 	want = true
-	got = newValidator[MapClaims](WithTimeFunc[MapClaims](func() time.Time {
+	got = newValidator[MapClaims](WithTimeFunc(func() time.Time {
 		return exp.Add(-1 * time.Second)
 	})).Validate(mapClaims)
 	if want != (got == nil) {

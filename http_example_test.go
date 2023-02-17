@@ -99,15 +99,14 @@ func Example_getTokenViaHTTP() {
 	tokenString := strings.TrimSpace(buf.String())
 
 	// Parse the token
-	token, err := jwt.ParseWithClaims(tokenString, &CustomClaimsExample{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &CustomClaimsExample{}, func(token *jwt.Token[*CustomClaimsExample]) (interface{}, error) {
 		// since we only use the one private key to sign the tokens,
 		// we also only use its public counter part to verify
 		return verifyKey, nil
 	})
 	fatal(err)
 
-	claims := token.Claims.(*CustomClaimsExample)
-	fmt.Println(claims.CustomerInfo.Name)
+	fmt.Println(token.Claims.CustomerInfo.Name)
 
 	//Output: test
 }
@@ -138,10 +137,7 @@ func Example_useTokenViaHTTP() {
 
 func createToken(user string) (string, error) {
 	// create a signer for rsa 256
-	t := jwt.New(jwt.GetSigningMethod("RS256"))
-
-	// set our claims
-	t.Claims = &CustomClaimsExample{
+	t := jwt.NewWithClaims(jwt.GetSigningMethod("RS256"), &CustomClaimsExample{
 		jwt.RegisteredClaims{
 			// set the expire time
 			// see https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.4
@@ -149,7 +145,7 @@ func createToken(user string) (string, error) {
 		},
 		"level1",
 		CustomerInfo{user, "human"},
-	}
+	})
 
 	// Creat token string
 	return t.SignedString(signKey)
@@ -192,7 +188,7 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 // only accessible with a valid token
 func restrictedHandler(w http.ResponseWriter, r *http.Request) {
 	// Get token from request
-	token, err := request.ParseFromRequest(r, request.OAuth2Extractor, func(token *jwt.Token) (interface{}, error) {
+	token, err := request.ParseFromRequest(r, request.OAuth2Extractor, func(token *jwt.Token[jwt.Claims]) (interface{}, error) {
 		// since we only use the one private key to sign the tokens,
 		// we also only use its public counter part to verify
 		return verifyKey, nil

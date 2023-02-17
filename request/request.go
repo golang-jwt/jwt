@@ -12,9 +12,9 @@ import (
 // the logic for extracting a token.  Several useful implementations are provided.
 //
 // You can provide options to modify parsing behavior
-func ParseFromRequest(req *http.Request, extractor Extractor, keyFunc jwt.Keyfunc[jwt.MapClaims], options ...ParseFromRequestOption[jwt.MapClaims]) (token *jwt.Token[jwt.MapClaims], err error) {
+func ParseFromRequest(req *http.Request, extractor Extractor, keyFunc jwt.Keyfunc[jwt.Claims], options ...ParseFromRequestOption) (token *jwt.Token[jwt.Claims], err error) {
 	// Create basic parser struct
-	p := &fromRequestParser[jwt.MapClaims]{req, extractor, nil, nil}
+	p := &fromRequestParser{req, extractor, nil, nil}
 
 	// Handle options
 	for _, option := range options {
@@ -26,7 +26,7 @@ func ParseFromRequest(req *http.Request, extractor Extractor, keyFunc jwt.Keyfun
 		p.claims = jwt.MapClaims{}
 	}
 	if p.parser == nil {
-		p.parser = &jwt.Parser[jwt.MapClaims]{}
+		p.parser = &jwt.Parser[jwt.Claims]{}
 	}
 
 	// perform extract
@@ -42,29 +42,29 @@ func ParseFromRequest(req *http.Request, extractor Extractor, keyFunc jwt.Keyfun
 // ParseFromRequestWithClaims is an alias for ParseFromRequest but with custom Claims type.
 //
 // Deprecated: use ParseFromRequest and the WithClaims option
-func ParseFromRequestWithClaims[T jwt.Claims](req *http.Request, extractor Extractor, claims T, keyFunc jwt.Keyfunc[T]) (token *jwt.Token[T], err error) {
+func ParseFromRequestWithClaims(req *http.Request, extractor Extractor, claims jwt.Claims, keyFunc jwt.Keyfunc[jwt.Claims]) (token *jwt.Token[jwt.Claims], err error) {
 	return ParseFromRequest(req, extractor, keyFunc, WithClaims(claims))
 }
 
-type fromRequestParser[T jwt.Claims] struct {
+type fromRequestParser struct {
 	req       *http.Request
 	extractor Extractor
-	claims    T
-	parser    *jwt.Parser[T]
+	claims    jwt.Claims
+	parser    *jwt.Parser[jwt.Claims]
 }
 
-type ParseFromRequestOption[T jwt.Claims] func(*fromRequestParser[T])
+type ParseFromRequestOption func(*fromRequestParser)
 
 // WithClaims parses with custom claims
-func WithClaims[T jwt.Claims](claims T) ParseFromRequestOption[T] {
-	return func(p *fromRequestParser[T]) {
+func WithClaims[T jwt.Claims](claims T) ParseFromRequestOption {
+	return func(p *fromRequestParser) {
 		p.claims = claims
 	}
 }
 
 // WithParser parses using a custom parser
-func WithParser[T jwt.Claims](parser *jwt.Parser[T]) ParseFromRequestOption[T] {
-	return func(p *fromRequestParser[T]) {
+func WithParser(parser *jwt.Parser[jwt.Claims]) ParseFromRequestOption {
+	return func(p *fromRequestParser) {
 		p.parser = parser
 	}
 }

@@ -156,11 +156,11 @@ func (p *Parser[T]) ParseUnverified(tokenString string, claims T) (token *Token[
 		dec.UseNumber()
 	}
 	// JSON Decode.  Special case for map type to avoid weird pointer behavior
-	/*if c, ok := token.Claims.(MapClaims); ok {
+	if c, ok := any(token.Claims).(MapClaims); ok {
 		err = dec.Decode(&c)
-	} else {*/
-	err = dec.Decode(&claims)
-	//}
+	} else {
+		err = dec.Decode(&claims)
+	}
 	// Handle decode error
 	if err != nil {
 		return token, parts, &ValidationError{Inner: err, Errors: ValidationErrorMalformed}
