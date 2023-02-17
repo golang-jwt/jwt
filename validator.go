@@ -48,8 +48,8 @@ type CustomClaims interface {
 
 // newValidator can be used to create a stand-alone validator with the supplied
 // options. This validator can then be used to validate already parsed claims.
-func newValidator(opts ...ParserOption) *validator {
-	p := NewParser(opts...)
+func newValidator[T Claims](opts ...ParserOption) *validator {
+	p := NewParser[T](opts...)
 	return p.validator
 }
 

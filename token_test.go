@@ -40,7 +40,7 @@ func TestToken_SigningString(t1 *testing.T) {
 	}
 	for _, tt := range tests {
 		t1.Run(tt.name, func(t1 *testing.T) {
-			t := &jwt.Token{
+			t := &jwt.Token[jwt.RegisteredClaims]{
 				Raw:       tt.fields.Raw,
 				Method:    tt.fields.Method,
 				Header:    tt.fields.Header,
@@ -61,7 +61,7 @@ func TestToken_SigningString(t1 *testing.T) {
 }
 
 func BenchmarkToken_SigningString(b *testing.B) {
-	t := &jwt.Token{
+	t := &jwt.Token[jwt.RegisteredClaims]{
 		Method: jwt.SigningMethodHS256,
 		Header: map[string]interface{}{
 			"typ": "JWT",
