@@ -5,34 +5,34 @@ import "time"
 // ParserOption is used to implement functional-style options that modify the behavior of the parser. To add
 // new options, just create a function (ideally beginning with With or Without) that returns an anonymous function that
 // takes a *Parser type as input and manipulates its configuration accordingly.
-type ParserOption[T Claims] func(*Parser[T])
+type ParserOption func(*Parser[Claims])
 
 // WithValidMethods is an option to supply algorithm methods that the parser will check. Only those methods will be considered valid.
 // It is heavily encouraged to use this option in order to prevent attacks such as https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/.
-func WithValidMethods[T Claims](methods []string) ParserOption[T] {
-	return func(p *Parser[T]) {
+func WithValidMethods(methods []string) ParserOption {
+	return func(p *Parser[Claims]) {
 		p.validMethods = methods
 	}
 }
 
 // WithJSONNumber is an option to configure the underlying JSON parser with UseNumber
-func WithJSONNumber[T Claims]() ParserOption[T] {
-	return func(p *Parser[T]) {
+func WithJSONNumber() ParserOption {
+	return func(p *Parser[Claims]) {
 		p.useJSONNumber = true
 	}
 }
 
 // WithoutClaimsValidation is an option to disable claims validation. This option should only be used if you exactly know
 // what you are doing.
-func WithoutClaimsValidation[T Claims]() ParserOption[T] {
-	return func(p *Parser[T]) {
+func WithoutClaimsValidation() ParserOption {
+	return func(p *Parser[Claims]) {
 		p.skipClaimsValidation = true
 	}
 }
 
 // WithLeeway returns the ParserOption for specifying the leeway window.
-func WithLeeway[T Claims](leeway time.Duration) ParserOption[T] {
-	return func(p *Parser[T]) {
+func WithLeeway(leeway time.Duration) ParserOption {
+	return func(p *Parser[Claims]) {
 		p.validator.leeway = leeway
 	}
 }
@@ -40,16 +40,16 @@ func WithLeeway[T Claims](leeway time.Duration) ParserOption[T] {
 // WithTimeFunc returns the ParserOption for specifying the time func. The
 // primary use-case for this is testing. If you are looking for a way to account
 // for clock-skew, WithLeeway should be used instead.
-func WithTimeFunc[T Claims](f func() time.Time) ParserOption[T] {
-	return func(p *Parser[T]) {
+func WithTimeFunc(f func() time.Time) ParserOption {
+	return func(p *Parser[Claims]) {
 		p.validator.timeFunc = f
 	}
 }
 
 // WithIssuedAt returns the ParserOption to enable verification
 // of issued-at.
-func WithIssuedAt[T Claims]() ParserOption[T] {
-	return func(p *Parser[T]) {
+func WithIssuedAt() ParserOption {
+	return func(p *Parser[Claims]) {
 		p.validator.verifyIat = true
 	}
 }
@@ -61,8 +61,8 @@ func WithIssuedAt[T Claims]() ParserOption[T] {
 // NOTE: While the `aud` claim is OPTIONAL is a JWT, the handling of it is
 // application-specific. Since this validation API is helping developers in
 // writing secure application, we decided to REQUIRE the existence of the claim.
-func WithAudience[T Claims](aud string) ParserOption[T] {
-	return func(p *Parser[T]) {
+func WithAudience(aud string) ParserOption {
+	return func(p *Parser[Claims]) {
 		p.validator.expectedAud = aud
 	}
 }
@@ -74,8 +74,8 @@ func WithAudience[T Claims](aud string) ParserOption[T] {
 // NOTE: While the `iss` claim is OPTIONAL is a JWT, the handling of it is
 // application-specific. Since this validation API is helping developers in
 // writing secure application, we decided to REQUIRE the existence of the claim.
-func WithIssuer[T Claims](iss string) ParserOption[T] {
-	return func(p *Parser[T]) {
+func WithIssuer(iss string) ParserOption {
+	return func(p *Parser[Claims]) {
 		p.validator.expectedIss = iss
 	}
 }
@@ -87,8 +87,8 @@ func WithIssuer[T Claims](iss string) ParserOption[T] {
 // NOTE: While the `sub` claim is OPTIONAL is a JWT, the handling of it is
 // application-specific. Since this validation API is helping developers in
 // writing secure application, we decided to REQUIRE the existence of the claim.
-func WithSubject[T Claims](sub string) ParserOption[T] {
-	return func(p *Parser[T]) {
+func WithSubject(sub string) ParserOption {
+	return func(p *Parser[Claims]) {
 		p.validator.expectedSub = sub
 	}
 }

@@ -105,7 +105,7 @@ func ExampleParseWithClaims_validationOptions() {
 
 	token, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, func(token *jwt.Token[*MyCustomClaims]) (interface{}, error) {
 		return []byte("AllYourBase"), nil
-	}, jwt.WithLeeway[*MyCustomClaims](5*time.Second))
+	}, jwt.WithLeeway(5*time.Second))
 
 	if claims := token.Claims; token.Valid {
 		fmt.Printf("%v %v", claims.Foo, claims.RegisteredClaims.Issuer)
@@ -138,7 +138,7 @@ func ExampleParseWithClaims_customValidation() {
 
 	token, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, func(token *jwt.Token[*MyCustomClaims]) (interface{}, error) {
 		return []byte("AllYourBase"), nil
-	}, jwt.WithLeeway[*MyCustomClaims](5*time.Second))
+	}, jwt.WithLeeway(5*time.Second))
 
 	if claims := token.Claims; token.Valid {
 		fmt.Printf("%v %v", claims.Foo, claims.RegisteredClaims.Issuer)

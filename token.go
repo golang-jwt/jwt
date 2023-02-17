@@ -95,7 +95,7 @@ func (t *Token[T]) SigningString() (string, error) {
 // validate the 'alg' claim in the token matches the expected algorithm.
 // For more details about the importance of validating the 'alg' claim,
 // see https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/
-func Parse(tokenString string, keyFunc Keyfunc[MapClaims], options ...ParserOption[MapClaims]) (*Token[MapClaims], error) {
+func Parse(tokenString string, keyFunc Keyfunc[MapClaims], options ...ParserOption) (*Token[MapClaims], error) {
 	return NewParser[MapClaims](options...).ParseWithClaims(tokenString, MapClaims{}, keyFunc)
 }
 
@@ -104,7 +104,7 @@ func Parse(tokenString string, keyFunc Keyfunc[MapClaims], options ...ParserOpti
 // Note: If you provide a custom claim implementation that embeds one of the standard claims (such as RegisteredClaims),
 // make sure that a) you either embed a non-pointer version of the claims or b) if you are using a pointer, allocate the
 // proper memory for it before passing in the overall claims, otherwise you might run into a panic.
-func ParseWithClaims[T Claims](tokenString string, claims T, keyFunc Keyfunc[T], options ...ParserOption[T]) (*Token[T], error) {
+func ParseWithClaims[T Claims](tokenString string, claims T, keyFunc Keyfunc[T], options ...ParserOption) (*Token[T], error) {
 	return NewParser[T](options...).ParseWithClaims(tokenString, claims, keyFunc)
 }
 

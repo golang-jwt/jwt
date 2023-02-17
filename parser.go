@@ -21,14 +21,14 @@ type Parser[T Claims] struct {
 }
 
 // NewParser creates a new Parser with the specified options
-func NewParser[T Claims](options ...ParserOption[T]) *Parser[T] {
+func NewParser[T Claims](options ...ParserOption) *Parser[T] {
 	p := &Parser[T]{
 		validator: &validator{},
 	}
 
 	// Loop through our parsing options and apply them
 	for _, option := range options {
-		option(p)
+		option((*Parser[Claims])(p))
 	}
 
 	return p
