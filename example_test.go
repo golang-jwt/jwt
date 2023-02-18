@@ -25,7 +25,7 @@ func ExampleNewWithClaims_registeredClaims() {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	ss, err := token.SignedString(mySigningKey)
 	fmt.Printf("%v %v", ss, err)
-	//Output: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ0ZXN0IiwiZXhwIjoxNTE2MjM5MDIyfQ.0XN_1Tpp9FszFOonIBpwha0c_SfnNI22DhTnjMshPg8 <nil>
+	// Output: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ0ZXN0IiwiZXhwIjoxNTE2MjM5MDIyfQ.0XN_1Tpp9FszFOonIBpwha0c_SfnNI22DhTnjMshPg8 <nil>
 }
 
 // Example creating a token using a custom claims type. The RegisteredClaims is embedded
@@ -67,7 +67,7 @@ func ExampleNewWithClaims_customClaimsType() {
 	ss, err := token.SignedString(mySigningKey)
 	fmt.Printf("%v %v", ss, err)
 
-	//Output: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJpc3MiOiJ0ZXN0IiwiZXhwIjoxNTE2MjM5MDIyfQ.xVuY2FZ_MRXMIEgVQ7J-TFtaucVFRXUzHm9LmV41goM <nil>
+	// Output: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJpc3MiOiJ0ZXN0IiwiZXhwIjoxNTE2MjM5MDIyfQ.xVuY2FZ_MRXMIEgVQ7J-TFtaucVFRXUzHm9LmV41goM <nil>
 }
 
 // Example creating a token using a custom claims type.  The RegisteredClaims is embedded
@@ -80,12 +80,12 @@ func ExampleParseWithClaims_customClaimsType() {
 		jwt.RegisteredClaims
 	}
 
-	token, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, func(token *jwt.Token[*MyCustomClaims]) (interface{}, error) {
 		return []byte("AllYourBase"), nil
 	})
 
-	if claims, ok := token.Claims.(*MyCustomClaims); ok && token.Valid {
-		fmt.Printf("%v %v", claims.Foo, claims.RegisteredClaims.Issuer)
+	if token.Valid {
+		fmt.Printf("%v %v", token.Claims.Foo, token.Claims.Issuer)
 	} else {
 		fmt.Println(err)
 	}
@@ -103,12 +103,12 @@ func ExampleParseWithClaims_validationOptions() {
 		jwt.RegisteredClaims
 	}
 
-	token, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, func(token *jwt.Token[*MyCustomClaims]) (interface{}, error) {
 		return []byte("AllYourBase"), nil
 	}, jwt.WithLeeway(5*time.Second))
 
-	if claims, ok := token.Claims.(*MyCustomClaims); ok && token.Valid {
-		fmt.Printf("%v %v", claims.Foo, claims.RegisteredClaims.Issuer)
+	if token.Valid {
+		fmt.Printf("%v %v", token.Claims.Foo, token.Claims.Issuer)
 	} else {
 		fmt.Println(err)
 	}
@@ -138,12 +138,12 @@ func (m MyCustomClaims) Validate() error {
 func ExampleParseWithClaims_customValidation() {
 	tokenString := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJpc3MiOiJ0ZXN0IiwiYXVkIjoic2luZ2xlIn0.QAWg1vGvnqRuCFTMcPkjZljXHh8U3L_qUjszOtQbeaA"
 
-	token, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, func(token *jwt.Token[*MyCustomClaims]) (interface{}, error) {
 		return []byte("AllYourBase"), nil
 	}, jwt.WithLeeway(5*time.Second))
 
-	if claims, ok := token.Claims.(*MyCustomClaims); ok && token.Valid {
-		fmt.Printf("%v %v", claims.Foo, claims.RegisteredClaims.Issuer)
+	if token.Valid {
+		fmt.Printf("%v %v", token.Claims.Foo, token.Claims.Issuer)
 	} else {
 		fmt.Println(err)
 	}
@@ -154,9 +154,9 @@ func ExampleParseWithClaims_customValidation() {
 // An example of parsing the error types using errors.Is.
 func ExampleParse_errorChecking() {
 	// Token from another example.  This token is expired
-	var tokenString = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJleHAiOjE1MDAwLCJpc3MiOiJ0ZXN0In0.HE7fK0xOQwFEr4WDgRWj4teRPZ6i3GLwD5YCm6Pwu_c"
+	tokenString := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJleHAiOjE1MDAwLCJpc3MiOiJ0ZXN0In0.HE7fK0xOQwFEr4WDgRWj4teRPZ6i3GLwD5YCm6Pwu_c"
 
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token[jwt.MapClaims]) (interface{}, error) {
 		return []byte("AllYourBase"), nil
 	})
 

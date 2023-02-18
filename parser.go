@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-type Parser struct {
+type parserOpts struct {
 	// If populated, only these methods will be considered valid.
 	validMethods []string
 
@@ -20,15 +20,32 @@ type Parser struct {
 	validator *validator
 }
 
+type Parser[T Claims] struct {
+	opts parserOpts
+}
+
 // NewParser creates a new Parser with the specified options
-func NewParser(options ...ParserOption) *Parser {
-	p := &Parser{
-		validator: &validator{},
+func NewParser(options ...ParserOption) *Parser[MapClaims] {
+	p := &Parser[MapClaims]{
+		opts: parserOpts{validator: &validator{}},
 	}
 
 	// Loop through our parsing options and apply them
 	for _, option := range options {
-		option(p)
+		option(&p.opts)
+	}
+
+	return p
+}
+
+func NewParserFor[T Claims](options ...ParserOption) *Parser[T] {
+	p := &Parser[T]{
+		opts: parserOpts{validator: &validator{}},
+	}
+
+	// Loop through our parsing options and apply them
+	for _, option := range options {
+		option(&p.opts)
 	}
 
 	return p
@@ -36,28 +53,21 @@ func NewParser(options ...ParserOption) *Parser {
 
 // Parse parses, validates, verifies the signature and returns the parsed token.
 // keyFunc will receive the parsed token and should return the key for validating.
-func (p *Parser) Parse(tokenString string, keyFunc Keyfunc) (*Token, error) {
-	return p.ParseWithClaims(tokenString, MapClaims{}, keyFunc)
-}
-
-// ParseWithClaims parses, validates, and verifies like Parse, but supplies a default object implementing the Claims
-// interface. This provides default values which can be overridden and allows a caller to use their own type, rather
-// than the default MapClaims implementation of Claims.
 //
 // Note: If you provide a custom claim implementation that embeds one of the standard claims (such as RegisteredClaims),
 // make sure that a) you either embed a non-pointer version of the claims or b) if you are using a pointer, allocate the
 // proper memory for it before passing in the overall claims, otherwise you might run into a panic.
-func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyfunc) (*Token, error) {
-	token, parts, err := p.ParseUnverified(tokenString, claims)
+func (p *Parser[T]) Parse(tokenString string, keyFunc Keyfunc[T]) (*Token[T], error) {
+	token, parts, err := p.ParseUnverified(tokenString)
 	if err != nil {
 		return token, err
 	}
 
 	// Verify signing method is in the required set
-	if p.validMethods != nil {
-		var signingMethodValid = false
-		var alg = token.Method.Alg()
-		for _, m := range p.validMethods {
+	if p.opts.validMethods != nil {
+		signingMethodValid := false
+		alg := token.Method.Alg()
+		for _, m := range p.opts.validMethods {
 			if m == alg {
 				signingMethodValid = true
 				break
@@ -86,13 +96,13 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 	}
 
 	// Validate Claims
-	if !p.skipClaimsValidation {
+	if !p.opts.skipClaimsValidation {
 		// Make sure we have at least a default validator
-		if p.validator == nil {
-			p.validator = newValidator()
+		if p.opts.validator == nil {
+			p.opts.validator = newValidator()
 		}
 
-		if err := p.validator.Validate(claims); err != nil {
+		if err := p.opts.validator.Validate(token.Claims); err != nil {
 			return token, newError("", ErrTokenInvalidClaims, err)
 		}
 	}
@@ -109,13 +119,13 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 //
 // It's only ever useful in cases where you know the signature is valid (because it has
 // been checked previously in the stack) and you want to extract values from it.
-func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Token, parts []string, err error) {
+func (p *Parser[T]) ParseUnverified(tokenString string) (token *Token[T], parts []string, err error) {
 	parts = strings.Split(tokenString, ".")
 	if len(parts) != 3 {
 		return nil, parts, newError("token contains an invalid number of segments", ErrTokenMalformed)
 	}
 
-	token = &Token{Raw: tokenString}
+	token = &Token[T]{Raw: tokenString}
 
 	// parse Header
 	var headerBytes []byte
@@ -131,23 +141,17 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 
 	// parse Claims
 	var claimBytes []byte
-	token.Claims = claims
-
 	if claimBytes, err = DecodeSegment(parts[1]); err != nil {
 		return token, parts, newError("could not base64 decode claim", ErrTokenMalformed, err)
 	}
+
 	dec := json.NewDecoder(bytes.NewBuffer(claimBytes))
-	if p.useJSONNumber {
+	if p.opts.useJSONNumber {
 		dec.UseNumber()
 	}
-	// JSON Decode.  Special case for map type to avoid weird pointer behavior
-	if c, ok := token.Claims.(MapClaims); ok {
-		err = dec.Decode(&c)
-	} else {
-		err = dec.Decode(&claims)
-	}
+
 	// Handle decode error
-	if err != nil {
+	if err = dec.Decode(&token.Claims); err != nil {
 		return token, parts, newError("could not JSON decode claim", ErrTokenMalformed, err)
 	}
 

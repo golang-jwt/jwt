@@ -66,7 +66,7 @@ type validator struct {
 // options. This validator can then be used to validate already parsed claims.
 func newValidator(opts ...ParserOption) *validator {
 	p := NewParser(opts...)
-	return p.validator
+	return p.opts.validator
 }
 
 // Validate validates the given claims. It will also perform any custom
