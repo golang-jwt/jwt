@@ -10,38 +10,38 @@ type MapClaims map[string]interface{}
 
 // GetExpirationTime implements the Claims interface.
 func (m MapClaims) GetExpirationTime() (*NumericDate, error) {
-	return m.ParseNumericDate("exp")
+	return m.parseNumericDate("exp")
 }
 
 // GetNotBefore implements the Claims interface.
 func (m MapClaims) GetNotBefore() (*NumericDate, error) {
-	return m.ParseNumericDate("nbf")
+	return m.parseNumericDate("nbf")
 }
 
 // GetIssuedAt implements the Claims interface.
 func (m MapClaims) GetIssuedAt() (*NumericDate, error) {
-	return m.ParseNumericDate("iat")
+	return m.parseNumericDate("iat")
 }
 
 // GetAudience implements the Claims interface.
 func (m MapClaims) GetAudience() (ClaimStrings, error) {
-	return m.ParseClaimsString("aud")
+	return m.parseClaimsString("aud")
 }
 
 // GetIssuer implements the Claims interface.
 func (m MapClaims) GetIssuer() (string, error) {
-	return m.ParseString("iss")
+	return m.parseString("iss")
 }
 
 // GetSubject implements the Claims interface.
 func (m MapClaims) GetSubject() (string, error) {
-	return m.ParseString("sub")
+	return m.parseString("sub")
 }
 
-// ParseNumericDate tries to parse a key in the map claims type as a number
+// parseNumericDate tries to parse a key in the map claims type as a number
 // date. This will succeed, if the underlying type is either a [float64] or a
 // [json.Number]. Otherwise, nil will be returned.
-func (m MapClaims) ParseNumericDate(key string) (*NumericDate, error) {
+func (m MapClaims) parseNumericDate(key string) (*NumericDate, error) {
 	v, ok := m[key]
 	if !ok {
 		return nil, nil
@@ -63,9 +63,9 @@ func (m MapClaims) ParseNumericDate(key string) (*NumericDate, error) {
 	return nil, ErrInvalidType
 }
 
-// ParseClaimsString tries to parse a key in the map claims type as a
+// parseClaimsString tries to parse a key in the map claims type as a
 // [ClaimsStrings] type, which can either be a string or an array of string.
-func (m MapClaims) ParseClaimsString(key string) (ClaimStrings, error) {
+func (m MapClaims) parseClaimsString(key string) (ClaimStrings, error) {
 	var cs []string
 	switch v := m[key].(type) {
 	case string:
@@ -85,10 +85,10 @@ func (m MapClaims) ParseClaimsString(key string) (ClaimStrings, error) {
 	return cs, nil
 }
 
-// ParseString tries to parse a key in the map claims type as a [string] type.
+// parseString tries to parse a key in the map claims type as a [string] type.
 // If the key does not exist, an empty string is returned. If the key has the
 // wrong type, an error is returned.
-func (m MapClaims) ParseString(key string) (string, error) {
+func (m MapClaims) parseString(key string) (string, error) {
 	var (
 		ok  bool
 		raw interface{}
