@@ -2,6 +2,7 @@ package jwt
 
 import (
 	"crypto/subtle"
+	"errors"
 	"time"
 )
 
@@ -48,8 +49,10 @@ func newValidator(opts ...ParserOption) *validator {
 // Validate validates the given claims. It will also perform any custom
 // validation if claims implements the CustomValidator interface.
 func (v *validator) Validate(claims Claims) error {
-	var now time.Time
-	vErr := new(ValidationError)
+	var (
+		now  time.Time
+		errs []error = make([]error, 0)
+	)
 
 	// Check, if we have a time func
 	if v.timeFunc != nil {
@@ -61,39 +64,33 @@ func (v *validator) Validate(claims Claims) error {
 	// We always need to check the expiration time, but usage of the claim
 	// itself is OPTIONAL
 	if !v.VerifyExpiresAt(claims, now, false) {
-		vErr.Inner = ErrTokenExpired
-		vErr.Errors |= ValidationErrorExpired
+		errs = append(errs, ErrTokenExpired)
 	}
 
 	// We always need to check not-before, but usage of the claim itself is
 	// OPTIONAL
 	if !v.VerifyNotBefore(claims, now, false) {
-		vErr.Inner = ErrTokenNotValidYet
-		vErr.Errors |= ValidationErrorNotValidYet
+		errs = append(errs, ErrTokenNotValidYet)
 	}
 
 	// Check issued-at if the option is enabled
 	if v.verifyIat && !v.VerifyIssuedAt(claims, now, false) {
-		vErr.Inner = ErrTokenUsedBeforeIssued
-		vErr.Errors |= ValidationErrorIssuedAt
+		errs = append(errs, ErrTokenUsedBeforeIssued)
 	}
 
 	// If we have an expected audience, we also require the audience claim
 	if v.expectedAud != "" && !v.VerifyAudience(claims, v.expectedAud, true) {
-		vErr.Inner = ErrTokenInvalidAudience
-		vErr.Errors |= ValidationErrorAudience
+		errs = append(errs, ErrTokenInvalidAudience)
 	}
 
 	// If we have an expected issuer, we also require the issuer claim
 	if v.expectedIss != "" && !v.VerifyIssuer(claims, v.expectedIss, true) {
-		vErr.Inner = ErrTokenInvalidIssuer
-		vErr.Errors |= ValidationErrorIssuer
+		errs = append(errs, ErrTokenInvalidIssuer)
 	}
 
 	// If we have an expected subject, we also require the subject claim
 	if v.expectedSub != "" && !v.VerifySubject(claims, v.expectedSub, true) {
-		vErr.Inner = ErrTokenInvalidSubject
-		vErr.Errors |= ValidationErrorSubject
+		errs = append(errs, ErrTokenInvalidSubject)
 	}
 
 	// Finally, we want to give the claim itself some possibility to do some
@@ -103,16 +100,15 @@ func (v *validator) Validate(claims Claims) error {
 	})
 	if ok {
 		if err := cvt.Validate(); err != nil {
-			vErr.Inner = err
-			vErr.Errors |= ValidationErrorClaimsInvalid
+			errs = append(errs, err)
 		}
 	}
 
-	if vErr.valid() {
+	if len(errs) == 0 {
 		return nil
 	}
 
-	return vErr
+	return errors.Join(errs...)
 }
 
 // VerifyExpiresAt compares the exp claim in claims against cmp. This function

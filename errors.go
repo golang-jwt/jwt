@@ -10,9 +10,10 @@ var (
 	ErrInvalidKeyType  = errors.New("key is of invalid type")
 	ErrHashUnavailable = errors.New("the requested hash function is unavailable")
 
-	ErrTokenMalformed        = errors.New("token is malformed")
-	ErrTokenUnverifiable     = errors.New("token is unverifiable")
-	ErrTokenSignatureInvalid = errors.New("token signature is invalid")
+	ErrTokenMalformed            = errors.New("token is malformed")
+	ErrTokenUnverifiable         = errors.New("token is unverifiable")
+	ErrTokenRequiredClaimMissing = errors.New("a required claim is missing")
+	ErrTokenSignatureInvalid     = errors.New("token signature is invalid")
 
 	ErrTokenInvalidAudience  = errors.New("token has invalid audience")
 	ErrTokenExpired          = errors.New("token is expired")
@@ -43,6 +44,7 @@ const (
 	ValidationErrorClaimsInvalid // Generic claims validation error
 )
 
+/*
 // NewValidationError is a helper for constructing a ValidationError with a string error message
 func NewValidationError(errorText string, errorFlags uint32) *ValidationError {
 	return &ValidationError{
@@ -119,3 +121,4 @@ func (e *ValidationError) Is(err error) bool {
 
 	return false
 }
+*/
