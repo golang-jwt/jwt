@@ -38,14 +38,6 @@ type validator struct {
 	expectedSub string
 }
 
-// customClaims represents a custom claims interface, which can be built upon the integrated
-// claim types, such as map claims or registered claims.
-type customClaims interface {
-	// CustomValidation can be implemented by a user-specific claim to support
-	// additional validation steps in addition to the regular validation.
-	CustomValidation() error
-}
-
 // newValidator can be used to create a stand-alone validator with the supplied
 // options. This validator can then be used to validate already parsed claims.
 func newValidator(opts ...ParserOption) *validator {
@@ -105,10 +97,12 @@ func (v *validator) Validate(claims Claims) error {
 	}
 
 	// Finally, we want to give the claim itself some possibility to do some
-	// additional custom validation based on a custom function
-	cvt, ok := claims.(customClaims)
+	// additional custom validation based on a custom Validate function.
+	cvt, ok := claims.(interface {
+		Validate() error
+	})
 	if ok {
-		if err := cvt.CustomValidation(); err != nil {
+		if err := cvt.Validate(); err != nil {
 			vErr.Inner = err
 			vErr.Errors |= ValidationErrorClaimsInvalid
 		}

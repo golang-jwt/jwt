@@ -121,7 +121,9 @@ type MyCustomClaims struct {
 	jwt.RegisteredClaims
 }
 
-func (m MyCustomClaims) CustomValidation() error {
+// Validate can be used to execute additional application-specific claims
+// validation.
+func (m MyCustomClaims) Validate() error {
 	if m.Foo != "bar" {
 		return errors.New("must be foobar")
 	}
