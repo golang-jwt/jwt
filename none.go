@@ -1,7 +1,5 @@
 package jwt
 
-import "fmt"
-
 // SigningMethodNone implements the none signing method.  This is required by the spec
 // but you probably should never use it.
 var SigningMethodNone *signingMethodNone
@@ -15,7 +13,7 @@ type unsafeNoneMagicConstant string
 
 func init() {
 	SigningMethodNone = &signingMethodNone{}
-	NoneSignatureTypeDisallowedError = fmt.Errorf("%w: 'none' signature type is not allowed", ErrTokenUnverifiable)
+	NoneSignatureTypeDisallowedError = newError("'none' signature type is not allowed", ErrTokenUnverifiable)
 
 	RegisterSigningMethod(SigningMethodNone.Alg(), func() SigningMethod {
 		return SigningMethodNone
@@ -35,7 +33,7 @@ func (m *signingMethodNone) Verify(signingString, signature string, key interfac
 	}
 	// If signing method is none, signature must be an empty string
 	if signature != "" {
-		return fmt.Errorf("%w: 'none' signing method with non-empty signature", ErrTokenUnverifiable)
+		return newError("'none' signing method with non-empty signature", ErrTokenUnverifiable)
 	}
 
 	// Accept 'none' signing method.

@@ -356,7 +356,6 @@ func TestParser_Parse(t *testing.T) {
 
 			// Parse the token
 			var token *jwt.Token
-			//var ve *jwt.ValidationError
 			var err error
 			var parser = data.parser
 			if parser == nil {

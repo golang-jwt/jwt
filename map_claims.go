@@ -2,6 +2,7 @@ package jwt
 
 import (
 	"encoding/json"
+	"fmt"
 )
 
 // MapClaims is a claims type that uses the map[string]interface{} for JSON decoding.
@@ -60,7 +61,7 @@ func (m MapClaims) parseNumericDate(key string) (*NumericDate, error) {
 		return newNumericDateFromSeconds(v), nil
 	}
 
-	return nil, ErrInvalidType
+	return nil, newError(fmt.Sprintf("%s is invalid", key), ErrInvalidType)
 }
 
 // parseClaimsString tries to parse a key in the map claims type as a
@@ -76,7 +77,7 @@ func (m MapClaims) parseClaimsString(key string) (ClaimStrings, error) {
 		for _, a := range v {
 			vs, ok := a.(string)
 			if !ok {
-				return nil, ErrInvalidType
+				return nil, newError(fmt.Sprintf("%s is invalid", key), ErrInvalidType)
 			}
 			cs = append(cs, vs)
 		}
@@ -101,7 +102,7 @@ func (m MapClaims) parseString(key string) (string, error) {
 
 	iss, ok = raw.(string)
 	if !ok {
-		return "", ErrInvalidType
+		return "", newError(fmt.Sprintf("%s is invalid", key), ErrInvalidType)
 	}
 
 	return iss, nil
