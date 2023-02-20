@@ -2,7 +2,6 @@ package jwt
 
 import (
 	"crypto/subtle"
-	"errors"
 	"time"
 )
 
@@ -108,7 +107,7 @@ func (v *validator) Validate(claims Claims) error {
 		return nil
 	}
 
-	return errors.Join(errs...)
+	return joinErrors(errs)
 }
 
 // VerifyExpiresAt compares the exp claim in claims against cmp. This function

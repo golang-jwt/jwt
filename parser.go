@@ -65,7 +65,7 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 		}
 		if !signingMethodValid {
 			// signing method is not in the listed set
-			return token, fmt.Errorf("%w: signing method %v is invalid", ErrTokenSignatureInvalid, err)
+			return token, newError(fmt.Sprintf("signing method %v is invalid", alg), ErrTokenSignatureInvalid)
 		}
 	}
 
@@ -73,16 +73,16 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 	var key interface{}
 	if keyFunc == nil {
 		// keyFunc was not provided.  short circuiting validation
-		return token, fmt.Errorf("%w: no keyfunc was provided", ErrTokenUnverifiable)
+		return token, newError("no keyfunc was provided", ErrTokenUnverifiable)
 	}
 	if key, err = keyFunc(token); err != nil {
-		return token, fmt.Errorf("%w: error while executing keyfunc: %w", ErrTokenUnverifiable, err)
+		return token, newError("error while executing keyfunc", ErrTokenUnverifiable, err)
 	}
 
 	// Perform signature validation
 	token.Signature = parts[2]
 	if err = token.Method.Verify(strings.Join(parts[0:2], "."), token.Signature, key); err != nil {
-		return token, fmt.Errorf("%w: %w", ErrTokenSignatureInvalid, err)
+		return token, newError("could not verify", ErrTokenSignatureInvalid, err)
 	}
 
 	// Validate Claims
@@ -112,7 +112,7 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Token, parts []string, err error) {
 	parts = strings.Split(tokenString, ".")
 	if len(parts) != 3 {
-		return nil, parts, fmt.Errorf("%w: token contains an invalid number of segments", ErrTokenMalformed)
+		return nil, parts, newError("token contains an invalid number of segments", ErrTokenMalformed)
 	}
 
 	token = &Token{Raw: tokenString}
@@ -121,12 +121,12 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 	var headerBytes []byte
 	if headerBytes, err = DecodeSegment(parts[0]); err != nil {
 		if strings.HasPrefix(strings.ToLower(tokenString), "bearer ") {
-			return token, parts, fmt.Errorf("%w: tokenstring should not contain 'bearer '", ErrTokenMalformed)
+			return token, parts, newError("tokenstring should not contain 'bearer '", ErrTokenMalformed)
 		}
-		return token, parts, fmt.Errorf("%w: %w", ErrTokenMalformed, err)
+		return token, parts, newError("could not base64 decode header", ErrTokenMalformed, err)
 	}
 	if err = json.Unmarshal(headerBytes, &token.Header); err != nil {
-		return token, parts, fmt.Errorf("%w: %w", ErrTokenMalformed, err)
+		return token, parts, newError("could not unmarshal header", ErrTokenMalformed, err)
 	}
 
 	// parse Claims
@@ -134,7 +134,7 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 	token.Claims = claims
 
 	if claimBytes, err = DecodeSegment(parts[1]); err != nil {
-		return token, parts, fmt.Errorf("%w: %w", ErrTokenMalformed, err)
+		return token, parts, newError("could not base64 decode claim", ErrTokenMalformed, err)
 	}
 	dec := json.NewDecoder(bytes.NewBuffer(claimBytes))
 	if p.useJSONNumber {
@@ -148,16 +148,16 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 	}
 	// Handle decode error
 	if err != nil {
-		return token, parts, fmt.Errorf("%w: %w", ErrTokenMalformed, err)
+		return token, parts, newError("could JSON decode claim", ErrTokenMalformed, err)
 	}
 
 	// Lookup signature method
 	if method, ok := token.Header["alg"].(string); ok {
 		if token.Method = GetSigningMethod(method); token.Method == nil {
-			return token, parts, fmt.Errorf("%w: signing method (alg) is unavailable", ErrTokenUnverifiable)
+			return token, parts, newError("signing method (alg) is unavailable", ErrTokenUnverifiable)
 		}
 	} else {
-		return token, parts, fmt.Errorf("%w: signing method (alg) is unspecified", ErrTokenUnverifiable)
+		return token, parts, newError("signing method (alg) is unspecified", ErrTokenUnverifiable)
 	}
 
 	return token, parts, nil

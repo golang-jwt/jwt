@@ -2,6 +2,7 @@ package jwt
 
 import (
 	"errors"
+	"strings"
 )
 
 // Error constants
@@ -43,6 +44,30 @@ const (
 	ValidationErrorId            // JTI validation failed
 	ValidationErrorClaimsInvalid // Generic claims validation error
 )
+
+// joinedError is an error type that works similar to what [errors.Join]
+// produces, with the exception that it has a nice error string; mainly its
+// error messages are concatenated using a comma, rather than a newline.
+type joinedError struct {
+	errs []error
+}
+
+func (je joinedError) Error() string {
+	msg := []string{}
+	for _, err := range je.errs {
+		msg = append(msg, err.Error())
+	}
+
+	return strings.Join(msg, ", ")
+}
+
+// joinErrors joins together multiple errors. Useful for scenarios where
+// multiple errors next to each other occur, e.g., in claims validation.
+func joinErrors(errs []error) error {
+	return &joinedError{
+		errs: errs,
+	}
+}
 
 /*
 // NewValidationError is a helper for constructing a ValidationError with a string error message
