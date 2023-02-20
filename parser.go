@@ -126,7 +126,7 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 		return token, parts, newError("could not base64 decode header", ErrTokenMalformed, err)
 	}
 	if err = json.Unmarshal(headerBytes, &token.Header); err != nil {
-		return token, parts, newError("could not unmarshal header", ErrTokenMalformed, err)
+		return token, parts, newError("could not JSON decode header", ErrTokenMalformed, err)
 	}
 
 	// parse Claims
@@ -148,7 +148,7 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 	}
 	// Handle decode error
 	if err != nil {
-		return token, parts, newError("could JSON decode claim", ErrTokenMalformed, err)
+		return token, parts, newError("could not JSON decode claim", ErrTokenMalformed, err)
 	}
 
 	// Lookup signature method
