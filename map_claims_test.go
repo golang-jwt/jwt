@@ -134,3 +134,56 @@ func TestMapClaimsVerifyExpiresAtExpire(t *testing.T) {
 		t.Fatalf("Failed to verify claims, wanted: %v got %v", want, (got == nil))
 	}
 }
+
+func TestMapClaims_ParseString(t *testing.T) {
+	type args struct {
+		key string
+	}
+	tests := []struct {
+		name    string
+		m       MapClaims
+		args    args
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "missing key",
+			m:    MapClaims{},
+			args: args{
+				key: "mykey",
+			},
+			want:    "",
+			wantErr: false,
+		},
+		{
+			name: "wrong key type",
+			m:    MapClaims{"mykey": 4},
+			args: args{
+				key: "mykey",
+			},
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name: "correct key type",
+			m:    MapClaims{"mykey": "mystring"},
+			args: args{
+				key: "mykey",
+			},
+			want:    "mystring",
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := tt.m.ParseString(tt.args.key)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MapClaims.ParseString() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MapClaims.ParseString() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
