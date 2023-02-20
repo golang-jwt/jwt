@@ -135,7 +135,7 @@ func TestMapClaimsVerifyExpiresAtExpire(t *testing.T) {
 	}
 }
 
-func TestMapClaims_ParseString(t *testing.T) {
+func TestMapClaims_parseString(t *testing.T) {
 	type args struct {
 		key string
 	}
@@ -176,13 +176,13 @@ func TestMapClaims_ParseString(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.m.ParseString(tt.args.key)
+			got, err := tt.m.parseString(tt.args.key)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("MapClaims.ParseString() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("MapClaims.parseString() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("MapClaims.ParseString() = %v, want %v", got, tt.want)
+				t.Errorf("MapClaims.parseString() = %v, want %v", got, tt.want)
 			}
 		})
 	}

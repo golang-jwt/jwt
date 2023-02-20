@@ -27,8 +27,15 @@ func (je joinedError) Unwrap() []error {
 //
 //	"token is unverifiable: no keyfunc was provided"
 func newError(message string, err error, more ...error) error {
-	format := "%w: %s"
-	args := []any{err, message}
+	var format string
+	var args []any
+	if message != "" {
+		format = "%w: %s"
+		args = []any{err, message}
+	} else {
+		format = "%w"
+		args = []any{err}
+	}
 
 	for _, e := range more {
 		format += ": %w"

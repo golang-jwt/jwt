@@ -82,7 +82,7 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 	// Perform signature validation
 	token.Signature = parts[2]
 	if err = token.Method.Verify(strings.Join(parts[0:2], "."), token.Signature, key); err != nil {
-		return token, newError("could not verify", ErrTokenSignatureInvalid, err)
+		return token, newError("", ErrTokenSignatureInvalid, err)
 	}
 
 	// Validate Claims
@@ -93,7 +93,7 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 		}
 
 		if err := p.validator.Validate(claims); err != nil {
-			return token, err
+			return token, newError("", ErrTokenInvalidClaims, err)
 		}
 	}
 

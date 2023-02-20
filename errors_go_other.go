@@ -53,8 +53,15 @@ func newError(message string, err error, more ...error) error {
 	// We cannot wrap multiple errors here with %w, so we have to be a little
 	// bit creative. Basically, we are using %s instead of %w to produce the
 	// same error message and then throw the result into a custom error struct.
-	format := "%s: %s"
-	args := []any{err, message}
+	var format string
+	var args []any
+	if message != "" {
+		format = "%s: %s"
+		args = []any{err, message}
+	} else {
+		format = "%s"
+		args = []any{err}
+	}
 	errs := []error{err}
 
 	for _, e := range more {

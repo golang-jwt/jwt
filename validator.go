@@ -120,7 +120,7 @@ func (v *validator) Validate(claims Claims) error {
 	// If we have an expected subject, we also require the subject claim
 	if v.expectedSub != "" {
 		if err = v.verifySubject(claims, v.expectedSub, true); err != nil {
-			errs = append(errs, ErrTokenInvalidSubject)
+			errs = append(errs, err)
 		}
 	}
 
@@ -137,7 +137,7 @@ func (v *validator) Validate(claims Claims) error {
 		return nil
 	}
 
-	return joinErrors(errs)
+	return joinErrors(errs...)
 }
 
 // verifyExpiresAt compares the exp claim in claims against cmp. This function
@@ -276,7 +276,7 @@ func (v *validator) verifySubject(claims Claims, cmp string, required bool) erro
 		return errorIfRequired(required, "sub")
 	}
 
-	return errorIfFalse(sub == cmp, ErrTokenInvalidIssuer)
+	return errorIfFalse(sub == cmp, ErrTokenInvalidSubject)
 }
 
 // errorIfFalse returns the error specified in err, if the value is true.

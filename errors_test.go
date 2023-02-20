@@ -27,7 +27,7 @@ func Test_joinErrors(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := joinErrors(tt.args.errs)
+			err := joinErrors(tt.args.errs...)
 			for _, wantErr := range tt.wantErrors {
 				if !errors.Is(err, wantErr) {
 					t.Errorf("joinErrors() error = %v, does not contain %v", err, wantErr)
@@ -64,6 +64,18 @@ func Test_newError(t *testing.T) {
 			args:        args{message: "something is wrong", err: ErrTokenMalformed, more: []error{io.ErrUnexpectedEOF}},
 			wantMessage: "token is malformed: something is wrong: unexpected EOF",
 			wantErrors:  []error{ErrTokenMalformed},
+		},
+		{
+			name:        "two errors, no detail",
+			args:        args{message: "", err: ErrTokenInvalidClaims, more: []error{ErrTokenExpired}},
+			wantMessage: "token has invalid claims: token is expired",
+			wantErrors:  []error{ErrTokenInvalidClaims, ErrTokenExpired},
+		},
+		{
+			name:        "two errors, no detail and join error",
+			args:        args{message: "", err: ErrTokenInvalidClaims, more: []error{joinErrors(ErrTokenExpired, ErrTokenNotValidYet)}},
+			wantMessage: "token has invalid claims: token is expired, token is not valid yet",
+			wantErrors:  []error{ErrTokenInvalidClaims, ErrTokenExpired, ErrTokenNotValidYet},
 		},
 	}
 	for _, tt := range tests {
