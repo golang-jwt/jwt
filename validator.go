@@ -9,7 +9,8 @@ import (
 // a [Parser] during parsing and can be modified with various parser options.
 //
 // Note: This struct is intentionally not exported (yet) as we want to
-// internally finalize its API. In the future, we might make it publicly available.
+// internally finalize its API. In the future, we might make it publicly
+// available.
 type validator struct {
 	// leeway is an optional leeway that can be provided to account for clock skew.
 	leeway time.Duration

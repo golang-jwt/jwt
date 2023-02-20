@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 )
 
-// MapClaims is a claims type that uses the map[string]interface{} for JSON decoding.
-// This is the default claims type if you don't supply one
+// MapClaims is a claims type that uses the map[string]interface{} for JSON
+// decoding. This is the default claims type if you don't supply one
 type MapClaims map[string]interface{}
 
 // GetExpirationTime implements the Claims interface.
