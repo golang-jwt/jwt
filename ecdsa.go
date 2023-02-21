@@ -132,3 +132,10 @@ func (m *SigningMethodECDSA) Sign(signingString string, key interface{}) ([]byte
 		return nil, err
 	}
 }
+
+// ECDSAPublicKey represents a [Keyfunc] that returns the ECDSA key specified in
+// key. Furthermore, it checks, whether the signing method matches
+// [SigningMethodECDSA].
+func ECDSAPublicKey(key *ecdsa.PublicKey) Keyfunc {
+	return secureKeyFunc(key, []string{"ES256", "ES384", "ES512"})
+}

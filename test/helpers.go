@@ -2,6 +2,7 @@ package test
 
 import (
 	"crypto"
+	"crypto/ecdsa"
 	"crypto/rsa"
 	"os"
 
@@ -56,7 +57,7 @@ func LoadECPrivateKeyFromDisk(location string) crypto.PrivateKey {
 	return key
 }
 
-func LoadECPublicKeyFromDisk(location string) crypto.PublicKey {
+func LoadECPublicKeyFromDisk(location string) *ecdsa.PublicKey {
 	keyData, e := os.ReadFile(location)
 	if e != nil {
 		panic(e.Error())

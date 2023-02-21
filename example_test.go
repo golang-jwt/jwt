@@ -80,9 +80,7 @@ func ExampleParseWithClaims_customClaimsType() {
 		jwt.RegisteredClaims
 	}
 
-	token, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte("AllYourBase"), nil
-	})
+	token, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, jwt.PresharedKey([]byte("AllYourBase")))
 
 	if claims, ok := token.Claims.(*MyCustomClaims); ok && token.Valid {
 		fmt.Printf("%v %v", claims.Foo, claims.RegisteredClaims.Issuer)
@@ -103,9 +101,11 @@ func ExampleParseWithClaims_validationOptions() {
 		jwt.RegisteredClaims
 	}
 
-	token, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte("AllYourBase"), nil
-	}, jwt.WithLeeway(5*time.Second))
+	token, err := jwt.ParseWithClaims(
+		tokenString, &MyCustomClaims{},
+		jwt.PresharedKey([]byte("AllYourBase")),
+		jwt.WithLeeway(5*time.Second),
+	)
 
 	if claims, ok := token.Claims.(*MyCustomClaims); ok && token.Valid {
 		fmt.Printf("%v %v", claims.Foo, claims.RegisteredClaims.Issuer)
@@ -138,9 +138,10 @@ func (m MyCustomClaims) Validate() error {
 func ExampleParseWithClaims_customValidation() {
 	tokenString := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJpc3MiOiJ0ZXN0IiwiYXVkIjoic2luZ2xlIn0.QAWg1vGvnqRuCFTMcPkjZljXHh8U3L_qUjszOtQbeaA"
 
-	token, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte("AllYourBase"), nil
-	}, jwt.WithLeeway(5*time.Second))
+	token, err := jwt.ParseWithClaims(
+		tokenString, &MyCustomClaims{},
+		jwt.PresharedKey([]byte("AllYourBase")),
+		jwt.WithLeeway(5*time.Second))
 
 	if claims, ok := token.Claims.(*MyCustomClaims); ok && token.Valid {
 		fmt.Printf("%v %v", claims.Foo, claims.RegisteredClaims.Issuer)
@@ -156,9 +157,7 @@ func ExampleParse_errorChecking() {
 	// Token from another example.  This token is expired
 	var tokenString = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJleHAiOjE1MDAwLCJpc3MiOiJ0ZXN0In0.HE7fK0xOQwFEr4WDgRWj4teRPZ6i3GLwD5YCm6Pwu_c"
 
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return []byte("AllYourBase"), nil
-	})
+	token, err := jwt.Parse(tokenString, jwt.PresharedKey([]byte("AllYourBase")))
 
 	if token.Valid {
 		fmt.Println("You look nice today")

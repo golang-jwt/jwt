@@ -1,17 +1,17 @@
-package jwt_test
+package jwt
 
 import (
+	"errors"
+	"reflect"
 	"testing"
-
-	"github.com/golang-jwt/jwt/v5"
 )
 
 func TestToken_SigningString(t1 *testing.T) {
 	type fields struct {
 		Raw       string
-		Method    jwt.SigningMethod
+		Method    SigningMethod
 		Header    map[string]interface{}
-		Claims    jwt.Claims
+		Claims    Claims
 		Signature []byte
 		Valid     bool
 	}
@@ -25,12 +25,12 @@ func TestToken_SigningString(t1 *testing.T) {
 			name: "",
 			fields: fields{
 				Raw:    "",
-				Method: jwt.SigningMethodHS256,
+				Method: SigningMethodHS256,
 				Header: map[string]interface{}{
 					"typ": "JWT",
-					"alg": jwt.SigningMethodHS256.Alg(),
+					"alg": SigningMethodHS256.Alg(),
 				},
-				Claims: jwt.RegisteredClaims{},
+				Claims: RegisteredClaims{},
 				Valid:  false,
 			},
 			want:    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30",
@@ -39,7 +39,7 @@ func TestToken_SigningString(t1 *testing.T) {
 	}
 	for _, tt := range tests {
 		t1.Run(tt.name, func(t1 *testing.T) {
-			t := &jwt.Token{
+			t := &Token{
 				Raw:       tt.fields.Raw,
 				Method:    tt.fields.Method,
 				Header:    tt.fields.Header,
@@ -60,13 +60,13 @@ func TestToken_SigningString(t1 *testing.T) {
 }
 
 func BenchmarkToken_SigningString(b *testing.B) {
-	t := &jwt.Token{
-		Method: jwt.SigningMethodHS256,
+	t := &Token{
+		Method: SigningMethodHS256,
 		Header: map[string]interface{}{
 			"typ": "JWT",
-			"alg": jwt.SigningMethodHS256.Alg(),
+			"alg": SigningMethodHS256.Alg(),
 		},
-		Claims: jwt.RegisteredClaims{},
+		Claims: RegisteredClaims{},
 	}
 	b.Run("BenchmarkToken_SigningString", func(b *testing.B) {
 		b.ResetTimer()
@@ -75,4 +75,49 @@ func BenchmarkToken_SigningString(b *testing.B) {
 			t.SigningString()
 		}
 	})
+}
+
+func Test_secureKeyFunc(t *testing.T) {
+	type fields struct {
+		token *Token
+	}
+	type args struct {
+		key          any
+		validMethods []string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantKey any
+		wantErr error
+	}{
+		{
+			name:    "invalid method",
+			fields:  fields{&Token{Header: map[string]interface{}{"alg": "RS512"}, Method: SigningMethodRS512}},
+			args:    args{key: []byte("mysecret"), validMethods: []string{"HS256"}},
+			wantKey: nil,
+			wantErr: ErrTokenSignatureInvalid,
+		},
+		{
+			name:    "correct method",
+			fields:  fields{&Token{Header: map[string]interface{}{"alg": "HS256"}, Method: SigningMethodHS256}},
+			args:    args{key: []byte("mysecret"), validMethods: []string{"HS256"}},
+			wantKey: []byte("mysecret"),
+			wantErr: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			keyfunc := secureKeyFunc(tt.args.key, tt.args.validMethods)
+			gotKey, gotErr := keyfunc(tt.fields.token)
+
+			if !reflect.DeepEqual(gotKey, tt.wantKey) {
+				t.Errorf("secureKeyFunc() key = %v, want %v", gotKey, tt.wantKey)
+			}
+			if (gotErr != nil) && !errors.Is(gotErr, tt.wantErr) {
+				t.Errorf("secureKeyFunc() err = %v, want %v", gotErr, tt.wantErr)
+			}
+		})
+	}
 }

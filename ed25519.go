@@ -78,3 +78,10 @@ func (m *SigningMethodEd25519) Sign(signingString string, key interface{}) ([]by
 
 	return sig, nil
 }
+
+// Ed25519PublicKey represents a [Keyfunc] that returns the Ed25519 key
+// specified in key. Furthermore, it checks, whether the signing method matches
+// [SigningMethodEdDSA].
+func Ed25519PublicKey(key ed25519.PublicKey) Keyfunc {
+	return secureKeyFunc(key, []string{"EdDSA"})
+}

@@ -3,6 +3,7 @@ package jwt
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 )
 
 // Keyfunc will be used by the Parse methods as a callback function to supply
@@ -80,4 +81,37 @@ func (t *Token) SigningString() (string, error) {
 // than a global function.
 func (*Token) EncodeSegment(seg []byte) string {
 	return base64.RawURLEncoding.EncodeToString(seg)
+}
+
+// hasValidSigningMethod is a utility function that checks, if the signing
+// method of the token is included in the validMethods slice.
+func (token *Token) hasValidSigningMethod(validMethods []string) error {
+	var signingMethodValid = false
+	var alg = token.Method.Alg()
+	for _, m := range validMethods {
+		if m == alg {
+			signingMethodValid = true
+			break
+		}
+	}
+
+	if !signingMethodValid {
+		// signing method is not in the listed set
+		return newError(fmt.Sprintf("signing method %v is invalid", alg), ErrTokenSignatureInvalid)
+	}
+
+	return nil
+}
+
+// secureKeyFunc returns a secure [Keyfunc] for the specified key that also
+// includes a signing method check.
+func secureKeyFunc(key any, validMethods []string) Keyfunc {
+	return func(t *Token) (interface{}, error) {
+		// Check, if the signing method matches
+		if err := t.hasValidSigningMethod(validMethods); err != nil {
+			return nil, err
+		}
+
+		return key, nil
+	}
 }

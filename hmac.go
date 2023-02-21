@@ -87,3 +87,8 @@ func (m *SigningMethodHMAC) Sign(signingString string, key interface{}) ([]byte,
 
 	return nil, ErrInvalidKeyType
 }
+
+// PresharedKey represents a [Keyfunc] that simply returns the key specified in the byte slice.
+func PresharedKey(key []byte) Keyfunc {
+	return secureKeyFunc(key, []string{"HS256", "HS384", "HS512"})
+}

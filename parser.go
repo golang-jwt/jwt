@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"strings"
 )
 
@@ -60,17 +59,8 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 
 	// Verify signing method is in the required set
 	if p.validMethods != nil {
-		var signingMethodValid = false
-		var alg = token.Method.Alg()
-		for _, m := range p.validMethods {
-			if m == alg {
-				signingMethodValid = true
-				break
-			}
-		}
-		if !signingMethodValid {
-			// signing method is not in the listed set
-			return token, newError(fmt.Sprintf("signing method %v is invalid", alg), ErrTokenSignatureInvalid)
+		if err = token.hasValidSigningMethod(p.validMethods); err != nil {
+			return token, err
 		}
 	}
 
