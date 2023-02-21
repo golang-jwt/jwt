@@ -2,6 +2,7 @@ package jwt
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -79,8 +80,13 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 		return token, newError("error while executing keyfunc", ErrTokenUnverifiable, err)
 	}
 
+	// Decode signature
+	token.Signature, err = p.DecodeSegment(parts[2])
+	if err != nil {
+		return token, newError("could not base64 decode signature", ErrTokenMalformed, err)
+	}
+
 	// Perform signature validation
-	token.Signature = parts[2]
 	if err = token.Method.Verify(strings.Join(parts[0:2], "."), token.Signature, key); err != nil {
 		return token, newError("", ErrTokenSignatureInvalid, err)
 	}
@@ -119,7 +125,7 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 
 	// parse Header
 	var headerBytes []byte
-	if headerBytes, err = DecodeSegment(parts[0]); err != nil {
+	if headerBytes, err = p.DecodeSegment(parts[0]); err != nil {
 		if strings.HasPrefix(strings.ToLower(tokenString), "bearer ") {
 			return token, parts, newError("tokenstring should not contain 'bearer '", ErrTokenMalformed)
 		}
@@ -133,7 +139,7 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 	var claimBytes []byte
 	token.Claims = claims
 
-	if claimBytes, err = DecodeSegment(parts[1]); err != nil {
+	if claimBytes, err = p.DecodeSegment(parts[1]); err != nil {
 		return token, parts, newError("could not base64 decode claim", ErrTokenMalformed, err)
 	}
 	dec := json.NewDecoder(bytes.NewBuffer(claimBytes))
@@ -161,4 +167,24 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 	}
 
 	return token, parts, nil
+}
+
+// DecodeSegment decodes a JWT specific base64url encoding with padding stripped
+//
+// Deprecated: In a future release, we will demote this function to a
+// non-exported function, since it should only be used internally
+func (p *Parser) DecodeSegment(seg string) ([]byte, error) {
+	encoding := base64.RawURLEncoding
+
+	if DecodePaddingAllowed {
+		if l := len(seg) % 4; l > 0 {
+			seg += strings.Repeat("=", 4-l)
+		}
+		encoding = base64.URLEncoding
+	}
+
+	if DecodeStrict {
+		encoding = encoding.Strict()
+	}
+	return encoding.DecodeString(seg)
 }

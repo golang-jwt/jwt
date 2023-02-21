@@ -55,15 +55,7 @@ func (m *SigningMethodECDSA) Alg() string {
 
 // Verify implements token verification for the SigningMethod.
 // For this verify method, key must be an ecdsa.PublicKey struct
-func (m *SigningMethodECDSA) Verify(signingString, signature string, key interface{}) error {
-	var err error
-
-	// Decode the signature
-	var sig []byte
-	if sig, err = DecodeSegment(signature); err != nil {
-		return err
-	}
-
+func (m *SigningMethodECDSA) Verify(signingString string, sig []byte, key interface{}) error {
 	// Get the key
 	var ecdsaKey *ecdsa.PublicKey
 	switch k := key.(type) {

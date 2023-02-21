@@ -49,7 +49,7 @@ func TestEd25519Verify(t *testing.T) {
 
 		method := jwt.GetSigningMethod(data.alg)
 
-		err = method.Verify(strings.Join(parts[0:2], "."), parts[2], ed25519Key)
+		err = method.Verify(strings.Join(parts[0:2], "."), decodeSegment(t, parts[2]), ed25519Key)
 		if data.valid && err != nil {
 			t.Errorf("[%v] Error while verifying key: %v", data.name, err)
 		}

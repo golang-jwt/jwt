@@ -34,8 +34,7 @@ func (m *SigningMethodEd25519) Alg() string {
 
 // Verify implements token verification for the SigningMethod.
 // For this verify method, key must be an ed25519.PublicKey
-func (m *SigningMethodEd25519) Verify(signingString, signature string, key interface{}) error {
-	var err error
+func (m *SigningMethodEd25519) Verify(signingString string, sig []byte, key interface{}) error {
 	var ed25519Key ed25519.PublicKey
 	var ok bool
 
@@ -45,12 +44,6 @@ func (m *SigningMethodEd25519) Verify(signingString, signature string, key inter
 
 	if len(ed25519Key) != ed25519.PublicKeySize {
 		return ErrInvalidKey
-	}
-
-	// Decode the signature
-	var sig []byte
-	if sig, err = DecodeSegment(signature); err != nil {
-		return err
 	}
 
 	// Verify the signature

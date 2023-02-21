@@ -46,15 +46,7 @@ func (m *SigningMethodRSA) Alg() string {
 
 // Verify implements token verification for the SigningMethod
 // For this signing method, must be an *rsa.PublicKey structure.
-func (m *SigningMethodRSA) Verify(signingString, signature string, key interface{}) error {
-	var err error
-
-	// Decode the signature
-	var sig []byte
-	if sig, err = DecodeSegment(signature); err != nil {
-		return err
-	}
-
+func (m *SigningMethodRSA) Verify(signingString string, sig []byte, key interface{}) error {
 	var rsaKey *rsa.PublicKey
 	var ok bool
 

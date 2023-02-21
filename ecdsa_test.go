@@ -65,7 +65,7 @@ func TestECDSAVerify(t *testing.T) {
 		parts := strings.Split(data.tokenString, ".")
 
 		method := jwt.GetSigningMethod(data.alg)
-		err = method.Verify(strings.Join(parts[0:2], "."), parts[2], ecdsaKey)
+		err = method.Verify(strings.Join(parts[0:2], "."), decodeSegment(t, parts[2]), ecdsaKey)
 		if data.valid && err != nil {
 			t.Errorf("[%v] Error while verifying key: %v", data.name, err)
 		}
@@ -98,7 +98,7 @@ func TestECDSASign(t *testing.T) {
 				t.Errorf("[%v] Identical signatures\nbefore:\n%v\nafter:\n%v", data.name, parts[2], sig)
 			}
 
-			err = method.Verify(toSign, sig, ecdsaKey.Public())
+			err = method.Verify(toSign, decodeSegment(t, sig), ecdsaKey.Public())
 			if err != nil {
 				t.Errorf("[%v] Sign produced an invalid signature: %v", data.name, err)
 			}
@@ -161,4 +161,14 @@ func BenchmarkECDSASigning(b *testing.B) {
 			}
 		})
 	}
+}
+
+func decodeSegment(t *testing.T, signature string) (sig []byte) {
+	var err error
+	sig, err = jwt.NewParser().DecodeSegment(signature)
+	if err != nil {
+		t.Fatalf("could not decode segment: %v", err)
+	}
+
+	return
 }

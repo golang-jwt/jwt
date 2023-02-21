@@ -37,7 +37,7 @@ type Token struct {
 	Method    SigningMethod          // Method is the signing method used or to be used
 	Header    map[string]interface{} // Header is the first segment of the token
 	Claims    Claims                 // Claims is the second segment of the token
-	Signature string                 // Signature is the  third segment of the token.  Populated when you Parse a token
+	Signature []byte                 // Signature is the third segment of the token.  Populated when you Parse a token
 	Valid     bool                   // Valid specifies if the token is valid.  Populated when you Parse/Verify a token
 }
 
@@ -121,24 +121,4 @@ func ParseWithClaims(tokenString string, claims Claims, keyFunc Keyfunc, options
 // non-exported function, since it should only be used internally
 func EncodeSegment(seg []byte) string {
 	return base64.RawURLEncoding.EncodeToString(seg)
-}
-
-// DecodeSegment decodes a JWT specific base64url encoding with padding stripped
-//
-// Deprecated: In a future release, we will demote this function to a
-// non-exported function, since it should only be used internally
-func DecodeSegment(seg string) ([]byte, error) {
-	encoding := base64.RawURLEncoding
-
-	if DecodePaddingAllowed {
-		if l := len(seg) % 4; l > 0 {
-			seg += strings.Repeat("=", 4-l)
-		}
-		encoding = base64.URLEncoding
-	}
-
-	if DecodeStrict {
-		encoding = encoding.Strict()
-	}
-	return encoding.DecodeString(seg)
 }

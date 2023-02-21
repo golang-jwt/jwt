@@ -48,7 +48,7 @@ func TestRSAVerify(t *testing.T) {
 		parts := strings.Split(data.tokenString, ".")
 
 		method := jwt.GetSigningMethod(data.alg)
-		err := method.Verify(strings.Join(parts[0:2], "."), parts[2], key)
+		err := method.Verify(strings.Join(parts[0:2], "."), decodeSegment(t, parts[2]), key)
 		if data.valid && err != nil {
 			t.Errorf("[%v] Error while verifying key: %v", data.name, err)
 		}
@@ -85,7 +85,7 @@ func TestRSAVerifyWithPreParsedPrivateKey(t *testing.T) {
 	}
 	testData := rsaTestData[0]
 	parts := strings.Split(testData.tokenString, ".")
-	err = jwt.SigningMethodRS256.Verify(strings.Join(parts[0:2], "."), parts[2], parsedKey)
+	err = jwt.SigningMethodRS256.Verify(strings.Join(parts[0:2], "."), decodeSegment(t, parts[2]), parsedKey)
 	if err != nil {
 		t.Errorf("[%v] Error while verifying key: %v", testData.name, err)
 	}

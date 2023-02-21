@@ -82,15 +82,7 @@ func init() {
 
 // Verify implements token verification for the SigningMethod.
 // For this verify method, key must be an rsa.PublicKey struct
-func (m *SigningMethodRSAPSS) Verify(signingString, signature string, key interface{}) error {
-	var err error
-
-	// Decode the signature
-	var sig []byte
-	if sig, err = DecodeSegment(signature); err != nil {
-		return err
-	}
-
+func (m *SigningMethodRSAPSS) Verify(signingString string, sig []byte, key interface{}) error {
 	var rsaKey *rsa.PublicKey
 	switch k := key.(type) {
 	case *rsa.PublicKey:
