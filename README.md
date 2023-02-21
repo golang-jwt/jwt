@@ -1,12 +1,12 @@
 # jwt-go
 
 [![build](https://github.com/golang-jwt/jwt/actions/workflows/build.yml/badge.svg)](https://github.com/golang-jwt/jwt/actions/workflows/build.yml)
-[![Go Reference](https://pkg.go.dev/badge/github.com/golang-jwt/jwt/v4.svg)](https://pkg.go.dev/github.com/golang-jwt/jwt/v4)
+[![Go Reference](https://pkg.go.dev/badge/github.com/golang-jwt/jwt/v5.svg)](https://pkg.go.dev/github.com/golang-jwt/jwt/v5)
 
 A [go](http://www.golang.org) (or 'golang' for search engine friendliness) implementation of [JSON Web Tokens](https://datatracker.ietf.org/doc/html/rfc7519).
 
 Starting with [v4.0.0](https://github.com/golang-jwt/jwt/releases/tag/v4.0.0) this project adds Go module support, but maintains backwards compatibility with older `v3.x.y` tags and upstream `github.com/dgrijalva/jwt-go`.
-See the [`MIGRATION_GUIDE.md`](./MIGRATION_GUIDE.md) for more information.
+See the [`MIGRATION_GUIDE.md`](./MIGRATION_GUIDE.md) for more information. Version v5.0.0 introduces major improvements to the validation of tokens, but is not entirely backwards compatible. 
 
 > After the original author of the library suggested migrating the maintenance of `jwt-go`, a dedicated team of open source maintainers decided to clone the existing library into this repository. See [dgrijalva/jwt-go#462](https://github.com/dgrijalva/jwt-go/issues/462) for a detailed discussion on this topic.
 
@@ -41,22 +41,22 @@ This library supports the parsing and verification as well as the generation and
 1. To install the jwt package, you first need to have [Go](https://go.dev/doc/install) installed, then you can use the command below to add `jwt-go` as a dependency in your Go program.
 
 ```sh
-go get -u github.com/golang-jwt/jwt/v4
+go get -u github.com/golang-jwt/jwt/v5
 ```
 
 2. Import it in your code:
 
 ```go
-import "github.com/golang-jwt/jwt/v4"
+import "github.com/golang-jwt/jwt/v5"
 ```
 
 ## Examples
 
-See [the project documentation](https://pkg.go.dev/github.com/golang-jwt/jwt/v4) for examples of usage:
+See [the project documentation](https://pkg.go.dev/github.com/golang-jwt/jwt/v5) for examples of usage:
 
-* [Simple example of parsing and validating a token](https://pkg.go.dev/github.com/golang-jwt/jwt/v4#example-Parse-Hmac)
-* [Simple example of building and signing a token](https://pkg.go.dev/github.com/golang-jwt/jwt/v4#example-New-Hmac)
-* [Directory of Examples](https://pkg.go.dev/github.com/golang-jwt/jwt/v4#pkg-examples)
+* [Simple example of parsing and validating a token](https://pkg.go.dev/github.com/golang-jwt/jwt/v5#example-Parse-Hmac)
+* [Simple example of building and signing a token](https://pkg.go.dev/github.com/golang-jwt/jwt/v5#example-New-Hmac)
+* [Directory of Examples](https://pkg.go.dev/github.com/golang-jwt/jwt/v5#pkg-examples)
 
 ## Extensions
 
@@ -68,7 +68,7 @@ A common use case would be integrating with different 3rd party signature provid
 | --------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
 | GCP       | Integrates with multiple Google Cloud Platform signing tools (AppEngine, IAM API, Cloud KMS)             | https://github.com/someone1/gcp-jwt-go     |
 | AWS       | Integrates with AWS Key Management Service, KMS                                                          | https://github.com/matelang/jwt-go-aws-kms |
-| JWKS      | Provides support for JWKS ([RFC 7517](https://datatracker.ietf.org/doc/html/rfc7517)) as a `jwt.Keyfunc` | https://github.com/MicahParks/keyfunc       |
+| JWKS      | Provides support for JWKS ([RFC 7517](https://datatracker.ietf.org/doc/html/rfc7517)) as a `jwt.Keyfunc` | https://github.com/MicahParks/keyfunc      |
 
 *Disclaimer*: Unless otherwise specified, these integrations are maintained by third parties and should not be considered as a primary offer by any of the mentioned cloud providers
 
@@ -110,10 +110,10 @@ Asymmetric signing methods, such as RSA, use different keys for signing and veri
 
 Each signing method expects a different object type for its signing keys. See the package documentation for details. Here are the most common ones:
 
-* The [HMAC signing method](https://pkg.go.dev/github.com/golang-jwt/jwt/v4#SigningMethodHMAC) (`HS256`,`HS384`,`HS512`) expect `[]byte` values for signing and validation
-* The [RSA signing method](https://pkg.go.dev/github.com/golang-jwt/jwt/v4#SigningMethodRSA) (`RS256`,`RS384`,`RS512`) expect `*rsa.PrivateKey` for signing and `*rsa.PublicKey` for validation
-* The [ECDSA signing method](https://pkg.go.dev/github.com/golang-jwt/jwt/v4#SigningMethodECDSA) (`ES256`,`ES384`,`ES512`) expect `*ecdsa.PrivateKey` for signing and `*ecdsa.PublicKey` for validation
-* The [EdDSA signing method](https://pkg.go.dev/github.com/golang-jwt/jwt/v4#SigningMethodEd25519) (`Ed25519`) expect `ed25519.PrivateKey` for signing and `ed25519.PublicKey` for validation
+* The [HMAC signing method](https://pkg.go.dev/github.com/golang-jwt/jwt/v5#SigningMethodHMAC) (`HS256`,`HS384`,`HS512`) expect `[]byte` values for signing and validation
+* The [RSA signing method](https://pkg.go.dev/github.com/golang-jwt/jwt/v5#SigningMethodRSA) (`RS256`,`RS384`,`RS512`) expect `*rsa.PrivateKey` for signing and `*rsa.PublicKey` for validation
+* The [ECDSA signing method](https://pkg.go.dev/github.com/golang-jwt/jwt/v5#SigningMethodECDSA) (`ES256`,`ES384`,`ES512`) expect `*ecdsa.PrivateKey` for signing and `*ecdsa.PublicKey` for validation
+* The [EdDSA signing method](https://pkg.go.dev/github.com/golang-jwt/jwt/v5#SigningMethodEd25519) (`Ed25519`) expect `ed25519.PrivateKey` for signing and `ed25519.PublicKey` for validation
 
 ### JWT and OAuth
 
@@ -131,7 +131,7 @@ This library uses descriptive error messages whenever possible. If you are not g
 
 ## More
 
-Documentation can be found [on pkg.go.dev](https://pkg.go.dev/github.com/golang-jwt/jwt/v4).
+Documentation can be found [on pkg.go.dev](https://pkg.go.dev/github.com/golang-jwt/jwt/v5).
 
 The command line utility included in this project (cmd/jwt) provides a straightforward example of token creation and parsing as well as a useful tool for debugging your own integration. You'll also find several implementation examples in the documentation.
 
