@@ -3,6 +3,7 @@ package jwt_test
 import (
 	"crypto/ecdsa"
 	"os"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -90,15 +91,16 @@ func TestECDSASign(t *testing.T) {
 			toSign := strings.Join(parts[0:2], ".")
 			method := jwt.GetSigningMethod(data.alg)
 			sig, err := method.Sign(toSign, ecdsaKey)
-
 			if err != nil {
 				t.Errorf("[%v] Error signing token: %v", data.name, err)
 			}
-			if sig == parts[2] {
-				t.Errorf("[%v] Identical signatures\nbefore:\n%v\nafter:\n%v", data.name, parts[2], sig)
+
+			ssig := encodeSegment(sig)
+			if ssig == parts[2] {
+				t.Errorf("[%v] Identical signatures\nbefore:\n%v\nafter:\n%v", data.name, parts[2], ssig)
 			}
 
-			err = method.Verify(toSign, decodeSegment(t, sig), ecdsaKey.Public())
+			err = method.Verify(toSign, sig, ecdsaKey.Public())
 			if err != nil {
 				t.Errorf("[%v] Sign produced an invalid signature: %v", data.name, err)
 			}
@@ -155,7 +157,7 @@ func BenchmarkECDSASigning(b *testing.B) {
 				if err != nil {
 					b.Fatalf("[%v] Error signing token: %v", data.name, err)
 				}
-				if sig == parts[2] {
+				if reflect.DeepEqual(sig, decodeSegment(b, parts[2])) {
 					b.Fatalf("[%v] Identical signatures\nbefore:\n%v\nafter:\n%v", data.name, parts[2], sig)
 				}
 			}
@@ -163,7 +165,7 @@ func BenchmarkECDSASigning(b *testing.B) {
 	}
 }
 
-func decodeSegment(t *testing.T, signature string) (sig []byte) {
+func decodeSegment(t interface{ Fatalf(string, ...any) }, signature string) (sig []byte) {
 	var err error
 	sig, err = jwt.NewParser().DecodeSegment(signature)
 	if err != nil {
@@ -171,4 +173,8 @@ func decodeSegment(t *testing.T, signature string) (sig []byte) {
 	}
 
 	return
+}
+
+func encodeSegment(sig []byte) string {
+	return (&jwt.Token{}).EncodeSegment(sig)
 }

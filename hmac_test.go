@@ -2,6 +2,7 @@ package jwt_test
 
 import (
 	"os"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -72,7 +73,7 @@ func TestHMACSign(t *testing.T) {
 			if err != nil {
 				t.Errorf("[%v] Error signing token: %v", data.name, err)
 			}
-			if sig != parts[2] {
+			if !reflect.DeepEqual(sig, decodeSegment(t, parts[2])) {
 				t.Errorf("[%v] Incorrect signature.\nwas:\n%v\nexpecting:\n%v", data.name, sig, parts[2])
 			}
 		}

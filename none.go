@@ -41,9 +41,10 @@ func (m *signingMethodNone) Verify(signingString string, sig []byte, key interfa
 }
 
 // Only allow 'none' signing if UnsafeAllowNoneSignatureType is specified as the key
-func (m *signingMethodNone) Sign(signingString string, key interface{}) (string, error) {
+func (m *signingMethodNone) Sign(signingString string, key interface{}) ([]byte, error) {
 	if _, ok := key.(unsafeNoneMagicConstant); ok {
-		return "", nil
+		return []byte{}, nil
 	}
-	return "", NoneSignatureTypeDisallowedError
+
+	return nil, NoneSignatureTypeDisallowedError
 }

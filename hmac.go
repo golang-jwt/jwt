@@ -73,17 +73,17 @@ func (m *SigningMethodHMAC) Verify(signingString string, sig []byte, key interfa
 
 // Sign implements token signing for the SigningMethod.
 // Key must be []byte
-func (m *SigningMethodHMAC) Sign(signingString string, key interface{}) (string, error) {
+func (m *SigningMethodHMAC) Sign(signingString string, key interface{}) ([]byte, error) {
 	if keyBytes, ok := key.([]byte); ok {
 		if !m.Hash.Available() {
-			return "", ErrHashUnavailable
+			return nil, ErrHashUnavailable
 		}
 
 		hasher := hmac.New(m.Hash.New, keyBytes)
 		hasher.Write([]byte(signingString))
 
-		return EncodeSegment(hasher.Sum(nil)), nil
+		return hasher.Sum(nil), nil
 	}
 
-	return "", ErrInvalidKeyType
+	return nil, ErrInvalidKeyType
 }

@@ -641,9 +641,6 @@ var setPaddingTestData = []struct {
 func TestSetPadding(t *testing.T) {
 	for _, data := range setPaddingTestData {
 		t.Run(data.name, func(t *testing.T) {
-			jwt.DecodePaddingAllowed = data.paddedDecode
-			jwt.DecodeStrict = data.strictDecode
-
 			// If the token string is blank, use helper function to generate string
 			if data.tokenString == "" {
 				data.tokenString = signToken(data.claims, data.signingMethod)
@@ -652,7 +649,16 @@ func TestSetPadding(t *testing.T) {
 			// Parse the token
 			var token *jwt.Token
 			var err error
-			parser := jwt.NewParser(jwt.WithoutClaimsValidation())
+			var opts []jwt.ParserOption = []jwt.ParserOption{jwt.WithoutClaimsValidation()}
+
+			if data.paddedDecode {
+				opts = append(opts, jwt.WithPaddingAllowed())
+			}
+			if data.strictDecode {
+				opts = append(opts, jwt.WithStrictDecoding())
+			}
+
+			parser := jwt.NewParser(opts...)
 
 			// Figure out correct claims type
 			token, err = parser.ParseWithClaims(data.tokenString, jwt.MapClaims{}, data.keyfunc)
@@ -666,8 +672,6 @@ func TestSetPadding(t *testing.T) {
 			}
 
 		})
-		jwt.DecodePaddingAllowed = false
-		jwt.DecodeStrict = false
 	}
 }
 
