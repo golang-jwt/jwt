@@ -80,7 +80,7 @@ func ExampleParseWithClaims_customClaimsType() {
 		jwt.RegisteredClaims
 	}
 
-	token, err := jwt.ParseWithClaims(tokenString, func(token *jwt.Token[*MyCustomClaims]) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, func(token *jwt.TokenFor[*MyCustomClaims]) (interface{}, error) {
 		return []byte("AllYourBase"), nil
 	})
 
@@ -103,7 +103,7 @@ func ExampleParseWithClaims_validationOptions() {
 		jwt.RegisteredClaims
 	}
 
-	token, err := jwt.ParseWithClaims(tokenString, func(token *jwt.Token[*MyCustomClaims]) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, func(token *jwt.TokenFor[*MyCustomClaims]) (interface{}, error) {
 		return []byte("AllYourBase"), nil
 	}, jwt.WithLeeway(5*time.Second))
 
@@ -138,7 +138,7 @@ func (m MyCustomClaims) Validate() error {
 func ExampleParseWithClaims_customValidation() {
 	tokenString := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJpc3MiOiJ0ZXN0IiwiYXVkIjoic2luZ2xlIn0.QAWg1vGvnqRuCFTMcPkjZljXHh8U3L_qUjszOtQbeaA"
 
-	token, err := jwt.ParseWithClaims(tokenString, func(token *jwt.Token[*MyCustomClaims]) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, func(token *jwt.TokenFor[*MyCustomClaims]) (interface{}, error) {
 		return []byte("AllYourBase"), nil
 	}, jwt.WithLeeway(5*time.Second))
 
@@ -156,7 +156,7 @@ func ExampleParse_errorChecking() {
 	// Token from another example.  This token is expired
 	tokenString := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJleHAiOjE1MDAwLCJpc3MiOiJ0ZXN0In0.HE7fK0xOQwFEr4WDgRWj4teRPZ6i3GLwD5YCm6Pwu_c"
 
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token[jwt.MapClaims]) (interface{}, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.TokenFor[jwt.MapClaims]) (interface{}, error) {
 		return []byte("AllYourBase"), nil
 	})
 

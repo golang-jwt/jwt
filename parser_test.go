@@ -35,18 +35,18 @@ const (
 	keyFuncNil
 )
 
-func getKeyFunc[T jwt.Claims](kind keyFuncKind) jwt.Keyfunc[T] {
+func getKeyFunc[T jwt.Claims](kind keyFuncKind) jwt.KeyfuncFor[T] {
 	switch kind {
 	case keyFuncDefault:
-		return func(t *jwt.Token[T]) (interface{}, error) { return jwtTestDefaultKey, nil }
+		return func(t *jwt.TokenFor[T]) (interface{}, error) { return jwtTestDefaultKey, nil }
 	case keyFuncECDSA:
-		return func(t *jwt.Token[T]) (interface{}, error) { return jwtTestEC256PublicKey, nil }
+		return func(t *jwt.TokenFor[T]) (interface{}, error) { return jwtTestEC256PublicKey, nil }
 	case keyFuncPadded:
-		return func(t *jwt.Token[T]) (interface{}, error) { return paddedKey, nil }
+		return func(t *jwt.TokenFor[T]) (interface{}, error) { return paddedKey, nil }
 	case keyFuncEmpty:
-		return func(t *jwt.Token[T]) (interface{}, error) { return nil, nil }
+		return func(t *jwt.TokenFor[T]) (interface{}, error) { return nil, nil }
 	case keyFuncError:
-		return func(t *jwt.Token[T]) (interface{}, error) { return nil, errKeyFuncError }
+		return func(t *jwt.TokenFor[T]) (interface{}, error) { return nil, errKeyFuncError }
 	case keyFuncNil:
 		return nil
 	default:
@@ -376,8 +376,8 @@ func signToken(claims jwt.Claims, signingMethod jwt.SigningMethod) string {
 
 // cloneToken is necesssary to "forget" the type information back to a generic jwt.Claims.
 // Assignment of parameterized types is currently (1.20) not supported.
-func cloneToken[T jwt.Claims](tin *jwt.Token[T]) *jwt.Token[jwt.Claims] {
-	tout := &jwt.Token[jwt.Claims]{}
+func cloneToken[T jwt.Claims](tin *jwt.TokenFor[T]) *jwt.TokenFor[jwt.Claims] {
+	tout := &jwt.TokenFor[jwt.Claims]{}
 	tout.Claims = tin.Claims
 	tout.Header = tin.Header
 	tout.Method = tin.Method
@@ -397,7 +397,7 @@ func TestParser_Parse(t *testing.T) {
 			}
 
 			// Parse the token
-			var token *jwt.Token[jwt.Claims]
+			var token *jwt.TokenFor[jwt.Claims]
 			var err error
 			switch data.claims.(type) {
 			case jwt.MapClaims:
@@ -475,7 +475,7 @@ func TestParser_ParseUnverified(t *testing.T) {
 			}
 
 			// Parse the token
-			var token *jwt.Token[jwt.Claims]
+			var token *jwt.TokenFor[jwt.Claims]
 			var err error
 			switch data.claims.(type) {
 			case jwt.MapClaims:

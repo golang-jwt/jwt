@@ -57,7 +57,7 @@ func NewParserFor[T Claims](options ...ParserOption) *Parser[T] {
 // Note: If you provide a custom claim implementation that embeds one of the standard claims (such as RegisteredClaims),
 // make sure that a) you either embed a non-pointer version of the claims or b) if you are using a pointer, allocate the
 // proper memory for it before passing in the overall claims, otherwise you might run into a panic.
-func (p *Parser[T]) Parse(tokenString string, keyFunc Keyfunc[T]) (*Token[T], error) {
+func (p *Parser[T]) Parse(tokenString string, keyFunc KeyfuncFor[T]) (*TokenFor[T], error) {
 	token, parts, err := p.ParseUnverified(tokenString)
 	if err != nil {
 		return token, err
@@ -119,13 +119,13 @@ func (p *Parser[T]) Parse(tokenString string, keyFunc Keyfunc[T]) (*Token[T], er
 //
 // It's only ever useful in cases where you know the signature is valid (because it has
 // been checked previously in the stack) and you want to extract values from it.
-func (p *Parser[T]) ParseUnverified(tokenString string) (token *Token[T], parts []string, err error) {
+func (p *Parser[T]) ParseUnverified(tokenString string) (token *TokenFor[T], parts []string, err error) {
 	parts = strings.Split(tokenString, ".")
 	if len(parts) != 3 {
 		return nil, parts, newError("token contains an invalid number of segments", ErrTokenMalformed)
 	}
 
-	token = &Token[T]{Raw: tokenString}
+	token = &TokenFor[T]{Raw: tokenString}
 
 	// parse Header
 	var headerBytes []byte

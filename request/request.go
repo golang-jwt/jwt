@@ -12,7 +12,11 @@ import (
 // the logic for extracting a token.  Several useful implementations are provided.
 //
 // You can provide options to modify parsing behavior
-func ParseFromRequest[T jwt.Claims](req *http.Request, extractor Extractor, keyFunc jwt.Keyfunc[T], options ...ParseFromRequestOption[T]) (token *jwt.Token[T], err error) {
+func ParseFromRequest(req *http.Request, extractor Extractor, keyFunc jwt.Keyfunc, options ...Option) (token *jwt.Token, err error) {
+	return ParseFromRequestWithClaims(req, extractor, keyFunc, options...)
+}
+
+func ParseFromRequestWithClaims[T jwt.Claims](req *http.Request, extractor Extractor, keyFunc jwt.KeyfuncFor[T], options ...OptionFor[T]) (token *jwt.TokenFor[T], err error) {
 	// Create basic parser struct
 	p := &fromRequestParser[T]{
 		req:       req,
@@ -45,10 +49,12 @@ type fromRequestParser[T jwt.Claims] struct {
 	parser    *jwt.Parser[T]
 }
 
-type ParseFromRequestOption[T jwt.Claims] func(*fromRequestParser[T])
+type OptionFor[T jwt.Claims] func(*fromRequestParser[T])
+
+type Option = OptionFor[jwt.MapClaims]
 
 // WithParser parses using a custom parser
-func WithParser[T jwt.Claims](parser *jwt.Parser[T]) ParseFromRequestOption[T] {
+func WithParser[T jwt.Claims](parser *jwt.Parser[T]) OptionFor[T] {
 	return func(p *fromRequestParser[T]) {
 		p.parser = parser
 	}

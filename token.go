@@ -28,11 +28,14 @@ var DecodeStrict bool
 // the key for verification.  The function receives the parsed, but unverified
 // Token.  This allows you to use properties in the Header of the token (such as
 // `kid`) to identify which key to use.
-type Keyfunc[T Claims] func(*Token[T]) (interface{}, error)
+type KeyfuncFor[T Claims] func(*TokenFor[T]) (interface{}, error)
+
+// Keyfunc is an alias for KeyfuncFor[Claims], for backward compatibility.
+type Keyfunc = KeyfuncFor[MapClaims]
 
 // Token represents a JWT Token.  Different fields will be used depending on
 // whether you're creating or parsing/verifying a token.
-type Token[T Claims] struct {
+type TokenFor[T Claims] struct {
 	Raw       string                 // Raw contains the raw token.  Populated when you [Parse] a token
 	Method    SigningMethod          // Method is the signing method used or to be used
 	Header    map[string]interface{} // Header is the first segment of the token
@@ -41,16 +44,19 @@ type Token[T Claims] struct {
 	Valid     bool                   // Valid specifies if the token is valid.  Populated when you Parse/Verify a token
 }
 
+// Token is an alias for TokenFor[Claims], for backward compatibility.
+type Token = TokenFor[MapClaims]
+
 // New creates a new [Token] with the specified signing method and an empty map of
 // claims.
-func New(method SigningMethod) *Token[MapClaims] {
+func New(method SigningMethod) *Token {
 	return NewWithClaims(method, MapClaims{})
 }
 
 // NewWithClaims creates a new [Token] with the specified signing method and
 // claims.
-func NewWithClaims[T Claims](method SigningMethod, claims T) *Token[T] {
-	return &Token[T]{
+func NewWithClaims[T Claims](method SigningMethod, claims T) *TokenFor[T] {
+	return &TokenFor[T]{
 		Header: map[string]interface{}{
 			"typ": "JWT",
 			"alg": method.Alg(),
@@ -62,7 +68,7 @@ func NewWithClaims[T Claims](method SigningMethod, claims T) *Token[T] {
 
 // SignedString creates and returns a complete, signed JWT. The token is signed
 // using the SigningMethod specified in the token.
-func (t *Token[T]) SignedString(key interface{}) (string, error) {
+func (t *TokenFor[T]) SignedString(key interface{}) (string, error) {
 	sstr, err := t.SigningString()
 	if err != nil {
 		return "", err
@@ -79,7 +85,7 @@ func (t *Token[T]) SignedString(key interface{}) (string, error) {
 // SigningString generates the signing string.  This is the most expensive part
 // of the whole deal.  Unless you need this for something special, just go
 // straight for the SignedString.
-func (t *Token[T]) SigningString() (string, error) {
+func (t *TokenFor[T]) SigningString() (string, error) {
 	h, err := json.Marshal(t.Header)
 	if err != nil {
 		return "", err
@@ -100,7 +106,7 @@ func (t *Token[T]) SigningString() (string, error) {
 // expected algorithm. For more details about the importance of validating the
 // 'alg' claim, see
 // https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/
-func Parse(tokenString string, keyFunc Keyfunc[MapClaims], options ...ParserOption) (*Token[MapClaims], error) {
+func Parse(tokenString string, keyFunc Keyfunc, options ...ParserOption) (*Token, error) {
 	return NewParser(options...).Parse(tokenString, keyFunc)
 }
 
@@ -111,7 +117,7 @@ func Parse(tokenString string, keyFunc Keyfunc[MapClaims], options ...ParserOpti
 // embed a non-pointer version of the claims or b) if you are using a pointer,
 // allocate the proper memory for it before passing in the overall claims,
 // otherwise you might run into a panic.
-func ParseWithClaims[T Claims](tokenString string, keyFunc Keyfunc[T], options ...ParserOption) (*Token[T], error) {
+func ParseWithClaims[T Claims](tokenString string, keyFunc KeyfuncFor[T], options ...ParserOption) (*TokenFor[T], error) {
 	return NewParserFor[T](options...).Parse(tokenString, keyFunc)
 }
 

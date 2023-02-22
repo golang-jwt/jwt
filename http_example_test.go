@@ -99,7 +99,7 @@ func Example_getTokenViaHTTP() {
 	tokenString := strings.TrimSpace(buf.String())
 
 	// Parse the token
-	token, err := jwt.ParseWithClaims(tokenString, func(token *jwt.Token[*CustomClaimsExample]) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, func(token *jwt.TokenFor[*CustomClaimsExample]) (interface{}, error) {
 		// since we only use the one private key to sign the tokens,
 		// we also only use its public counter part to verify
 		return verifyKey, nil
@@ -191,7 +191,7 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 // only accessible with a valid token
 func restrictedHandler(w http.ResponseWriter, r *http.Request) {
 	// Get token from request
-	token, err := request.ParseFromRequest(r, request.OAuth2Extractor, func(token *jwt.Token[*CustomClaimsExample]) (interface{}, error) {
+	token, err := request.ParseFromRequestWithClaims(r, request.OAuth2Extractor, func(token *jwt.TokenFor[*CustomClaimsExample]) (interface{}, error) {
 		// since we only use the one private key to sign the tokens,
 		// we also only use its public counter part to verify
 		return verifyKey, nil
