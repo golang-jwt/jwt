@@ -63,35 +63,34 @@ func NewWithClaims(method SigningMethod, claims Claims) *Token {
 // SignedString creates and returns a complete, signed JWT. The token is signed
 // using the SigningMethod specified in the token.
 func (t *Token) SignedString(key interface{}) (string, error) {
-	var sig, sstr string
-	var err error
-	if sstr, err = t.SigningString(); err != nil {
+	sstr, err := t.SigningString()
+	if err != nil {
 		return "", err
 	}
-	if sig, err = t.Method.Sign(sstr, key); err != nil {
+
+	sig, err := t.Method.Sign(sstr, key)
+	if err != nil {
 		return "", err
 	}
-	return strings.Join([]string{sstr, sig}, "."), nil
+
+	return sstr + "." + sig, nil
 }
 
 // SigningString generates the signing string.  This is the most expensive part
 // of the whole deal.  Unless you need this for something special, just go
 // straight for the SignedString.
 func (t *Token) SigningString() (string, error) {
-	var err error
-	var jsonValue []byte
-
-	if jsonValue, err = json.Marshal(t.Header); err != nil {
+	h, err := json.Marshal(t.Header)
+	if err != nil {
 		return "", err
 	}
-	header := EncodeSegment(jsonValue)
 
-	if jsonValue, err = json.Marshal(t.Claims); err != nil {
+	c, err := json.Marshal(t.Claims)
+	if err != nil {
 		return "", err
 	}
-	claim := EncodeSegment(jsonValue)
 
-	return strings.Join([]string{header, claim}, "."), nil
+	return EncodeSegment(h) + "." + EncodeSegment(c), nil
 }
 
 // Parse parses, validates, verifies the signature and returns the parsed token.
