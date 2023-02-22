@@ -3,7 +3,7 @@ GO_TEST_EXTRA_ARGS ?=
 
 .PHONY: lint
 lint: tools
-	@golangci-lint run ./... --fix -E gofumpt
+	@golangci-lint run ./... --fix
 
 .PHONY: tools
 tools:
