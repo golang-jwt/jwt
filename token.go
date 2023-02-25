@@ -24,7 +24,7 @@ var DecodePaddingAllowed bool
 // using this package.
 var DecodeStrict bool
 
-// Keyfunc will be used by the Parse methods as a callback function to supply
+// KeyfuncFor will be used by the Parse methods as a callback function to supply
 // the key for verification.  The function receives the parsed, but unverified
 // Token.  This allows you to use properties in the Header of the token (such as
 // `kid`) to identify which key to use.
@@ -33,7 +33,7 @@ type KeyfuncFor[T Claims] func(*TokenFor[T]) (interface{}, error)
 // Keyfunc is an alias for KeyfuncFor[Claims], for backward compatibility.
 type Keyfunc = KeyfuncFor[MapClaims]
 
-// Token represents a JWT Token.  Different fields will be used depending on
+// TokenFor represents a JWT Token.  Different fields will be used depending on
 // whether you're creating or parsing/verifying a token.
 type TokenFor[T Claims] struct {
 	Raw       string                 // Raw contains the raw token.  Populated when you [Parse] a token
