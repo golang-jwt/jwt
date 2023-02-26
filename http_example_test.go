@@ -99,21 +99,20 @@ func Example_getTokenViaHTTP() {
 	tokenString := strings.TrimSpace(buf.String())
 
 	// Parse the token
-	token, err := jwt.ParseWithClaims(tokenString, &CustomClaimsExample{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, func(token *jwt.TokenFor[*CustomClaimsExample]) (interface{}, error) {
 		// since we only use the one private key to sign the tokens,
 		// we also only use its public counter part to verify
 		return verifyKey, nil
 	})
 	fatal(err)
 
-	claims := token.Claims.(*CustomClaimsExample)
+	claims := token.Claims
 	fmt.Println(claims.CustomerInfo.Name)
 
-	//Output: test
+	// Output: test
 }
 
 func Example_useTokenViaHTTP() {
-
 	// Make a sample token
 	// In a real world situation, this token will have been acquired from
 	// some other API call (see Example_getTokenViaHTTP)
@@ -138,18 +137,18 @@ func Example_useTokenViaHTTP() {
 
 func createToken(user string) (string, error) {
 	// create a signer for rsa 256
-	t := jwt.New(jwt.GetSigningMethod("RS256"))
-
-	// set our claims
-	t.Claims = &CustomClaimsExample{
-		jwt.RegisteredClaims{
-			// set the expire time
-			// see https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.4
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 1)),
+	t := jwt.NewWithClaims(
+		jwt.GetSigningMethod("RS256"),
+		&CustomClaimsExample{
+			jwt.RegisteredClaims{
+				// set the expire time
+				// see https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.4
+				ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 1)),
+			},
+			"level1",
+			CustomerInfo{user, "human"},
 		},
-		"level1",
-		CustomerInfo{user, "human"},
-	}
+	)
 
 	// Creat token string
 	return t.SignedString(signKey)
@@ -192,12 +191,11 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 // only accessible with a valid token
 func restrictedHandler(w http.ResponseWriter, r *http.Request) {
 	// Get token from request
-	token, err := request.ParseFromRequest(r, request.OAuth2Extractor, func(token *jwt.Token) (interface{}, error) {
+	token, err := request.ParseFromRequestWithClaims(r, request.OAuth2Extractor, func(token *jwt.TokenFor[*CustomClaimsExample]) (interface{}, error) {
 		// since we only use the one private key to sign the tokens,
 		// we also only use its public counter part to verify
 		return verifyKey, nil
-	}, request.WithClaims(&CustomClaimsExample{}))
-
+	})
 	// If the token is missing or invalid, return error
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -206,5 +204,5 @@ func restrictedHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Token is valid
-	fmt.Fprintln(w, "Welcome,", token.Claims.(*CustomClaimsExample).Name)
+	fmt.Fprintln(w, "Welcome,", token.Claims.Name)
 }

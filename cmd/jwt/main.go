@@ -128,7 +128,7 @@ func verifyToken() error {
 	}
 
 	// Parse the token.  Load the key from command line option
-	token, err := jwt.Parse(string(tokData), func(t *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(string(tokData), func(t *jwt.TokenFor[jwt.MapClaims]) (interface{}, error) {
 		if isNone() {
 			return jwt.UnsafeAllowNoneSignatureType, nil
 		}

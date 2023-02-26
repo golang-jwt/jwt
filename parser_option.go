@@ -6,14 +6,14 @@ import "time"
 // behavior of the parser. To add new options, just create a function (ideally
 // beginning with With or Without) that returns an anonymous function that takes
 // a *Parser type as input and manipulates its configuration accordingly.
-type ParserOption func(*Parser)
+type ParserOption func(*parserOpts)
 
 // WithValidMethods is an option to supply algorithm methods that the parser
 // will check. Only those methods will be considered valid. It is heavily
 // encouraged to use this option in order to prevent attacks such as
 // https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/.
 func WithValidMethods(methods []string) ParserOption {
-	return func(p *Parser) {
+	return func(p *parserOpts) {
 		p.validMethods = methods
 	}
 }
@@ -21,7 +21,7 @@ func WithValidMethods(methods []string) ParserOption {
 // WithJSONNumber is an option to configure the underlying JSON parser with
 // UseNumber.
 func WithJSONNumber() ParserOption {
-	return func(p *Parser) {
+	return func(p *parserOpts) {
 		p.useJSONNumber = true
 	}
 }
@@ -29,14 +29,14 @@ func WithJSONNumber() ParserOption {
 // WithoutClaimsValidation is an option to disable claims validation. This
 // option should only be used if you exactly know what you are doing.
 func WithoutClaimsValidation() ParserOption {
-	return func(p *Parser) {
+	return func(p *parserOpts) {
 		p.skipClaimsValidation = true
 	}
 }
 
 // WithLeeway returns the ParserOption for specifying the leeway window.
 func WithLeeway(leeway time.Duration) ParserOption {
-	return func(p *Parser) {
+	return func(p *parserOpts) {
 		p.validator.leeway = leeway
 	}
 }
@@ -45,7 +45,7 @@ func WithLeeway(leeway time.Duration) ParserOption {
 // primary use-case for this is testing. If you are looking for a way to account
 // for clock-skew, WithLeeway should be used instead.
 func WithTimeFunc(f func() time.Time) ParserOption {
-	return func(p *Parser) {
+	return func(p *parserOpts) {
 		p.validator.timeFunc = f
 	}
 }
@@ -53,7 +53,7 @@ func WithTimeFunc(f func() time.Time) ParserOption {
 // WithIssuedAt returns the ParserOption to enable verification
 // of issued-at.
 func WithIssuedAt() ParserOption {
-	return func(p *Parser) {
+	return func(p *parserOpts) {
 		p.validator.verifyIat = true
 	}
 }
@@ -67,7 +67,7 @@ func WithIssuedAt() ParserOption {
 // writing secure application, we decided to REQUIRE the existence of the claim,
 // if an audience is expected.
 func WithAudience(aud string) ParserOption {
-	return func(p *Parser) {
+	return func(p *parserOpts) {
 		p.validator.expectedAud = aud
 	}
 }
@@ -81,7 +81,7 @@ func WithAudience(aud string) ParserOption {
 // writing secure application, we decided to REQUIRE the existence of the claim,
 // if an issuer is expected.
 func WithIssuer(iss string) ParserOption {
-	return func(p *Parser) {
+	return func(p *parserOpts) {
 		p.validator.expectedIss = iss
 	}
 }
@@ -95,7 +95,7 @@ func WithIssuer(iss string) ParserOption {
 // writing secure application, we decided to REQUIRE the existence of the claim,
 // if a subject is expected.
 func WithSubject(sub string) ParserOption {
-	return func(p *Parser) {
+	return func(p *parserOpts) {
 		p.validator.expectedSub = sub
 	}
 }

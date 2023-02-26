@@ -58,7 +58,7 @@ func TestParseRequest(t *testing.T) {
 	// load keys from disk
 	privateKey := test.LoadRSAPrivateKeyFromDisk("../test/sample_key")
 	publicKey := test.LoadRSAPublicKeyFromDisk("../test/sample_key.pub")
-	keyfunc := func(*jwt.Token) (interface{}, error) {
+	keyfunc := func(*jwt.TokenFor[jwt.MapClaims]) (interface{}, error) {
 		return publicKey, nil
 	}
 
@@ -85,7 +85,7 @@ func TestParseRequest(t *testing.T) {
 				r.Header.Set(k, tokenString)
 			}
 		}
-		token, err := ParseFromRequestWithClaims(r, data.extractor, jwt.MapClaims{}, keyfunc)
+		token, err := ParseFromRequest(r, data.extractor, keyfunc)
 
 		if token == nil {
 			t.Errorf("[%v] Token was not found: %v", data.name, err)
