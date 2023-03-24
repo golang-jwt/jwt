@@ -10,7 +10,7 @@ Starting from [v5.0.0](https://github.com/golang-jwt/jwt/releases/tag/v5.0.0), t
 
 For most users, changing the import path *should* suffice. However, since we intentionally changed and cleaned some of
 the public API, existing programs might need to be updated. The following sections describe significant changes
-and corresponding updates existing programs.
+and corresponding updates for existing programs.
 
 ## Parsing and Validation Options
 
