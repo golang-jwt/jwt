@@ -7,6 +7,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"os"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -53,7 +54,7 @@ func TestRSAVerify(t *testing.T) {
 		parts := strings.Split(data.tokenString, ".")
 
 		method := jwt.GetSigningMethod(data.alg)
-		err := method.Verify(strings.Join(parts[0:2], "."), parts[2], key)
+		err := method.Verify(strings.Join(parts[0:2], "."), decodeSegment(t, parts[2]), key)
 		if data.valid && err != nil {
 			t.Errorf("[%v] Error while verifying key: %v", data.name, err)
 		}
@@ -75,7 +76,7 @@ func TestRSASign(t *testing.T) {
 			if err != nil {
 				t.Errorf("[%v] Error signing token: %v", data.name, err)
 			}
-			if sig != parts[2] {
+			if !reflect.DeepEqual(sig, decodeSegment(t, parts[2])) {
 				t.Errorf("[%v] Incorrect signature.\nwas:\n%v\nexpecting:\n%v", data.name, sig, parts[2])
 			}
 		}
@@ -90,7 +91,7 @@ func TestRSAVerifyWithPreParsedPrivateKey(t *testing.T) {
 	}
 	testData := rsaTestData[0]
 	parts := strings.Split(testData.tokenString, ".")
-	err = jwt.SigningMethodRS256.Verify(strings.Join(parts[0:2], "."), parts[2], parsedKey)
+	err = jwt.SigningMethodRS256.Verify(strings.Join(parts[0:2], "."), decodeSegment(t, parts[2]), parsedKey)
 	if err != nil {
 		t.Errorf("[%v] Error while verifying key: %v", testData.name, err)
 	}
@@ -108,7 +109,7 @@ func TestRSAWithPreParsedPrivateKey(t *testing.T) {
 	if err != nil {
 		t.Errorf("[%v] Error signing token: %v", testData.name, err)
 	}
-	if sig != parts[2] {
+	if !reflect.DeepEqual(sig, decodeSegment(t, parts[2])) {
 		t.Errorf("[%v] Incorrect signature.\nwas:\n%v\nexpecting:\n%v", testData.name, sig, parts[2])
 	}
 }

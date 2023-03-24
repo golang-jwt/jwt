@@ -25,14 +25,14 @@ func (m *signingMethodNone) Alg() string {
 }
 
 // Only allow 'none' alg type if UnsafeAllowNoneSignatureType is specified as the key
-func (m *signingMethodNone) Verify(signingString, signature string, key interface{}) (err error) {
+func (m *signingMethodNone) Verify(signingString string, sig []byte, key interface{}) (err error) {
 	// Key must be UnsafeAllowNoneSignatureType to prevent accidentally
 	// accepting 'none' signing method
 	if _, ok := key.(unsafeNoneMagicConstant); !ok {
 		return NoneSignatureTypeDisallowedError
 	}
 	// If signing method is none, signature must be an empty string
-	if signature != "" {
+	if string(sig) != "" {
 		return newError("'none' signing method with non-empty signature", ErrTokenUnverifiable)
 	}
 
@@ -41,9 +41,10 @@ func (m *signingMethodNone) Verify(signingString, signature string, key interfac
 }
 
 // Only allow 'none' signing if UnsafeAllowNoneSignatureType is specified as the key
-func (m *signingMethodNone) Sign(signingString string, key interface{}) (string, error) {
+func (m *signingMethodNone) Sign(signingString string, key interface{}) ([]byte, error) {
 	if _, ok := key.(unsafeNoneMagicConstant); ok {
-		return "", nil
+		return []byte{}, nil
 	}
-	return "", NoneSignatureTypeDisallowedError
+
+	return nil, NoneSignatureTypeDisallowedError
 }
