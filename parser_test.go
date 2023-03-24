@@ -415,7 +415,7 @@ func TestParser_Parse(t *testing.T) {
 			}
 
 			if data.valid {
-				if token.Signature == "" {
+				if len(token.Signature) == 0 {
 					t.Errorf("[%v] Signature is left unpopulated after parsing", data.name)
 				}
 				if !token.Valid {
@@ -473,7 +473,7 @@ func TestParser_ParseUnverified(t *testing.T) {
 				// The 'Valid' field should not be set to true when invoking ParseUnverified()
 				t.Errorf("[%v] Token.Valid field mismatch. Expecting false, got %v", data.name, token.Valid)
 			}
-			if token.Signature != "" {
+			if len(token.Signature) != 0 {
 				// The signature was not validated, hence the 'Signature' field is not populated.
 				t.Errorf("[%v] Token.Signature field mismatch. Expecting '', got %v", data.name, token.Signature)
 			}
@@ -641,9 +641,6 @@ var setPaddingTestData = []struct {
 func TestSetPadding(t *testing.T) {
 	for _, data := range setPaddingTestData {
 		t.Run(data.name, func(t *testing.T) {
-			jwt.DecodePaddingAllowed = data.paddedDecode
-			jwt.DecodeStrict = data.strictDecode
-
 			// If the token string is blank, use helper function to generate string
 			if data.tokenString == "" {
 				data.tokenString = signToken(data.claims, data.signingMethod)
@@ -652,7 +649,16 @@ func TestSetPadding(t *testing.T) {
 			// Parse the token
 			var token *jwt.Token
 			var err error
-			parser := jwt.NewParser(jwt.WithoutClaimsValidation())
+			var opts []jwt.ParserOption = []jwt.ParserOption{jwt.WithoutClaimsValidation()}
+
+			if data.paddedDecode {
+				opts = append(opts, jwt.WithPaddingAllowed())
+			}
+			if data.strictDecode {
+				opts = append(opts, jwt.WithStrictDecoding())
+			}
+
+			parser := jwt.NewParser(opts...)
 
 			// Figure out correct claims type
 			token, err = parser.ParseWithClaims(data.tokenString, jwt.MapClaims{}, data.keyfunc)
@@ -666,8 +672,6 @@ func TestSetPadding(t *testing.T) {
 			}
 
 		})
-		jwt.DecodePaddingAllowed = false
-		jwt.DecodeStrict = false
 	}
 }
 

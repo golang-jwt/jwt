@@ -3,26 +3,7 @@ package jwt
 import (
 	"encoding/base64"
 	"encoding/json"
-	"strings"
 )
-
-// DecodePaddingAllowed will switch the codec used for decoding JWTs
-// respectively. Note that the JWS RFC7515 states that the tokens will utilize a
-// Base64url encoding with no padding. Unfortunately, some implementations of
-// JWT are producing non-standard tokens, and thus require support for decoding.
-// Note that this is a global variable, and updating it will change the behavior
-// on a package level, and is also NOT go-routine safe. To use the
-// non-recommended decoding, set this boolean to `true` prior to using this
-// package.
-var DecodePaddingAllowed bool
-
-// DecodeStrict will switch the codec used for decoding JWTs into strict mode.
-// In this mode, the decoder requires that trailing padding bits are zero, as
-// described in RFC 4648 section 3.5. Note that this is a global variable, and
-// updating it will change the behavior on a package level, and is also NOT
-// go-routine safe. To use strict decoding, set this boolean to `true` prior to
-// using this package.
-var DecodeStrict bool
 
 // Keyfunc will be used by the Parse methods as a callback function to supply
 // the key for verification.  The function receives the parsed, but unverified
@@ -35,21 +16,21 @@ type Keyfunc func(*Token) (interface{}, error)
 type Token struct {
 	Raw       string                 // Raw contains the raw token.  Populated when you [Parse] a token
 	Method    SigningMethod          // Method is the signing method used or to be used
-	Header    map[string]interface{} // Header is the first segment of the token
-	Claims    Claims                 // Claims is the second segment of the token
-	Signature string                 // Signature is the  third segment of the token.  Populated when you Parse a token
+	Header    map[string]interface{} // Header is the first segment of the token in decoded form
+	Claims    Claims                 // Claims is the second segment of the token in decoded form
+	Signature []byte                 // Signature is the third segment of the token in decoded form.  Populated when you Parse a token
 	Valid     bool                   // Valid specifies if the token is valid.  Populated when you Parse/Verify a token
 }
 
-// New creates a new [Token] with the specified signing method and an empty map of
-// claims.
-func New(method SigningMethod) *Token {
-	return NewWithClaims(method, MapClaims{})
+// New creates a new [Token] with the specified signing method and an empty map
+// of claims. Additional options can be specified, but are currently unused.
+func New(method SigningMethod, opts ...TokenOption) *Token {
+	return NewWithClaims(method, MapClaims{}, opts...)
 }
 
 // NewWithClaims creates a new [Token] with the specified signing method and
-// claims.
-func NewWithClaims(method SigningMethod, claims Claims) *Token {
+// claims. Additional options can be specified, but are currently unused.
+func NewWithClaims(method SigningMethod, claims Claims, opts ...TokenOption) *Token {
 	return &Token{
 		Header: map[string]interface{}{
 			"typ": "JWT",
@@ -73,7 +54,7 @@ func (t *Token) SignedString(key interface{}) (string, error) {
 		return "", err
 	}
 
-	return sstr + "." + sig, nil
+	return sstr + "." + t.EncodeSegment(sig), nil
 }
 
 // SigningString generates the signing string.  This is the most expensive part
@@ -90,55 +71,13 @@ func (t *Token) SigningString() (string, error) {
 		return "", err
 	}
 
-	return EncodeSegment(h) + "." + EncodeSegment(c), nil
+	return t.EncodeSegment(h) + "." + t.EncodeSegment(c), nil
 }
 
-// Parse parses, validates, verifies the signature and returns the parsed token.
-// keyFunc will receive the parsed token and should return the cryptographic key
-// for verifying the signature. The caller is strongly encouraged to set the
-// WithValidMethods option to validate the 'alg' claim in the token matches the
-// expected algorithm. For more details about the importance of validating the
-// 'alg' claim, see
-// https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/
-func Parse(tokenString string, keyFunc Keyfunc, options ...ParserOption) (*Token, error) {
-	return NewParser(options...).Parse(tokenString, keyFunc)
-}
-
-// ParseWithClaims is a shortcut for NewParser().ParseWithClaims().
-//
-// Note: If you provide a custom claim implementation that embeds one of the
-// standard claims (such as RegisteredClaims), make sure that a) you either
-// embed a non-pointer version of the claims or b) if you are using a pointer,
-// allocate the proper memory for it before passing in the overall claims,
-// otherwise you might run into a panic.
-func ParseWithClaims(tokenString string, claims Claims, keyFunc Keyfunc, options ...ParserOption) (*Token, error) {
-	return NewParser(options...).ParseWithClaims(tokenString, claims, keyFunc)
-}
-
-// EncodeSegment encodes a JWT specific base64url encoding with padding stripped
-//
-// Deprecated: In a future release, we will demote this function to a
-// non-exported function, since it should only be used internally
-func EncodeSegment(seg []byte) string {
+// EncodeSegment encodes a JWT specific base64url encoding with padding
+// stripped. In the future, this function might take into account a
+// [TokenOption]. Therefore, this function exists as a method of [Token], rather
+// than a global function.
+func (*Token) EncodeSegment(seg []byte) string {
 	return base64.RawURLEncoding.EncodeToString(seg)
-}
-
-// DecodeSegment decodes a JWT specific base64url encoding with padding stripped
-//
-// Deprecated: In a future release, we will demote this function to a
-// non-exported function, since it should only be used internally
-func DecodeSegment(seg string) ([]byte, error) {
-	encoding := base64.RawURLEncoding
-
-	if DecodePaddingAllowed {
-		if l := len(seg) % 4; l > 0 {
-			seg += strings.Repeat("=", 4-l)
-		}
-		encoding = base64.URLEncoding
-	}
-
-	if DecodeStrict {
-		encoding = encoding.Strict()
-	}
-	return encoding.DecodeString(seg)
 }

@@ -46,17 +46,11 @@ func (m *SigningMethodHMAC) Alg() string {
 }
 
 // Verify implements token verification for the SigningMethod. Returns nil if the signature is valid.
-func (m *SigningMethodHMAC) Verify(signingString, signature string, key interface{}) error {
+func (m *SigningMethodHMAC) Verify(signingString string, sig []byte, key interface{}) error {
 	// Verify the key is the right type
 	keyBytes, ok := key.([]byte)
 	if !ok {
 		return ErrInvalidKeyType
-	}
-
-	// Decode signature, for comparison
-	sig, err := DecodeSegment(signature)
-	if err != nil {
-		return err
 	}
 
 	// Can we use the specified hashing method?
@@ -79,17 +73,17 @@ func (m *SigningMethodHMAC) Verify(signingString, signature string, key interfac
 
 // Sign implements token signing for the SigningMethod.
 // Key must be []byte
-func (m *SigningMethodHMAC) Sign(signingString string, key interface{}) (string, error) {
+func (m *SigningMethodHMAC) Sign(signingString string, key interface{}) ([]byte, error) {
 	if keyBytes, ok := key.([]byte); ok {
 		if !m.Hash.Available() {
-			return "", ErrHashUnavailable
+			return nil, ErrHashUnavailable
 		}
 
 		hasher := hmac.New(m.Hash.New, keyBytes)
 		hasher.Write([]byte(signingString))
 
-		return EncodeSegment(hasher.Sum(nil)), nil
+		return hasher.Sum(nil), nil
 	}
 
-	return "", ErrInvalidKeyType
+	return nil, ErrInvalidKeyType
 }
