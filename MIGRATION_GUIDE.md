@@ -9,17 +9,17 @@ Starting from [v5.0.0](https://github.com/golang-jwt/jwt/releases/tag/v5.0.0), t
     "github.com/golang-jwt/jwt/v5"
 
 For most users, changing the import path *should* suffice. However, since we intentionally changed and cleaned some of
-the public API, existing programs might need to be adopted. The following paragraphs go through the individual changes
-and make suggestions how to change existing programs.
+the public API, existing programs might need to be updated. The following sections describe significant changes
+and corresponding updates existing programs.
 
 ## Parsing and Validation Options
 
 Under the hood, a new `validator` struct takes care of validating the claims. A long awaited feature has been the option
 to fine-tune the validation of tokens. This is now possible with several `ParserOption` functions that can be appended
 to most `Parse` functions, such as `ParseWithClaims`. The most important options and changes are:
-  * `WithLeeway`, which can be used to specific leeway that is taken into account when validating time-based claims, such as `exp` or `nbf`.
-  * The new default behavior now disables checking the `iat` claim by default. Usage of this claim is OPTIONAL according to the JWT RFC. The claim itself is also purely informational according to the RFC, so a strict validation failure is not recommended. If you want to check for sensible values in these claims, please use the `WithIssuedAt` parser option.
-  * New options have also been added to check for expected `aud`, `sub` and `iss`, namely `WithAudience`, `WithSubject` and `WithIssuer`.
+  * Added `WithLeeway` to support specifying the leeway that is allowed when validating time-based claims, such as `exp` or `nbf`.
+  * Changed default behavior to not check the `iat` claim. Usage of this claim is OPTIONAL according to the JWT RFC. The claim itself is also purely informational according to the RFC, so a strict validation failure is not recommended. If you want to check for sensible values in these claims, please use the `WithIssuedAt` parser option.
+  * Added `WithAudience`, `WithSubject` and `WithIssuer` to support checking for expected `aud`, `sub` and `iss`.
 
 ## Changes to the `Claims` interface
 
