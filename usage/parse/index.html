@@ -1,0 +1,519 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://golang-jwt.github.io/jwt/usage/parse/">
+      
+      
+        <link rel="prev" href="../create/">
+      
+      
+        <link rel="next" href="../signing_methods/">
+      
+      <link rel="icon" href="../../assets/jwt.png">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.4">
+    
+    
+      
+        <title>Parsing and Validating a JWT - golang-jwt docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.240905d7.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.a0c5b2b5.min.css">
+      
+      
+
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+      
+        <meta  property="og:type"  content="website" >
+      
+        <meta  property="og:title"  content="Parsing and Validating a JWT - golang-jwt docs" >
+      
+        <meta  property="og:description"  content="None" >
+      
+        <meta  property="og:image"  content="https://golang-jwt.github.io/jwt/assets/images/social/usage/parse.png" >
+      
+        <meta  property="og:image:type"  content="image/png" >
+      
+        <meta  property="og:image:width"  content="1200" >
+      
+        <meta  property="og:image:height"  content="630" >
+      
+        <meta  property="og:url"  content="https://golang-jwt.github.io/jwt/usage/parse/" >
+      
+        <meta  name="twitter:card"  content="summary_large_image" >
+      
+        <meta  name="twitter:title"  content="Parsing and Validating a JWT - golang-jwt docs" >
+      
+        <meta  name="twitter:description"  content="None" >
+      
+        <meta  name="twitter:image"  content="https://golang-jwt.github.io/jwt/assets/images/social/usage/parse.png" >
+      
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="light-blue" data-md-color-accent="purple">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#parsing-and-validating-a-jwt" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="golang-jwt docs" class="md-header__button md-logo" aria-label="golang-jwt docs" data-md-component="logo">
+      
+  <img src="../../assets/jwt.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            golang-jwt docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Parsing and Validating a JWT
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/golang-jwt/jwt" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    golang-jwt/jwt
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../.." class="md-tabs__link">
+      Getting Started
+    </a>
+  </li>
+
+      
+        
+  
+  
+    
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../create/" class="md-tabs__link md-tabs__link--active">
+        Usage
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="golang-jwt docs" class="md-nav__button md-logo" aria-label="golang-jwt docs" data-md-component="logo">
+      
+  <img src="../../assets/jwt.png" alt="logo">
+
+    </a>
+    golang-jwt docs
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/golang-jwt/jwt" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    golang-jwt/jwt
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        Getting Started
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          Usage
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          Usage
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../create/" class="md-nav__link">
+        Creating a New JWT
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Parsing and Validating a JWT
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Parsing and Validating a JWT
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#keyfunc" class="md-nav__link">
+    Keyfunc
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#with-options" class="md-nav__link">
+    With Options
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../signing_methods/" class="md-nav__link">
+        Signing methods
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+<h1 id="parsing-and-validating-a-jwt">Parsing and Validating a JWT</h1>
+<h2 id="keyfunc">Keyfunc</h2>
+<h2 id="with-options">With Options</h2>
+<table>
+<thead>
+<tr>
+<th align="left"><div style="width:5.6rem">Option Name</div></th>
+<th align="left"><div style="width:4.5rem">Arguments</div></th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>WithValidMethods</code></td>
+<td align="left">methods as <code>[]string</code></td>
+<td>Supplies a list of <a href="../signing_methods/">signing methods</a> that the parser will check against the algorithm on the token. Only the supplied methods will be considered valid. It is heavily encouraged to use this option in order to prevent "none" algorithm attacks.<sup id="fnref:1"><a class="footnote-ref" href="#fn:1">1</a></sup></td>
+</tr>
+<tr>
+<td align="left"><code>WithJSONNumber</code></td>
+<td align="left">-</td>
+<td>Configures the underlying JSON parser to use the <a href="https://pkg.go.dev/encoding/json#Decoder.UseNumber"><code>UseNumber</code></a> function, which decodes numeric JSON values into the <a href="https://pkg.go.dev/encoding/json#Number"><code>json.Number</code></a> type instead of <code>float64</code>. This type can then be used to convert the value into either a floating type or integer type.</td>
+</tr>
+<tr>
+<td align="left"><code>WithIssuer</code></td>
+<td align="left">issuer as <code>string</code></td>
+<td>Configures the validator to require the specified issuer in the <code>"iss"</code><sup id="fnref:iss"><a class="footnote-ref" href="#fn:iss">2</a></sup> claim. Validation will fail if a different issuer is specified in the token or the <code>"iss"</code> claim is missing.</td>
+</tr>
+<tr>
+<td align="left"><code>WithSubject</code></td>
+<td align="left">subject as <code>string</code></td>
+<td>Configures the validator to require the specified subject in the <code>"sub"</code><sup id="fnref:sub"><a class="footnote-ref" href="#fn:sub">3</a></sup> claim. Validation will fail if a different subject is specified in the token or the <code>"sub"</code> claim is missing.</td>
+</tr>
+<tr>
+<td align="left"><code>WithAudience</code></td>
+<td align="left">audience  as <code>string</code></td>
+<td>Configures the validator to require the specified audience in the <code>"aud"</code><sup id="fnref:aud"><a class="footnote-ref" href="#fn:aud">4</a></sup> claim. Validation will fail if the audience is not listed in the token or the <code>"aud"</code> claim is missing. The contents of the audience string is application specific, but often contains the URI of the service that consumes the token.</td>
+</tr>
+<tr>
+<td align="left"><code>WithLeeway</code></td>
+<td align="left">leeway as <a href="https://pkg.go.dev/time#Duration"><code>time.Duration</code></a></td>
+<td>According to the RFC, a certain time window (leeway) is allowed when verifying time based claims, such as expiration time. This is due to the fact that a there is not perfect clock synchronization on the a distributed system such as the internet. While we do not enforce any restriction on the amount of leeway, it should generally not exceed more than a few minutes.<sup id="fnref:exp"><a class="footnote-ref" href="#fn:exp">5</a></sup></td>
+</tr>
+<tr>
+<td align="left"><code>WithIssuedAt</code></td>
+<td align="left">-</td>
+<td>Enables a sanity check of the <code>"iat"</code><sup id="fnref:iat"><a class="footnote-ref" href="#fn:iat">6</a></sup> claim. More specifically, when turning this option on, the validator will check if the issued-at time is not in the future.</td>
+</tr>
+<tr>
+<td align="left">Danger Zone</td>
+<td align="left"></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<div class="footnote">
+<hr />
+<ol>
+<li id="fn:1">
+<p><a href="https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries">https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries</a>&#160;<a class="footnote-backref" href="#fnref:1" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+<li id="fn:iss">
+<p><a href="https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.1">https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.1</a>&#160;<a class="footnote-backref" href="#fnref:iss" title="Jump back to footnote 2 in the text">&#8617;</a></p>
+</li>
+<li id="fn:sub">
+<p><a href="https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.2">https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.2</a>&#160;<a class="footnote-backref" href="#fnref:sub" title="Jump back to footnote 3 in the text">&#8617;</a></p>
+</li>
+<li id="fn:aud">
+<p><a href="https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.3">https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.3</a>&#160;<a class="footnote-backref" href="#fnref:aud" title="Jump back to footnote 4 in the text">&#8617;</a></p>
+</li>
+<li id="fn:exp">
+<p><a href="https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.4">https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.4</a>&#160;<a class="footnote-backref" href="#fnref:exp" title="Jump back to footnote 5 in the text">&#8617;</a></p>
+</li>
+<li id="fn:iat">
+<p><a href="https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.6">https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.6</a>&#160;<a class="footnote-backref" href="#fnref:iat" title="Jump back to footnote 6 in the text">&#8617;</a></p>
+</li>
+</ol>
+</div>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.tabs", "toc.integrate", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.19047be9.min.js"></script>
+      
+    
+  </body>
+</html>

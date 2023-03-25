@@ -6,29 +6,27 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Getting started with golang-jwt/jwt">
       
       
-      
-        <link rel="canonical" href="https://golang-jwt.github.io/jwt/">
-      
+        <link rel="canonical" href="https://golang-jwt.github.io/jwt/usage/signing_methods/">
       
       
-        <link rel="next" href="usage/create/">
+        <link rel="prev" href="../parse/">
       
-      <link rel="icon" href="assets/jwt.png">
+      
+      <link rel="icon" href="../../assets/jwt.png">
       <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.4">
     
     
       
-        <title>golang-jwt docs</title>
+        <title>Signing methods - golang-jwt docs</title>
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.240905d7.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.240905d7.min.css">
       
         
-        <link rel="stylesheet" href="assets/stylesheets/palette.a0c5b2b5.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.a0c5b2b5.min.css">
       
       
 
@@ -44,7 +42,7 @@
       
     
     
-    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -53,11 +51,11 @@
       
         <meta  property="og:type"  content="website" >
       
-        <meta  property="og:title"  content="Getting Started" >
+        <meta  property="og:title"  content="Signing methods - golang-jwt docs" >
       
-        <meta  property="og:description"  content="Getting started with golang-jwt/jwt" >
+        <meta  property="og:description"  content="None" >
       
-        <meta  property="og:image"  content="https://golang-jwt.github.io/jwt/assets/images/social/index.png" >
+        <meta  property="og:image"  content="https://golang-jwt.github.io/jwt/assets/images/social/usage/signing_methods.png" >
       
         <meta  property="og:image:type"  content="image/png" >
       
@@ -65,15 +63,15 @@
       
         <meta  property="og:image:height"  content="630" >
       
-        <meta  property="og:url"  content="https://golang-jwt.github.io/jwt/" >
+        <meta  property="og:url"  content="https://golang-jwt.github.io/jwt/usage/signing_methods/" >
       
         <meta  name="twitter:card"  content="summary_large_image" >
       
-        <meta  name="twitter:title"  content="Getting Started" >
+        <meta  name="twitter:title"  content="Signing methods - golang-jwt docs" >
       
-        <meta  name="twitter:description"  content="Getting started with golang-jwt/jwt" >
+        <meta  name="twitter:description"  content="None" >
       
-        <meta  name="twitter:image"  content="https://golang-jwt.github.io/jwt/assets/images/social/index.png" >
+        <meta  name="twitter:image"  content="https://golang-jwt.github.io/jwt/assets/images/social/usage/signing_methods.png" >
       
     
     
@@ -94,11 +92,6 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
-        
-        <a href="#getting-started" class="md-skip">
-          Skip to content
-        </a>
-      
     </div>
     <div data-md-component="announce">
       
@@ -109,9 +102,9 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="." title="golang-jwt docs" class="md-header__button md-logo" aria-label="golang-jwt docs" data-md-component="logo">
+    <a href="../.." title="golang-jwt docs" class="md-header__button md-logo" aria-label="golang-jwt docs" data-md-component="logo">
       
-  <img src="assets/jwt.png" alt="logo">
+  <img src="../../assets/jwt.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -127,7 +120,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Getting Started
+              Signing methods
             
           </span>
         </div>
@@ -166,12 +159,10 @@
         
   
   
-    
-  
 
 
   <li class="md-tabs__item">
-    <a href="." class="md-tabs__link md-tabs__link--active">
+    <a href="../.." class="md-tabs__link">
       Getting Started
     </a>
   </li>
@@ -180,13 +171,15 @@
         
   
   
+    
+  
 
 
   
   
   
     <li class="md-tabs__item">
-      <a href="usage/create/" class="md-tabs__link">
+      <a href="../create/" class="md-tabs__link md-tabs__link--active">
         Usage
       </a>
     </li>
@@ -216,9 +209,9 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="." title="golang-jwt docs" class="md-nav__button md-logo" aria-label="golang-jwt docs" data-md-component="logo">
+    <a href="../.." title="golang-jwt docs" class="md-nav__button md-logo" aria-label="golang-jwt docs" data-md-component="logo">
       
-  <img src="assets/jwt.png" alt="logo">
+  <img src="../../assets/jwt.png" alt="logo">
 
     </a>
     golang-jwt docs
@@ -244,73 +237,11 @@
 
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          Getting Started
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="." class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
         Getting Started
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#supported-go-versions" class="md-nav__link">
-    Supported Go versions
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-the-heck-is-a-jwt" class="md-nav__link">
-    What the heck is a JWT?
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#whats-in-the-box" class="md-nav__link">
-    What's in the box?
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#installation-guidelines" class="md-nav__link">
-    Installation Guidelines
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -321,14 +252,16 @@
 
   
   
+    
+  
   
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
       
       
       
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
       
       
       
@@ -337,7 +270,7 @@
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
         <label class="md-nav__title" for="__nav_2">
           <span class="md-nav__icon md-icon"></span>
           Usage
@@ -350,7 +283,7 @@
   
   
     <li class="md-nav__item">
-      <a href="usage/create/" class="md-nav__link">
+      <a href="../create/" class="md-nav__link">
         Creating a New JWT
       </a>
     </li>
@@ -364,7 +297,7 @@
   
   
     <li class="md-nav__item">
-      <a href="usage/parse/" class="md-nav__link">
+      <a href="../parse/" class="md-nav__link">
         Parsing and Validating a JWT
       </a>
     </li>
@@ -376,11 +309,19 @@
               
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="usage/signing_methods/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         Signing methods
       </a>
+      
     </li>
   
 
@@ -407,28 +348,9 @@
                   
 
 
-<h1 id="getting-started">Getting Started</h1>
-<p>Welcome to <code>jwt-go</code>, a <a href="http://www.golang.org">go</a> (or 'golang' for search engine friendliness) implementation of <a href="https://datatracker.ietf.org/doc/html/rfc7519">JSON Web Tokens</a>. </p>
-<h3 id="supported-go-versions">Supported Go versions</h3>
-<p>Our support of Go versions is aligned with Go's <a href="https://golang.org/doc/devel/release#policy">version release
-policy</a>. So we will support a major
-version of Go until there are two newer major releases. We no longer support
-building jwt-go with unsupported Go versions, as these contain security
-vulnerabilities which will not be fixed.</p>
-<h2 id="what-the-heck-is-a-jwt">What the heck is a JWT?</h2>
-<p>JWT.io has <a href="https://jwt.io/introduction">a great introduction</a> to JSON Web Tokens.</p>
-<p>In short, it's a signed JSON object that does something useful (for example, authentication).  It's commonly used for <code>Bearer</code> tokens in OAuth 2.0  A token is made of three parts, separated by <code>.</code>'s.  The first two parts are JSON objects, that have been <a href="https://datatracker.ietf.org/doc/html/rfc4648">base64url</a> encoded.  The last part is the signature, encoded the same way.</p>
-<p>The first part is called the header.  It contains the necessary information for verifying the last part, the signature.  For example, which encryption method was used for signing and what key was used.</p>
-<p>The part in the middle is the interesting bit.  It's called the Claims and contains the actual stuff you care about.  Refer to <a href="https://datatracker.ietf.org/doc/html/rfc7519">RFC 7519</a> for information about reserved keys and the proper way to add your own.</p>
-<h2 id="whats-in-the-box">What's in the box?</h2>
-<p>This library supports the parsing and verification as well as the generation and signing of JWTs.  Current supported signing algorithms are HMAC SHA, RSA, RSA-PSS, ECDSA and EdDSA, though hooks are present for adding your own.</p>
-<h2 id="installation-guidelines">Installation Guidelines</h2>
-<p>To install the jwt package, you first need to have <a href="https://go.dev/doc/install">Go</a> installed, then you can use the command below to add <code>jwt-go</code> as a dependency in your Go program.</p>
-<div class="language-sh highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>go<span class="w"> </span>get<span class="w"> </span>-u<span class="w"> </span>github.com/golang-jwt/jwt/v5
-</span></code></pre></div>
-<p>Then import it in your code:</p>
-<div class="language-go highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">import</span><span class="w"> </span><span class="s">&quot;github.com/golang-jwt/jwt/v5&quot;</span>
-</span></code></pre></div>
+  <h1>Signing methods</h1>
+
+
 
 
 
@@ -466,10 +388,10 @@ vulnerabilities which will not be fixed.</p>
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": ".", "features": ["navigation.instant", "navigation.tabs", "toc.integrate", "content.code.copy", "content.code.annotate"], "search": "assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.tabs", "toc.integrate", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="assets/javascripts/bundle.19047be9.min.js"></script>
+      <script src="../../assets/javascripts/bundle.19047be9.min.js"></script>
       
     
   </body>
