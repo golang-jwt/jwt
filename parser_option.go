@@ -104,10 +104,6 @@ func WithSubject(sub string) ParserOption {
 // padding. Note that the JWS RFC7515 states that the tokens will utilize a
 // Base64url encoding with no padding. Unfortunately, some implementations of
 // JWT are producing non-standard tokens, and thus require support for decoding.
-// Note that this is a global variable, and updating it will change the behavior
-// on a package level, and is also NOT go-routine safe. To use the
-// non-recommended decoding, set this boolean to `true` prior to using this
-// package.
 func WithPaddingAllowed() ParserOption {
 	return func(p *Parser) {
 		p.decodePaddingAllowed = true
@@ -116,10 +112,7 @@ func WithPaddingAllowed() ParserOption {
 
 // WithStrictDecoding will switch the codec used for decoding JWTs into strict
 // mode. In this mode, the decoder requires that trailing padding bits are zero,
-// as described in RFC 4648 section 3.5. Note that this is a global variable,
-// and updating it will change the behavior on a package level, and is also NOT
-// go-routine safe. To use strict decoding, set this boolean to `true` prior to
-// using this package.
+// as described in RFC 4648 section 3.5.
 func WithStrictDecoding() ParserOption {
 	return func(p *Parser) {
 		p.decodeStrict = true
