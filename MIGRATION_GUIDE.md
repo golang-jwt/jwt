@@ -20,6 +20,7 @@ to most `Parse` functions, such as `ParseWithClaims`. The most important options
   * Added `WithLeeway` to support specifying the leeway that is allowed when validating time-based claims, such as `exp` or `nbf`.
   * Changed default behavior to not check the `iat` claim. Usage of this claim is OPTIONAL according to the JWT RFC. The claim itself is also purely informational according to the RFC, so a strict validation failure is not recommended. If you want to check for sensible values in these claims, please use the `WithIssuedAt` parser option.
   * Added `WithAudience`, `WithSubject` and `WithIssuer` to support checking for expected `aud`, `sub` and `iss`.
+  * Added `WithStrictDecoding` and `WithPaddingAllowed` options to allow previously global settings to enable base64 strict encoding and the parsing of base64 strings with padding. The latter is strictly speaking against the standard, but unfortunately some of the major identity providers issue some of these incorrect tokens. Both options are disabled by default.
 
 ## Changes to the `Claims` interface
 
@@ -75,6 +76,27 @@ func (m MyCustomClaims) Validate() error {
 	return nil
 }
 ```
+
+## Changes to the `Token` and `Parser` struct
+
+The previously global functions `DecodeSegment` and `EncodeSegment` were moved to the `Parser` and `Token` struct respectively. This will allow us in the futureu to configure the behavior of these two based on options supplied on the parser or the token (creation). This also removes two previously global variables and moves them to parser options `WithStrictDecoding` and `WithPaddingAllowed`.
+
+In order to do that, we had to adjust the way signing methods work. Previously they were given a base64 encoded signature in `Verify` and were expected to return a base64 encoded version of the signature in `Sign`, both as a `string`. However, this made it necessary to have `DecodeSegment` and `EncodeSegment` global and was a less than perfect design because we were repeating encoding/decoding steps for all signing methods. Now, `Sign` and `Verify` operate on a decoded signature as a `[]byte`, which feels more natural for a cryptographic operation anyway. Lastly, `Parse` and `SignedString` take care of the final encoding/decoding part.
+
+In addition to that, we also changed the `Signature` field on `Token` from a `string` to `[]byte` and this is also now populated with the decoded form. This is also more consistent, because the other parts of the JWT, mainly `Header` and `Claims` were already stored in decoded form in `Token`. Only the signature was stored in base64 encoded form, which was redundant with the information in the `Raw` field, which contains the complete token as base64.
+
+```go
+type Token struct {
+	Raw       string                 // Raw contains the raw token
+	Method    SigningMethod          // Method is the signing method used or to be used
+	Header    map[string]interface{} // Header is the first segment of the token in decoded form
+	Claims    Claims                 // Claims is the second segment of the token in decoded form
+	Signature []byte                 // Signature is the third segment of the token in decoded form
+	Valid     bool                   // Valid specifies if the token is valid
+}
+```
+
+Most (if not all) of these changes should not impact the normal usage of this library. Only users directly accessing the `Signature` field as well as developers of custom signing methods should be affected.
 
 # Migration Guide (v4.0.0)
 
