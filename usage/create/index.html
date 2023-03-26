@@ -136,6 +136,39 @@
     
     
     
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
     
       <div class="md-header__source">
         <a href="https://github.com/golang-jwt/jwt" title="Go to repository" class="md-source" data-md-component="source">
@@ -453,6 +486,32 @@ transmitted) is used to <em>verify</em> the token.</p>
 </ol>
 <p>Note, that the chosen signing method and the type of key must match. Please refer to <a href="../signing_methods/">Signing Methods</a> for a complete overview.</p>
 <h2 id="with-additional-claims">With Additional Claims</h2>
+<p>While the step above using <a href="https://pkg.go.dev/github.com/golang-jwt/jwt/v5#New"><code>jwt.New</code></a> creates a valid token, it contains an empty set of <em>claims</em>. Claims are certain pieces of information that are encoded into the token. Since they are encoded and signed by the issuer of the token, one can assume that this information is valid (in the scope of the issuer). Claims can be used to provide the basis for user authentication or authorization, e.g., by encoding a user name or ID or roles into the token. This is also commonly in combination with OAuth 2.0. Furthermore, claims can also contain certain metadata about the token itself, e.g., the time until which the token is regarded as valid and not expired.</p>
+<p><a href="https://datatracker.ietf.org/doc/html/rfc7519">RFC 7519</a> provides a list of so called <em>registered claim names</em> <sup id="fnref:claims"><a class="footnote-ref" href="#fn:claims">1</a></sup>, which each JWT parser needs to understand. Using the <a href="https://pkg.go.dev/github.com/golang-jwt/jwt/v5#NewWithClaims"><code>jwt.NewWithClaims</code></a>, a token with different claims can be created.</p>
+<div class="language-go highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kd">var</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nx">key</span><span class="w"> </span><span class="o">*</span><span class="nx">ecdsa</span><span class="p">.</span><span class="nx">PrivateKey</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nx">t</span><span class="w">   </span><span class="o">*</span><span class="nx">jwt</span><span class="p">.</span><span class="nx">Token</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nx">s</span><span class="w">   </span><span class="kt">string</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="p">)</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="nx">key</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="cm">/* Load key from somewhere, for example a file */</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="nx">t</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">jwt</span><span class="p">.</span><span class="nx">NewWithClaims</span><span class="p">(</span><span class="nx">jwt</span><span class="p">.</span><span class="nx">SigningMethodES256</span><span class="p">,</span><span class="w"> </span><span class="c1">// (1)!</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">  </span><span class="nx">jwt</span><span class="p">.</span><span class="nx">MapClaims</span><span class="p">{</span><span class="w"> </span><span class="c1">// (2)!</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">    </span><span class="s">&quot;iss&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;my-auth-server&quot;</span><span class="p">,</span><span class="w"> </span><span class="c1">// (3)!</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">    </span><span class="s">&quot;sub&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;john&quot;</span><span class="p">,</span><span class="w"> </span><span class="c1">// (4)!</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">    </span><span class="s">&quot;foo&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="c1">// (5)!</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">  </span><span class="p">})</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="nx">s</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">t</span><span class="p">.</span><span class="nx">SignedString</span><span class="p">(</span><span class="nx">key</span><span class="p">)</span><span class="w"> </span><span class="c1">// (6)!</span>
+</span></code></pre></div>
+<ol>
+<li>This initializes a new <a href="https://pkg.go.dev/github.com/golang-jwt/jwt/v5#Token"><code>jwt.Token</code></a> struct based on the supplied signing method. In this case a <strong>asymmetric</strong> method is chosen, which is the first parameter.</li>
+<li>The second parameter contains the desired claims in form of the <a href="https://pkg.go.dev/github.com/golang-jwt/jwt/v5#Claims"><code>jwt.Claims</code></a> interface. In this case <a href="https://pkg.go.dev/github.com/golang-jwt/jwt/v5#MapClaims"><code>jwt.MapClaims</code></a> are used, which is a wrapper type around a Go map containing <code>string</code> keys.</li>
+<li>The <code>"sub"</code><sup id="fnref:sub"><a class="footnote-ref" href="#fn:sub">3</a></sup> claim is a registered claim name that contains the subject this token identifies, e.g. a user name. More technical, this claim identifies the principal that is the <em>subject</em> of the token.</li>
+<li>The <code>"iss"</code><sup id="fnref:iss"><a class="footnote-ref" href="#fn:iss">2</a></sup> claim is a registered claim name that contains the issuer of the token. More technical, this claim identifies the principal that <em>issued</em> the token.</li>
+<li>The <code>"foo"</code> claim is a custom claim containing a numeric value. Any string value can be chosen as a claim name, as long as it does not interfere with a registered claim name.</li>
+<li>This step computes a cryptographic signature based on the supplied private
+   key.</li>
+</ol>
 <h2 id="with-options">With Options</h2>
 <p>While we already prepared a
 <a href="https://pkg.go.dev/github.com/golang-jwt/jwt/v5#TokenOption"><code>jwt.TokenOption</code></a>
@@ -460,6 +519,20 @@ type, which can be supplied as a varargs to
 <a href="https://pkg.go.dev/github.com/golang-jwt/jwt/v5#New"><code>jwt.New</code></a> and
 <a href="https://pkg.go.dev/github.com/golang-jwt/jwt/v5#NewWithClaims"><code>jwt.NewWithClaims</code></a>,
 these are strictly for future compatibility and are currently not used.</p>
+<div class="footnote">
+<hr />
+<ol>
+<li id="fn:claims">
+<p><a href="https://datatracker.ietf.org/doc/html/rfc7519#section-4.1">Section 4.1 of RFC 7519</a>&#160;<a class="footnote-backref" href="#fnref:claims" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+<li id="fn:iss">
+<p><a href="https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.1">Section 4.1.1 of RFC 7519</a>&#160;<a class="footnote-backref" href="#fnref:iss" title="Jump back to footnote 2 in the text">&#8617;</a></p>
+</li>
+<li id="fn:sub">
+<p><a href="https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.2">Section 4.1.2 of RFC 7519</a>&#160;<a class="footnote-backref" href="#fnref:sub" title="Jump back to footnote 3 in the text">&#8617;</a></p>
+</li>
+</ol>
+</div>
 
 
 
