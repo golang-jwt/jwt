@@ -94,7 +94,8 @@ func Example_getTokenViaHTTP() {
 
 	// Read the token out of the response body
 	buf := new(bytes.Buffer)
-	io.Copy(buf, res.Body)
+	_, err = io.Copy(buf, res.Body)
+	fatal(err)
 	res.Body.Close()
 	tokenString := strings.TrimSpace(buf.String())
 
@@ -129,7 +130,8 @@ func Example_useTokenViaHTTP() {
 
 	// Read the response body
 	buf := new(bytes.Buffer)
-	io.Copy(buf, res.Body)
+	_, err = io.Copy(buf, res.Body)
+	fatal(err)
 	res.Body.Close()
 	fmt.Println(buf.String())
 
