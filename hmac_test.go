@@ -1,7 +1,7 @@
 package jwt_test
 
 import (
-	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 
@@ -46,7 +46,7 @@ var hmacTestData = []struct {
 }
 
 // Sample data from http://tools.ietf.org/html/draft-jones-json-web-signature-04#appendix-A.1
-var hmacTestKey, _ = ioutil.ReadFile("test/hmacTestKey")
+var hmacTestKey, _ = os.ReadFile("test/hmacTestKey")
 
 func TestHMACVerify(t *testing.T) {
 	for _, data := range hmacTestData {
