@@ -120,6 +120,17 @@ func TestRSAKeyParsing(t *testing.T) {
 	pubKey, _ := os.ReadFile("test/sample_key.pub")
 	badKey := []byte("All your base are belong to key")
 
+	randomKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Errorf("Failed to generate RSA private key: %v", err)
+	}
+
+	publicKeyBytes := x509.MarshalPKCS1PublicKey(&randomKey.PublicKey)
+	pkcs1Buffer := new(bytes.Buffer)
+	if err = pem.Encode(pkcs1Buffer, &pem.Block{Type: "RSA PUBLIC KEY", Bytes: publicKeyBytes}); err != nil {
+		t.Errorf("Failed to encode public pem: %v", err)
+	}
+
 	// Test parsePrivateKey
 	if _, e := jwt.ParseRSAPrivateKeyFromPEM(key); e != nil {
 		t.Errorf("Failed to parse valid private key: %v", e)
@@ -154,23 +165,7 @@ func TestRSAKeyParsing(t *testing.T) {
 		t.Errorf("Parsed invalid key as valid private key: %v", k)
 	}
 
-}
-
-func TestRSAParsePublicKeyFromPEM_PKCS1(t *testing.T) {
-	var privateKey *rsa.PrivateKey
-	var err error
-
-	if privateKey, err = rsa.GenerateKey(rand.Reader, 2048); err != nil {
-		t.Errorf("failed to generate RSA private key: %v", err)
-	}
-
-	publicKeyBytes := x509.MarshalPKCS1PublicKey(&privateKey.PublicKey)
-	pemBuffer := new(bytes.Buffer)
-	if err = pem.Encode(pemBuffer, &pem.Block{Type: "RSA PUBLIC KEY", Bytes: publicKeyBytes}); err != nil {
-		t.Errorf("failed to encode public pem: %v", err)
-	}
-
-	if _, err := jwt.ParseRSAPublicKeyFromPEM(pemBuffer.Bytes()); err != nil {
+	if _, err := jwt.ParseRSAPublicKeyFromPEM(pkcs1Buffer.Bytes()); err != nil {
 		t.Errorf("failed to parse RSA public key: %v", err)
 	}
 }
