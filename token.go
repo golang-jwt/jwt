@@ -71,7 +71,7 @@ func (t *Token) SigningString() (string, error) {
 		return "", err
 	}
 
-	// If payload have header b64 set as true, then don't base64 encode claims
+	// If payload have header b64 set as false, then don't base64 encode claims
 	if enabled, ok := t.Header["b64"].(bool); ok && !enabled {
 		return t.EncodeSegment(h) + "." + string(c), nil
 	}
