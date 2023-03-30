@@ -50,6 +50,10 @@ go get -u github.com/golang-jwt/jwt/v5
 import "github.com/golang-jwt/jwt/v5"
 ```
 
+## Usage
+
+A detailed usage guide, including how to sign and verify tokens can be found on our [documentation website](https://golang-jwt.github.io/jwt/usage/create/).
+
 ## Examples
 
 See [the project documentation](https://pkg.go.dev/github.com/golang-jwt/jwt/v5) for examples of usage:
@@ -57,20 +61,6 @@ See [the project documentation](https://pkg.go.dev/github.com/golang-jwt/jwt/v5)
 * [Simple example of parsing and validating a token](https://pkg.go.dev/github.com/golang-jwt/jwt/v5#example-Parse-Hmac)
 * [Simple example of building and signing a token](https://pkg.go.dev/github.com/golang-jwt/jwt/v5#example-New-Hmac)
 * [Directory of Examples](https://pkg.go.dev/github.com/golang-jwt/jwt/v5#pkg-examples)
-
-## Extensions
-
-This library publishes all the necessary components for adding your own signing methods or key functions.  Simply implement the `SigningMethod` interface and register a factory method using `RegisterSigningMethod` or provide a `jwt.Keyfunc`.
-
-A common use case would be integrating with different 3rd party signature providers, like key management services from various cloud providers or Hardware Security Modules (HSMs) or to implement additional standards.
-
-| Extension | Purpose                                                                                                  | Repo                                       |
-| --------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
-| GCP       | Integrates with multiple Google Cloud Platform signing tools (AppEngine, IAM API, Cloud KMS)             | https://github.com/someone1/gcp-jwt-go     |
-| AWS       | Integrates with AWS Key Management Service, KMS                                                          | https://github.com/matelang/jwt-go-aws-kms |
-| JWKS      | Provides support for JWKS ([RFC 7517](https://datatracker.ietf.org/doc/html/rfc7517)) as a `jwt.Keyfunc` | https://github.com/MicahParks/keyfunc      |
-
-*Disclaimer*: Unless otherwise specified, these integrations are maintained by third parties and should not be considered as a primary offer by any of the mentioned cloud providers
 
 ## Compliance
 
@@ -87,51 +77,23 @@ This project uses [Semantic Versioning 2.0.0](http://semver.org).  Accepted pull
 **BREAKING CHANGES:*** 
 A full list of breaking changes is available in `VERSION_HISTORY.md`.  See `MIGRATION_GUIDE.md` for more information on updating your code.
 
-## Usage Tips
+## Extensions
 
-### Signing vs Encryption
+This library publishes all the necessary components for adding your own signing methods or key functions.  Simply implement the `SigningMethod` interface and register a factory method using `RegisterSigningMethod` or provide a `jwt.Keyfunc`.
 
-A token is simply a JSON object that is signed by its author. this tells you exactly two things about the data:
+A common use case would be integrating with different 3rd party signature providers, like key management services from various cloud providers or Hardware Security Modules (HSMs) or to implement additional standards.
 
-* The author of the token was in the possession of the signing secret
-* The data has not been modified since it was signed
+| Extension | Purpose                                                                                                  | Repo                                       |
+| --------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| GCP       | Integrates with multiple Google Cloud Platform signing tools (AppEngine, IAM API, Cloud KMS)             | https://github.com/someone1/gcp-jwt-go     |
+| AWS       | Integrates with AWS Key Management Service, KMS                                                          | https://github.com/matelang/jwt-go-aws-kms |
+| JWKS      | Provides support for JWKS ([RFC 7517](https://datatracker.ietf.org/doc/html/rfc7517)) as a `jwt.Keyfunc` | https://github.com/MicahParks/keyfunc      |
 
-It's important to know that JWT does not provide encryption, which means anyone who has access to the token can read its contents. If you need to protect (encrypt) the data, there is a companion spec, `JWE`, that provides this functionality. The companion project https://github.com/golang-jwt/jwe aims at a (very) experimental implementation of the JWE standard.
-
-### Choosing a Signing Method
-
-There are several signing methods available, and you should probably take the time to learn about the various options before choosing one.  The principal design decision is most likely going to be symmetric vs asymmetric.
-
-Symmetric signing methods, such as HSA, use only a single secret. This is probably the simplest signing method to use since any `[]byte` can be used as a valid secret. They are also slightly computationally faster to use, though this rarely is enough to matter. Symmetric signing methods work the best when both producers and consumers of tokens are trusted, or even the same system. Since the same secret is used to both sign and validate tokens, you can't easily distribute the key for validation.
-
-Asymmetric signing methods, such as RSA, use different keys for signing and verifying tokens. This makes it possible to produce tokens with a private key, and allow any consumer to access the public key for verification.
-
-### Signing Methods and Key Types
-
-Each signing method expects a different object type for its signing keys. See the package documentation for details. Here are the most common ones:
-
-* The [HMAC signing method](https://pkg.go.dev/github.com/golang-jwt/jwt/v5#SigningMethodHMAC) (`HS256`,`HS384`,`HS512`) expect `[]byte` values for signing and validation
-* The [RSA signing method](https://pkg.go.dev/github.com/golang-jwt/jwt/v5#SigningMethodRSA) (`RS256`,`RS384`,`RS512`) expect `*rsa.PrivateKey` for signing and `*rsa.PublicKey` for validation
-* The [ECDSA signing method](https://pkg.go.dev/github.com/golang-jwt/jwt/v5#SigningMethodECDSA) (`ES256`,`ES384`,`ES512`) expect `*ecdsa.PrivateKey` for signing and `*ecdsa.PublicKey` for validation
-* The [EdDSA signing method](https://pkg.go.dev/github.com/golang-jwt/jwt/v5#SigningMethodEd25519) (`Ed25519`) expect `ed25519.PrivateKey` for signing and `ed25519.PublicKey` for validation
-
-### JWT and OAuth
-
-It's worth mentioning that OAuth and JWT are not the same thing. A JWT token is simply a signed JSON object. It can be used anywhere such a thing is useful. There is some confusion, though, as JWT is the most common type of bearer token used in OAuth2 authentication.
-
-Without going too far down the rabbit hole, here's a description of the interaction of these technologies:
-
-* OAuth is a protocol for allowing an identity provider to be separate from the service a user is logging in to. For example, whenever you use Facebook to log into a different service (Yelp, Spotify, etc), you are using OAuth.
-* OAuth defines several options for passing around authentication data. One popular method is called a "bearer token". A bearer token is simply a string that _should_ only be held by an authenticated user. Thus, simply presenting this token proves your identity. You can probably derive from here why a JWT might make a good bearer token.
-* Because bearer tokens are used for authentication, it's important they're kept secret. This is why transactions that use bearer tokens typically happen over SSL.
-
-### Troubleshooting
-
-This library uses descriptive error messages whenever possible. If you are not getting the expected result, have a look at the errors. The most common place people get stuck is providing the correct type of key to the parser. See the above section on signing methods and key types.
+*Disclaimer*: Unless otherwise specified, these integrations are maintained by third parties and should not be considered as a primary offer by any of the mentioned cloud providers
 
 ## More
 
-Documentation can be found [on pkg.go.dev](https://pkg.go.dev/github.com/golang-jwt/jwt/v5).
+Go package documentation can be found [on pkg.go.dev](https://pkg.go.dev/github.com/golang-jwt/jwt/v5). Additional documentation can be found on [our project page](https://golang-jwt.github.io/jwt/).
 
 The command line utility included in this project (cmd/jwt) provides a straightforward example of token creation and parsing as well as a useful tool for debugging your own integration. You'll also find several implementation examples in the documentation.
 
