@@ -19,7 +19,7 @@
     
     
       
-        <title>Signing methods - golang-jwt docs</title>
+        <title>Signing Methods - golang-jwt docs</title>
       
     
     
@@ -51,7 +51,7 @@
       
         <meta  property="og:type"  content="website" >
       
-        <meta  property="og:title"  content="Signing methods - golang-jwt docs" >
+        <meta  property="og:title"  content="Signing Methods - golang-jwt docs" >
       
         <meta  property="og:description"  content="None" >
       
@@ -67,7 +67,7 @@
       
         <meta  name="twitter:card"  content="summary_large_image" >
       
-        <meta  name="twitter:title"  content="Signing methods - golang-jwt docs" >
+        <meta  name="twitter:title"  content="Signing Methods - golang-jwt docs" >
       
         <meta  name="twitter:description"  content="None" >
       
@@ -91,6 +91,11 @@
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
+      
+        
+        <a href="#signing-methods" class="md-skip">
+          Skip to content
+        </a>
       
     </div>
     <div data-md-component="announce">
@@ -120,7 +125,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Signing methods
+              Signing Methods
             
           </span>
         </div>
@@ -350,10 +355,43 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Signing Methods
+          <span class="md-nav__icon md-icon"></span>
+        </label>
       
       <a href="./" class="md-nav__link md-nav__link--active">
-        Signing methods
+        Signing Methods
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#signing-methods-and-key-types" class="md-nav__link">
+    Signing Methods and Key Types
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -381,9 +419,74 @@
                   
 
 
-  <h1>Signing methods</h1>
-
-
+<h1 id="signing-methods">Signing Methods</h1>
+<p>There are several signing methods available, and you should probably take the time to learn about the various options before choosing one.  The principal design decision is most likely going to be <strong>symmetric</strong> vs <strong>asymmetric</strong>.</p>
+<p>Symmetric signing methods, such as HMAC, use only a single secret. This is probably the simplest signing method to use since any <code>[]byte</code> can be used as a valid secret. They are also slightly computationally faster to use, though this rarely is enough to matter. Symmetric signing methods work the best when both producers and consumers of tokens are trusted, or even the same system. Since the same secret is used to both sign and validate tokens, you can't easily distribute the key for validation.</p>
+<p>Asymmetric signing methods, such as RSA, use different keys for signing and verifying tokens. This makes it possible to produce tokens with a private key, and allow any consumer to access the public key for verification.</p>
+<h2 id="signing-methods-and-key-types">Signing Methods and Key Types</h2>
+<p>Each signing method expects a different object type for its signing keys. The following table lists all supported signing methods in the core library.</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th><code>"alg"</code> Parameter Values</th>
+<th>Signing Key  Type</th>
+<th>Verification Key Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://pkg.go.dev/github.com/golang-jwt/jwt/v5#SigningMethodHMAC">HMAC signing method</a><sup id="fnref:hmac"><a class="footnote-ref" href="#fn:hmac">1</a></sup></td>
+<td><code>HS256</code>,<code>HS384</code>,<code>HS512</code></td>
+<td><code>[]byte</code></td>
+<td><code>[]byte</code></td>
+</tr>
+<tr>
+<td><a href="https://pkg.go.dev/github.com/golang-jwt/jwt/v5#SigningMethodRSA">RSA signing method</a><sup id="fnref:rsa"><a class="footnote-ref" href="#fn:rsa">2</a></sup></td>
+<td><code>RS256</code>,<code>RS384</code>,<code>RS512</code></td>
+<td><a href="https://pkg.go.dev/crypto/rsa#PrivateKey"><code>*rsa.PrivateKey</code></a></td>
+<td><a href="https://pkg.go.dev/crypto/rsa#PublicKey"><code>*rsa.PublicKey</code></a></td>
+</tr>
+<tr>
+<td><a href="https://pkg.go.dev/github.com/golang-jwt/jwt/v5#SigningMethodECDSA">ECDSA signing method</a><sup id="fnref:ecdsa"><a class="footnote-ref" href="#fn:ecdsa">3</a></sup></td>
+<td><code>ES256</code>,<code>ES384</code>,<code>ES512</code></td>
+<td><a href="https://pkg.go.dev/crypto/ecdsa#PrivateKey"><code>*ecdsa.PrivateKey</code></a></td>
+<td><a href="https://pkg.go.dev/crypto/ecdsa#PublicKey"><code>*ecdsa.PublicKey</code></a></td>
+</tr>
+<tr>
+<td><a href="https://pkg.go.dev/github.com/golang-jwt/jwt/v5#SigningMethodRSAPSS">RSA-PSS signing method</a><sup id="fnref:rsapss"><a class="footnote-ref" href="#fn:rsapss">4</a></sup></td>
+<td><code>PS256</code>,<code>PS384</code>,<code>PS512</code></td>
+<td><a href="https://pkg.go.dev/crypto/rsa#PrivateKey"><code>*rsa.PrivateKey</code></a></td>
+<td><a href="https://pkg.go.dev/crypto/rsa#PublicKey"><code>*rsa.PublicKey</code></a></td>
+</tr>
+<tr>
+<td><a href="https://pkg.go.dev/github.com/golang-jwt/jwt/v5#SigningMethodEd25519">EdDSA signing method</a><sup id="fnref:eddsa"><a class="footnote-ref" href="#fn:eddsa">5</a></sup></td>
+<td><code>Ed25519</code></td>
+<td><a href="https://pkg.go.dev/crypto/ed25519#PrivateKey"><code>ed25519.PrivateKey</code></a></td>
+<td><a href="https://pkg.go.dev/crypto/ed25519#PublicKey"><code>ed25519.PublicKey</code></a></td>
+</tr>
+</tbody>
+</table>
+<div class="footnote">
+<hr />
+<ol>
+<li id="fn:hmac">
+<p><a href="https://datatracker.ietf.org/doc/html/rfc7518#section-3.2">Section 3.2 of RFC 7518</a>&#160;<a class="footnote-backref" href="#fnref:hmac" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+<li id="fn:rsa">
+<p><a href="https://datatracker.ietf.org/doc/html/rfc7518#section-3.3">Section 3.2 of RFC 7518</a>&#160;<a class="footnote-backref" href="#fnref:rsa" title="Jump back to footnote 2 in the text">&#8617;</a></p>
+</li>
+<li id="fn:ecdsa">
+<p><a href="https://datatracker.ietf.org/doc/html/rfc7518#section-3.4">Section 3.2 of RFC 7518</a>&#160;<a class="footnote-backref" href="#fnref:ecdsa" title="Jump back to footnote 3 in the text">&#8617;</a></p>
+</li>
+<li id="fn:rsapss">
+<p><a href="https://datatracker.ietf.org/doc/html/rfc7518#section-3.5">Section 3.2 of RFC 7518</a>&#160;<a class="footnote-backref" href="#fnref:rsapss" title="Jump back to footnote 4 in the text">&#8617;</a></p>
+</li>
+<li id="fn:eddsa">
+<p><a href="https://datatracker.ietf.org/doc/html/rfc8037#section-3.1">Section 3.1 of RFC 8037</a>&#160;<a class="footnote-backref" href="#fnref:eddsa" title="Jump back to footnote 5 in the text">&#8617;</a></p>
+</li>
+</ol>
+</div>
 
 
 
