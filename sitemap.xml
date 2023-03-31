@@ -2,22 +2,22 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://golang-jwt.github.io/jwt/</loc>
-         <lastmod>2023-03-30</lastmod>
+         <lastmod>2023-03-31</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://golang-jwt.github.io/jwt/usage/create/</loc>
-         <lastmod>2023-03-30</lastmod>
+         <lastmod>2023-03-31</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://golang-jwt.github.io/jwt/usage/parse/</loc>
-         <lastmod>2023-03-30</lastmod>
+         <lastmod>2023-03-31</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://golang-jwt.github.io/jwt/usage/signing_methods/</loc>
-         <lastmod>2023-03-30</lastmod>
+         <lastmod>2023-03-31</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>
