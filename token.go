@@ -42,7 +42,10 @@ func NewWithClaims(method SigningMethod, claims Claims, opts ...TokenOption) *To
 }
 
 // SignedString creates and returns a complete, signed JWT. The token is signed
-// using the SigningMethod specified in the token.
+// using the SigningMethod specified in the token. Please refer to
+// https://golang-jwt.github.io/jwt/usage/signing_methods/#signing-methods-and-key-types
+// for an overview of the different signing methods and their respective key
+// types.
 func (t *Token) SignedString(key interface{}) (string, error) {
 	sstr, err := t.SigningString()
 	if err != nil {

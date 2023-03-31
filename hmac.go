@@ -45,7 +45,16 @@ func (m *SigningMethodHMAC) Alg() string {
 	return m.Name
 }
 
-// Verify implements token verification for the SigningMethod. Returns nil if the signature is valid.
+// Verify implements token verification for the SigningMethod. Returns nil if
+// the signature is valid. Key must be []byte.
+//
+// Note it is not advised to provide a []byte which was converted from a 'human
+// readable' string using a subset of ASCII characters. To maximize entropy, you
+// should ideally be providing a []byte key which was produced from a
+// cryptographically random source, e.g. crypto/rand. Additional information
+// about this, and why we intentionally are not supporting string as a key can
+// be found on our usage guide
+// https://golang-jwt.github.io/jwt/usage/signing_methods/#signing-methods-and-key-types.
 func (m *SigningMethodHMAC) Verify(signingString string, sig []byte, key interface{}) error {
 	// Verify the key is the right type
 	keyBytes, ok := key.([]byte)
@@ -71,8 +80,14 @@ func (m *SigningMethodHMAC) Verify(signingString string, sig []byte, key interfa
 	return nil
 }
 
-// Sign implements token signing for the SigningMethod.
-// Key must be []byte
+// Sign implements token signing for the SigningMethod. Key must be []byte.
+//
+// Note it is not advised to provide a []byte which was converted from a 'human
+// readable' string using a subset of ASCII characters. To maximize entropy, you
+// should ideally be providing a []byte key which was produced from a
+// cryptographically random source, e.g. crypto/rand. Additional information
+// about this, and why we intentionally are not supporting string as a key can
+// be found on our usage guide https://golang-jwt.github.io/jwt/usage/signing_methods/.
 func (m *SigningMethodHMAC) Sign(signingString string, key interface{}) ([]byte, error) {
 	if keyBytes, ok := key.([]byte); ok {
 		if !m.Hash.Available() {
