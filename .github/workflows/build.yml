@@ -8,24 +8,12 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  check:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - uses: reviewdog/action-staticcheck@v1
-        with:
-          github_token: ${{ secrets.github_token }}
-          reporter: github-pr-review
-          filter_mode: nofilter
-          fail_on_error: true
-
   build:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        go: ["1.18", "1.19", "1.20"]
+        go: ["1.18.x", "1.19.x", "1.20.x"]
     steps:
       - name: Checkout
         uses: actions/checkout@v3

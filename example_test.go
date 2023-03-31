@@ -38,7 +38,7 @@ func ExampleNewWithClaims_customClaimsType() {
 		jwt.RegisteredClaims
 	}
 
-	// Create the claims
+	// Create claims with multiple fields populated
 	claims := MyCustomClaims{
 		"bar",
 		jwt.RegisteredClaims{
@@ -52,6 +52,8 @@ func ExampleNewWithClaims_customClaimsType() {
 			Audience:  []string{"somebody_else"},
 		},
 	}
+
+	fmt.Printf("foo: %v\n", claims.Foo)
 
 	// Create claims while leaving out some of the optional fields
 	claims = MyCustomClaims{
@@ -67,7 +69,8 @@ func ExampleNewWithClaims_customClaimsType() {
 	ss, err := token.SignedString(mySigningKey)
 	fmt.Printf("%v %v", ss, err)
 
-	//Output: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJpc3MiOiJ0ZXN0IiwiZXhwIjoxNTE2MjM5MDIyfQ.xVuY2FZ_MRXMIEgVQ7J-TFtaucVFRXUzHm9LmV41goM <nil>
+	//Output: foo: bar
+	//eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJpc3MiOiJ0ZXN0IiwiZXhwIjoxNTE2MjM5MDIyfQ.xVuY2FZ_MRXMIEgVQ7J-TFtaucVFRXUzHm9LmV41goM <nil>
 }
 
 // Example creating a token using a custom claims type.  The RegisteredClaims is embedded

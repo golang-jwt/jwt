@@ -72,7 +72,7 @@ func BenchmarkToken_SigningString(b *testing.B) {
 		b.ResetTimer()
 		b.ReportAllocs()
 		for i := 0; i < b.N; i++ {
-			t.SigningString()
+			_, _ = t.SigningString()
 		}
 	})
 }

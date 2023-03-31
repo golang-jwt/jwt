@@ -38,8 +38,8 @@ func (e HeaderExtractor) ExtractToken(req *http.Request) (string, error) {
 type ArgumentExtractor []string
 
 func (e ArgumentExtractor) ExtractToken(req *http.Request) (string, error) {
-	// Make sure form is parsed
-	req.ParseMultipartForm(10e6)
+	// Make sure form is parsed. We are explicitly ignoring errors at this point
+	_ = req.ParseMultipartForm(10e6)
 
 	// loop over arg names and return the first one that contains data
 	for _, arg := range e {
