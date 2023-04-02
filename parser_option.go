@@ -126,3 +126,17 @@ func WithStrictDecoding() ParserOption {
 		p.decodeStrict = true
 	}
 }
+
+// WithJSONUnmarshal supports a custom [JSONUnmarshal] to use in parsing the JWT.
+func WithJSONUnmarshal(f JSONUnmarshalFunc) ParserOption {
+	return func(p *Parser) {
+		p.unmarshalFunc = f
+	}
+}
+
+// WithBase64Decoder supports a custom [Base64Decoder] to use in parsing the JWT.
+func WithBase64Decoder(f Base64DecodeFunc) ParserOption {
+	return func(p *Parser) {
+		p.base64DecodeFunc = f
+	}
+}

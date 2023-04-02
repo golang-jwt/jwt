@@ -12,7 +12,7 @@ type Parser struct {
 	// If populated, only these methods will be considered valid.
 	validMethods []string
 
-	// Use JSON Number format in JSON decoder.
+	// Use JSON Number format in JSON decoder. This field is disabled when using a custom json encoder.
 	useJSONNumber bool
 
 	// Skip claims validation during token parsing.
@@ -20,9 +20,14 @@ type Parser struct {
 
 	validator *Validator
 
+	// This field is disabled when using a custom base64 encoder.
 	decodeStrict bool
 
+	// This field is disabled when using a custom base64 encoder.
 	decodePaddingAllowed bool
+
+	unmarshalFunc    JSONUnmarshalFunc
+	base64DecodeFunc Base64DecodeFunc
 }
 
 // NewParser creates a new Parser with the specified options
@@ -148,7 +153,17 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 	if headerBytes, err = p.DecodeSegment(parts[0]); err != nil {
 		return token, parts, newError("could not base64 decode header", ErrTokenMalformed, err)
 	}
-	if err = json.Unmarshal(headerBytes, &token.Header); err != nil {
+
+	// Choose our JSON decoder. If no custom function is supplied, we use the standard library.
+	var unmarshal JSONUnmarshalFunc
+	if p.unmarshalFunc != nil {
+		unmarshal = p.unmarshalFunc
+	} else {
+		unmarshal = json.Unmarshal
+	}
+
+	err = unmarshal(headerBytes, &token.Header)
+	if err != nil {
 		return token, parts, newError("could not JSON decode header", ErrTokenMalformed, err)
 	}
 
@@ -162,13 +177,13 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 
 	// If `useJSONNumber` is enabled then we must use *json.Decoder to decode
 	// the claims. However, this comes with a performance penalty so only use
-	// it if we must and, otherwise, simple use json.Unmarshal.
+	// it if we must and, otherwise, simple use our decode function.
 	if !p.useJSONNumber {
 		// JSON Unmarshal. Special case for map type to avoid weird pointer behavior.
 		if c, ok := token.Claims.(MapClaims); ok {
-			err = json.Unmarshal(claimBytes, &c)
+			err = unmarshal(claimBytes, &c)
 		} else {
-			err = json.Unmarshal(claimBytes, &claims)
+			err = unmarshal(claimBytes, &claims)
 		}
 	} else {
 		dec := json.NewDecoder(bytes.NewBuffer(claimBytes))
@@ -200,6 +215,10 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 // take into account whether the [Parser] is configured with additional options,
 // such as [WithStrictDecoding] or [WithPaddingAllowed].
 func (p *Parser) DecodeSegment(seg string) ([]byte, error) {
+	if p.base64DecodeFunc != nil {
+		return p.base64DecodeFunc(seg)
+	}
+
 	encoding := base64.RawURLEncoding
 
 	if p.decodePaddingAllowed {

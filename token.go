@@ -28,12 +28,14 @@ type VerificationKeySet struct {
 // Token represents a JWT Token.  Different fields will be used depending on
 // whether you're creating or parsing/verifying a token.
 type Token struct {
-	Raw       string                 // Raw contains the raw token.  Populated when you [Parse] a token
-	Method    SigningMethod          // Method is the signing method used or to be used
-	Header    map[string]interface{} // Header is the first segment of the token in decoded form
-	Claims    Claims                 // Claims is the second segment of the token in decoded form
-	Signature []byte                 // Signature is the third segment of the token in decoded form.  Populated when you Parse a token
-	Valid     bool                   // Valid specifies if the token is valid.  Populated when you Parse/Verify a token
+	Raw           string                 // Raw contains the raw token.  Populated when you [Parse] a token
+	Method        SigningMethod          // Method is the signing method used or to be used
+	Header        map[string]interface{} // Header is the first segment of the token in decoded form
+	Claims        Claims                 // Claims is the second segment of the token in decoded form
+	Signature     []byte                 // Signature is the third segment of the token in decoded form.  Populated when you Parse a token
+	Valid         bool                   // Valid specifies if the token is valid.  Populated when you Parse/Verify a token
+	jsonEncoder   JSONMarshalFunc        // jsonEncoder is the custom json encoder/decoder
+	base64Encoder Base64EncodeFunc       // base64Encoder is the custom base64 encoder/decoder
 }
 
 // New creates a new [Token] with the specified signing method and an empty map
@@ -45,7 +47,7 @@ func New(method SigningMethod, opts ...TokenOption) *Token {
 // NewWithClaims creates a new [Token] with the specified signing method and
 // claims. Additional options can be specified, but are currently unused.
 func NewWithClaims(method SigningMethod, claims Claims, opts ...TokenOption) *Token {
-	return &Token{
+	t := &Token{
 		Header: map[string]interface{}{
 			"typ": "JWT",
 			"alg": method.Alg(),
@@ -53,6 +55,10 @@ func NewWithClaims(method SigningMethod, claims Claims, opts ...TokenOption) *To
 		Claims: claims,
 		Method: method,
 	}
+	for _, opt := range opts {
+		opt(t)
+	}
+	return t
 }
 
 // SignedString creates and returns a complete, signed JWT. The token is signed
@@ -78,12 +84,19 @@ func (t *Token) SignedString(key interface{}) (string, error) {
 // of the whole deal.  Unless you need this for something special, just go
 // straight for the SignedString.
 func (t *Token) SigningString() (string, error) {
-	h, err := json.Marshal(t.Header)
+	var marshal JSONMarshalFunc
+	if t.jsonEncoder != nil {
+		marshal = t.jsonEncoder
+	} else {
+		marshal = json.Marshal
+	}
+
+	h, err := marshal(t.Header)
 	if err != nil {
 		return "", err
 	}
 
-	c, err := json.Marshal(t.Claims)
+	c, err := marshal(t.Claims)
 	if err != nil {
 		return "", err
 	}
@@ -95,6 +108,13 @@ func (t *Token) SigningString() (string, error) {
 // stripped. In the future, this function might take into account a
 // [TokenOption]. Therefore, this function exists as a method of [Token], rather
 // than a global function.
-func (*Token) EncodeSegment(seg []byte) string {
-	return base64.RawURLEncoding.EncodeToString(seg)
+func (t *Token) EncodeSegment(seg []byte) string {
+	var enc Base64EncodeFunc
+	if t.base64Encoder != nil {
+		enc = t.base64Encoder
+	} else {
+		enc = base64.RawURLEncoding.EncodeToString
+	}
+
+	return enc(seg)
 }
