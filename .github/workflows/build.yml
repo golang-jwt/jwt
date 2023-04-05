@@ -37,9 +37,17 @@ jobs:
           go test -v -race -count=1 -json -coverpkg=$(go list ./...) ./... | tee output.json | tparse -follow -notests || true
           tparse -format markdown -file output.json -all > $GITHUB_STEP_SUMMARY
           go build ./...
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Go
+        uses: actions/setup-go@v4
       - name: Coverage
-        env:
-          COVERALLS_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
-          run: |
-            go install github.com/mattn/goveralls@latest
-            goveralls -coverprofile=covprofile -service=github
+        run: |
+          go test -v -coverprofile=coverage.cov -coverpkg ./... -covermode=atomic ./...
+      - name: Coveralls
+        uses: coverallsapp/github-action@v1
+        with:
+          path-to-lcov: coverage.cov
