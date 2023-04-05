@@ -46,7 +46,7 @@ jobs:
         uses: actions/setup-go@v4
       - name: Coverage
         run: |
-          go test -v -coverprofile=coverage.cov -coverpkg ./... -covermode=atomic ./...
+          go test -v -covermode=count -coverprofile=coverage.cov ./...
       - name: Coveralls
         uses: coverallsapp/github-action@v2
         with:
