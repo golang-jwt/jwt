@@ -37,8 +37,7 @@ jobs:
           go test -v -race -count=1 -json -coverpkg=$(go list ./...) ./... | tee output.json | tparse -follow -notests || true
           tparse -format markdown -file output.json -all > $GITHUB_STEP_SUMMARY
           go build ./...
-
-    - name: Coverage
+      - name: Coverage
         env:
           COVERALLS_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
           run: |
