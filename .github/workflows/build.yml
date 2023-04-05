@@ -51,3 +51,4 @@ jobs:
         uses: coverallsapp/github-action@v2
         with:
           file: coverage.cov
+          format: golang
