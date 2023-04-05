@@ -32,8 +32,15 @@ jobs:
           fi
       - name: Build
         run: |
-          go install github.com/mfridman/tparse@latest
+          go install github.com/mfridman/tparse@latest  
           go vet ./...
           go test -v -race -count=1 -json -coverpkg=$(go list ./...) ./... | tee output.json | tparse -follow -notests || true
           tparse -format markdown -file output.json -all > $GITHUB_STEP_SUMMARY
           go build ./...
+
+    - name: Coverage
+        env:
+          COVERALLS_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+          run: |
+            go install github.com/mattn/goveralls@latest
+            goveralls -coverprofile=covprofile -service=github
