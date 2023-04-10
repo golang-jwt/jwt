@@ -32,8 +32,23 @@ jobs:
           fi
       - name: Build
         run: |
-          go install github.com/mfridman/tparse@latest
+          go install github.com/mfridman/tparse@latest  
           go vet ./...
           go test -v -race -count=1 -json -coverpkg=$(go list ./...) ./... | tee output.json | tparse -follow -notests || true
           tparse -format markdown -file output.json -all > $GITHUB_STEP_SUMMARY
           go build ./...
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Go
+        uses: actions/setup-go@v4
+      - name: Coverage
+        run: |
+          go test -v -covermode=count -coverprofile=coverage.cov ./...
+      - name: Coveralls
+        uses: coverallsapp/github-action@v2
+        with:
+          file: coverage.cov
+          format: golang
