@@ -79,7 +79,7 @@ func (m MyCustomClaims) Validate() error {
 
 ## Changes to the `Token` and `Parser` struct
 
-The previously global functions `DecodeSegment` and `EncodeSegment` were moved to the `Parser` and `Token` struct respectively. This will allow us in the futureu to configure the behavior of these two based on options supplied on the parser or the token (creation). This also removes two previously global variables and moves them to parser options `WithStrictDecoding` and `WithPaddingAllowed`.
+The previously global functions `DecodeSegment` and `EncodeSegment` were moved to the `Parser` and `Token` struct respectively. This will allow us in the future to configure the behavior of these two based on options supplied on the parser or the token (creation). This also removes two previously global variables and moves them to parser options `WithStrictDecoding` and `WithPaddingAllowed`.
 
 In order to do that, we had to adjust the way signing methods work. Previously they were given a base64 encoded signature in `Verify` and were expected to return a base64 encoded version of the signature in `Sign`, both as a `string`. However, this made it necessary to have `DecodeSegment` and `EncodeSegment` global and was a less than perfect design because we were repeating encoding/decoding steps for all signing methods. Now, `Sign` and `Verify` operate on a decoded signature as a `[]byte`, which feels more natural for a cryptographic operation anyway. Lastly, `Parse` and `SignedString` take care of the final encoding/decoding part.
 
