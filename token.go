@@ -52,6 +52,11 @@ func (t *Token) SignedString(key interface{}) (string, error) {
 		return "", err
 	}
 
+	switch key.(type) {
+	case string:
+		key = []byte(key.(string))
+	}
+
 	sig, err := t.Method.Sign(sstr, key)
 	if err != nil {
 		return "", err
