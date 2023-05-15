@@ -53,6 +53,10 @@ func ExampleNewWithClaims_registeredClaims() {
 func ExampleNewWithClaims_customClaimsType() {
 	_, privateKey, err := ed25519.GenerateKey(nil)
 
+	if err != nil {
+		panic(err)
+	}
+
 	type MyCustomClaims struct {
 		Foo string `json:"foo"`
 		jwt.RegisteredClaims
