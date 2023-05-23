@@ -17,7 +17,7 @@
         <link rel="next" href="../parse/">
       
       <link rel="icon" href="../../assets/jwt.png">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.6">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.14">
     
     
       
@@ -25,10 +25,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ded33207.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.85bb2934.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.a0c5b2b5.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.a6bdf11c.min.css">
       
       
 
@@ -133,6 +133,8 @@
         </div>
       </div>
     </div>
+    
+      
     
     
     
@@ -506,8 +508,8 @@ transmitted) is used to <em>verify</em> the token.</p>
 <ol>
 <li>This initializes a new <a href="https://pkg.go.dev/github.com/golang-jwt/jwt/v5#Token"><code>jwt.Token</code></a> struct based on the supplied signing method. In this case a <strong>asymmetric</strong> method is chosen, which is the first parameter.</li>
 <li>The second parameter contains the desired claims in form of the <a href="https://pkg.go.dev/github.com/golang-jwt/jwt/v5#Claims"><code>jwt.Claims</code></a> interface. In this case <a href="https://pkg.go.dev/github.com/golang-jwt/jwt/v5#MapClaims"><code>jwt.MapClaims</code></a> are used, which is a wrapper type around a Go map containing <code>string</code> keys.</li>
-<li>The <code>"sub"</code><sup id="fnref:sub"><a class="footnote-ref" href="#fn:sub">3</a></sup> claim is a registered claim name that contains the subject this token identifies, e.g. a user name. More technical, this claim identifies the principal that is the <em>subject</em> of the token.</li>
 <li>The <code>"iss"</code><sup id="fnref:iss"><a class="footnote-ref" href="#fn:iss">2</a></sup> claim is a registered claim name that contains the issuer of the token. More technical, this claim identifies the principal that <em>issued</em> the token.</li>
+<li>The <code>"sub"</code><sup id="fnref:sub"><a class="footnote-ref" href="#fn:sub">3</a></sup> claim is a registered claim name that contains the subject this token identifies, e.g. a user name. More technical, this claim identifies the principal that is the <em>subject</em> of the token.</li>
 <li>The <code>"foo"</code> claim is a custom claim containing a numeric value. Any string value can be chosen as a claim name, as long as it does not interfere with a registered claim name.</li>
 <li>This step computes a cryptographic signature based on the supplied private
    key.</li>
@@ -573,7 +575,7 @@ these are strictly for future compatibility and are currently not used.</p>
     <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.tabs", "toc.integrate", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.51198bba.min.js"></script>
+      <script src="../../assets/javascripts/bundle.b4d07000.min.js"></script>
       
     
   </body>
