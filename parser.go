@@ -135,30 +135,42 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 		}
 		return token, parts, newError("could not base64 decode header", ErrTokenMalformed, err)
 	}
-	if err = json.Unmarshal(headerBytes, &token.Header); err != nil {
+	if err := json.Unmarshal(headerBytes, &token.Header); err != nil {
 		return token, parts, newError("could not JSON decode header", ErrTokenMalformed, err)
 	}
 
 	// parse Claims
-	var claimBytes []byte
 	token.Claims = claims
 
-	if claimBytes, err = p.DecodeSegment(parts[1]); err != nil {
+	claimBytes, err := p.DecodeSegment(parts[1])
+	if err != nil {
 		return token, parts, newError("could not base64 decode claim", ErrTokenMalformed, err)
 	}
-	dec := json.NewDecoder(bytes.NewBuffer(claimBytes))
-	if p.useJSONNumber {
-		dec.UseNumber()
-	}
-	// JSON Decode.  Special case for map type to avoid weird pointer behavior
-	if c, ok := token.Claims.(MapClaims); ok {
-		err = dec.Decode(&c)
+
+	if !p.useJSONNumber {
+		// JSON Unmarshal. Special case for map type to avoid weird pointer behavior.
+		if c, ok := token.Claims.(MapClaims); ok {
+			err = json.Unmarshal(claimBytes, &c)
+		} else {
+			err = json.Unmarshal(claimBytes, &claims)
+		}
+		if err != nil {
+			return token, parts, newError("could not JSON decode claim", ErrTokenMalformed, err)
+		}
 	} else {
-		err = dec.Decode(&claims)
-	}
-	// Handle decode error
-	if err != nil {
-		return token, parts, newError("could not JSON decode claim", ErrTokenMalformed, err)
+		dec := json.NewDecoder(bytes.NewBuffer(claimBytes))
+		dec.UseNumber()
+
+		// JSON Decode.  Special case for map type to avoid weird pointer behavior
+		if c, ok := token.Claims.(MapClaims); ok {
+			err = dec.Decode(&c)
+		} else {
+			err = dec.Decode(&claims)
+		}
+		// Handle decode error
+		if err != nil {
+			return token, parts, newError("could not JSON decode claim", ErrTokenMalformed, err)
+		}
 	}
 
 	// Lookup signature method
