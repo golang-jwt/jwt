@@ -154,9 +154,6 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 		} else {
 			err = json.Unmarshal(claimBytes, &claims)
 		}
-		if err != nil {
-			return token, parts, newError("could not JSON decode claim", ErrTokenMalformed, err)
-		}
 	} else {
 		dec := json.NewDecoder(bytes.NewBuffer(claimBytes))
 		dec.UseNumber()
@@ -167,10 +164,9 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 		} else {
 			err = dec.Decode(&claims)
 		}
-		// Handle decode error
-		if err != nil {
-			return token, parts, newError("could not JSON decode claim", ErrTokenMalformed, err)
-		}
+	}
+	if err != nil {
+		return token, parts, newError("could not JSON decode claim", ErrTokenMalformed, err)
 	}
 
 	// Lookup signature method
