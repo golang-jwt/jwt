@@ -3,6 +3,7 @@ package jwt_test
 import (
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -86,6 +87,9 @@ func ExampleParseWithClaims_customClaimsType() {
 	token, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte("AllYourBase"), nil
 	})
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	if claims, ok := token.Claims.(*MyCustomClaims); ok && token.Valid {
 		fmt.Printf("%v %v", claims.Foo, claims.RegisteredClaims.Issuer)
@@ -109,6 +113,9 @@ func ExampleParseWithClaims_validationOptions() {
 	token, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte("AllYourBase"), nil
 	}, jwt.WithLeeway(5*time.Second))
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	if claims, ok := token.Claims.(*MyCustomClaims); ok && token.Valid {
 		fmt.Printf("%v %v", claims.Foo, claims.RegisteredClaims.Issuer)
@@ -144,6 +151,9 @@ func ExampleParseWithClaims_customValidation() {
 	token, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte("AllYourBase"), nil
 	}, jwt.WithLeeway(5*time.Second))
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	if claims, ok := token.Claims.(*MyCustomClaims); ok && token.Valid {
 		fmt.Printf("%v %v", claims.Foo, claims.RegisteredClaims.Issuer)
@@ -162,6 +172,9 @@ func ExampleParse_errorChecking() {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return []byte("AllYourBase"), nil
 	})
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	if token.Valid {
 		fmt.Println("You look nice today")

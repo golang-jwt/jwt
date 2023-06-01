@@ -146,15 +146,15 @@ func verifyToken() error {
 		return data, nil
 	})
 
+	// Print an error if we can't parse for some reason
+	if err != nil {
+		return fmt.Errorf("couldn't parse token: %w", err)
+	}
+
 	// Print some debug data
 	if *flagDebug && token != nil {
 		fmt.Fprintf(os.Stderr, "Header:\n%v\n", token.Header)
 		fmt.Fprintf(os.Stderr, "Claims:\n%v\n", token.Claims)
-	}
-
-	// Print an error if we can't parse for some reason
-	if err != nil {
-		return fmt.Errorf("couldn't parse token: %w", err)
 	}
 
 	// Is token invalid?
@@ -274,7 +274,7 @@ func showToken() error {
 	}
 
 	token, err := jwt.Parse(string(tokData), nil)
-	if token == nil {
+	if err != nil || token == nil {
 		return fmt.Errorf("malformed token: %w", err)
 	}
 
