@@ -163,17 +163,18 @@ func ExampleParse_errorChecking() {
 		return []byte("AllYourBase"), nil
 	})
 
-	if token.Valid {
+	switch {
+	case token.Valid:
 		fmt.Println("You look nice today")
-	} else if errors.Is(err, jwt.ErrTokenMalformed) {
+	case errors.Is(err, jwt.ErrTokenMalformed):
 		fmt.Println("That's not even a token")
-	} else if errors.Is(err, jwt.ErrTokenSignatureInvalid) {
+	case errors.Is(err, jwt.ErrTokenSignatureInvalid):
 		// Invalid signature
 		fmt.Println("Invalid signature")
-	} else if errors.Is(err, jwt.ErrTokenExpired) || errors.Is(err, jwt.ErrTokenNotValidYet) {
+	case errors.Is(err, jwt.ErrTokenExpired) || errors.Is(err, jwt.ErrTokenNotValidYet):
 		// Token is either expired or not active yet
 		fmt.Println("Timing is everything")
-	} else {
+	default:
 		fmt.Println("Couldn't handle this token:", err)
 	}
 

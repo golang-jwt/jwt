@@ -285,9 +285,8 @@ func (v *validator) verifySubject(claims Claims, cmp string, required bool) erro
 func errorIfFalse(value bool, err error) error {
 	if value {
 		return nil
-	} else {
-		return err
 	}
+	return err
 }
 
 // errorIfRequired returns an ErrTokenRequiredClaimMissing error if required is
@@ -295,7 +294,6 @@ func errorIfFalse(value bool, err error) error {
 func errorIfRequired(required bool, claim string) error {
 	if required {
 		return newError(fmt.Sprintf("%s claim is required", claim), ErrTokenRequiredClaimMissing)
-	} else {
-		return nil
 	}
+	return nil
 }
