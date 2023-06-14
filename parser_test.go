@@ -42,7 +42,6 @@ func init() {
 	// Load private keys
 	jwtTestRSAPrivateKey = test.LoadRSAPrivateKeyFromDisk("test/sample_key")
 	jwtTestEC256PrivateKey = test.LoadECPrivateKeyFromDisk("test/ec256-private.pem")
-
 }
 
 var jwtTestData = []struct {
@@ -352,11 +351,9 @@ func signToken(claims jwt.Claims, signingMethod jwt.SigningMethod) string {
 }
 
 func TestParser_Parse(t *testing.T) {
-
 	// Iterate over test data set and run tests
 	for _, data := range jwtTestData {
 		t.Run(data.name, func(t *testing.T) {
-
 			// If the token string is blank, use helper function to generate string
 			if data.tokenString == "" {
 				data.tokenString = signToken(data.claims, data.signingMethod)
@@ -428,7 +425,6 @@ func TestParser_Parse(t *testing.T) {
 }
 
 func TestParser_ParseUnverified(t *testing.T) {
-
 	// Iterate over test data set and run tests
 	for _, data := range jwtTestData {
 		// Skip test data, that intentionally contains malformed tokens, as they would lead to an error
@@ -670,13 +666,11 @@ func TestSetPadding(t *testing.T) {
 					err,
 				)
 			}
-
 		})
 	}
 }
 
 func BenchmarkParseUnverified(b *testing.B) {
-
 	// Iterate over test data set and run tests
 	for _, data := range jwtTestData {
 		// If the token string is blank, use helper function to generate string

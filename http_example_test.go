@@ -110,11 +110,10 @@ func Example_getTokenViaHTTP() {
 	claims := token.Claims.(*CustomClaimsExample)
 	fmt.Println(claims.CustomerInfo.Name)
 
-	//Output: test
+	// Output: test
 }
 
 func Example_useTokenViaHTTP() {
-
 	// Make a sample token
 	// In a real world situation, this token will have been acquired from
 	// some other API call (see Example_getTokenViaHTTP)
