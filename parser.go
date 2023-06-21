@@ -135,7 +135,7 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 		}
 		return token, parts, newError("could not base64 decode header", ErrTokenMalformed, err)
 	}
-	if err := json.Unmarshal(headerBytes, &token.Header); err != nil {
+	if err = json.Unmarshal(headerBytes, &token.Header); err != nil {
 		return token, parts, newError("could not JSON decode header", ErrTokenMalformed, err)
 	}
 
@@ -157,8 +157,7 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 	} else {
 		dec := json.NewDecoder(bytes.NewBuffer(claimBytes))
 		dec.UseNumber()
-
-		// JSON Decode.  Special case for map type to avoid weird pointer behavior
+		// JSON Decode. Special case for map type to avoid weird pointer behavior.
 		if c, ok := token.Claims.(MapClaims); ok {
 			err = dec.Decode(&c)
 		} else {
