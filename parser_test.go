@@ -687,18 +687,18 @@ func BenchmarkParseUnverified(b *testing.B) {
 		switch data.claims.(type) {
 		case jwt.MapClaims:
 			b.Run("map_claims", func(b *testing.B) {
-				benchmarkParsing(b, parser, data.tokenString, jwt.MapClaims{})
+				benchmarkParsing(b, parser, data.tokenString)
 			})
 		case *jwt.RegisteredClaims:
 			b.Run("registered_claims", func(b *testing.B) {
-				benchmarkParsing(b, parser, data.tokenString, &jwt.RegisteredClaims{})
+				benchmarkParsing(b, parser, data.tokenString)
 			})
 		}
 	}
 }
 
 // Helper method for benchmarking various parsing methods
-func benchmarkParsing(b *testing.B, parser *jwt.Parser, tokenString string, claims jwt.Claims) {
+func benchmarkParsing(b *testing.B, parser *jwt.Parser, tokenString string) {
 	b.Helper()
 	b.ReportAllocs()
 	b.ResetTimer()
