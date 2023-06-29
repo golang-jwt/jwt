@@ -59,7 +59,7 @@ func (m *SigningMethodHMAC) Verify(signingString string, sig []byte, key interfa
 	// Verify the key is the right type
 	keyBytes, ok := key.([]byte)
 	if !ok {
-		return ErrInvalidHMACKey
+		return ErrInvalidHMACKeyType
 	}
 
 	// Can we use the specified hashing method?
@@ -100,5 +100,5 @@ func (m *SigningMethodHMAC) Sign(signingString string, key interface{}) ([]byte,
 		return hasher.Sum(nil), nil
 	}
 
-	return nil, ErrInvalidHMACKey
+	return nil, ErrInvalidHMACKeyType
 }

@@ -88,7 +88,7 @@ func (m *SigningMethodRSAPSS) Verify(signingString string, sig []byte, key inter
 	case *rsa.PublicKey:
 		rsaKey = k
 	default:
-		return ErrInvalidRSAPublicKey
+		return ErrInvalidRSAPublicKeyType
 	}
 
 	// Create hasher
@@ -115,7 +115,7 @@ func (m *SigningMethodRSAPSS) Sign(signingString string, key interface{}) ([]byt
 	case *rsa.PrivateKey:
 		rsaKey = k
 	default:
-		return nil, ErrInvalidRSAPrivateKey
+		return nil, ErrInvalidRSAPrivateKeyType
 	}
 
 	// Create the hasher
