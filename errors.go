@@ -19,7 +19,6 @@ var (
 	ErrTokenInvalidIssuer        = errors.New("token has invalid issuer")
 	ErrTokenInvalidSubject       = errors.New("token has invalid subject")
 	ErrTokenNotValidYet          = errors.New("token is not valid yet")
-	ErrTokenInvalidId            = errors.New("token has invalid id")
 	ErrTokenInvalidClaims        = errors.New("token has invalid claims")
 	ErrInvalidType               = errors.New("invalid type for claim")
 )
