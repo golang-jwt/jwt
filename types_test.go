@@ -41,7 +41,6 @@ func TestSingleArrayMarshal(t *testing.T) {
 	expected := `"test"`
 
 	b, err := json.Marshal(s)
-
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
