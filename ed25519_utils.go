@@ -1,7 +1,6 @@
 package jwt
 
 import (
-	"crypto"
 	"crypto/ed25519"
 	"crypto/x509"
 	"encoding/pem"
@@ -14,7 +13,7 @@ var (
 )
 
 // ParseEdPrivateKeyFromPEM parses a PEM-encoded Edwards curve private key
-func ParseEdPrivateKeyFromPEM(key []byte) (crypto.PrivateKey, error) {
+func ParseEdPrivateKeyFromPEM(key []byte) (ed25519.PrivateKey, error) {
 	var err error
 
 	// Parse PEM block
@@ -39,7 +38,7 @@ func ParseEdPrivateKeyFromPEM(key []byte) (crypto.PrivateKey, error) {
 }
 
 // ParseEdPublicKeyFromPEM parses a PEM-encoded Edwards curve public key
-func ParseEdPublicKeyFromPEM(key []byte) (crypto.PublicKey, error) {
+func ParseEdPublicKeyFromPEM(key []byte) (ed25519.PublicKey, error) {
 	var err error
 
 	// Parse PEM block
