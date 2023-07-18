@@ -152,14 +152,9 @@ func verifyToken() error {
 	}
 
 	// Print some debug data
-	if *flagDebug && token != nil {
+	if *flagDebug {
 		fmt.Fprintf(os.Stderr, "Header:\n%v\n", token.Header)
 		fmt.Fprintf(os.Stderr, "Claims:\n%v\n", token.Claims)
-	}
-
-	// Is token invalid?
-	if !token.Valid {
-		return fmt.Errorf("token is invalid")
 	}
 
 	// Print the token details
@@ -274,7 +269,7 @@ func showToken() error {
 	}
 
 	token, err := jwt.Parse(string(tokData), nil)
-	if err != nil || token == nil {
+	if err != nil {
 		return fmt.Errorf("malformed token: %w", err)
 	}
 

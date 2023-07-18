@@ -91,7 +91,7 @@ func ExampleParseWithClaims_customClaimsType() {
 		log.Fatal(err)
 	}
 
-	if claims, ok := token.Claims.(*MyCustomClaims); ok && token.Valid {
+	if claims, ok := token.Claims.(*MyCustomClaims); ok {
 		fmt.Printf("%v %v", claims.Foo, claims.RegisteredClaims.Issuer)
 	} else {
 		fmt.Println(err)
@@ -117,7 +117,7 @@ func ExampleParseWithClaims_validationOptions() {
 		log.Fatal(err)
 	}
 
-	if claims, ok := token.Claims.(*MyCustomClaims); ok && token.Valid {
+	if claims, ok := token.Claims.(*MyCustomClaims); ok {
 		fmt.Printf("%v %v", claims.Foo, claims.RegisteredClaims.Issuer)
 	} else {
 		fmt.Println(err)
@@ -155,7 +155,7 @@ func ExampleParseWithClaims_customValidation() {
 		log.Fatal(err)
 	}
 
-	if claims, ok := token.Claims.(*MyCustomClaims); ok && token.Valid {
+	if claims, ok := token.Claims.(*MyCustomClaims); ok {
 		fmt.Printf("%v %v", claims.Foo, claims.RegisteredClaims.Issuer)
 	} else {
 		fmt.Println(err)
@@ -172,9 +172,6 @@ func ExampleParse_errorChecking() {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return []byte("AllYourBase"), nil
 	})
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	if token.Valid {
 		fmt.Println("You look nice today")
