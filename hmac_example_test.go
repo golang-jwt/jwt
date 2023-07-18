@@ -61,7 +61,7 @@ func ExampleParse_hmac() {
 		log.Fatal(err)
 	}
 
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+	if claims, ok := token.Claims.(jwt.MapClaims); ok {
 		fmt.Println(claims["foo"], claims["nbf"])
 	} else {
 		fmt.Println(err)
