@@ -7,7 +7,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-- Performance improvements in parser and `*http.Request` helper to extract token.
+- Performance improvements in parser and `*http.Request` helper.
 
 ## [v5.0.0]
 
