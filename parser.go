@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"strings"
 )
 
@@ -74,14 +75,38 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 		}
 	}
 
-	// Lookup key
-	var key interface{}
+	// Lookup key(s)
 	if keyFunc == nil {
 		// keyFunc was not provided.  short circuiting validation
 		return token, newError("no keyfunc was provided", ErrTokenUnverifiable)
 	}
-	if key, err = keyFunc(token); err != nil {
-		return token, newError("error while executing keyfunc", ErrTokenUnverifiable, err)
+
+	keys := make([]interface{}, 1)
+	// Convert the key or list of keys into a list of keys.
+	{
+		got, err := keyFunc(token)
+		if err != nil {
+			return token, newError("error while executing keyfunc", ErrTokenUnverifiable, err)
+		}
+
+		switch have := got.(type) {
+		case []interface{}:
+			keys = have
+		case []byte, []int8: // HMAC is an outlier, so treat it specially.
+			keys[0] = have
+		case interface{}:
+			typ := reflect.TypeOf(have)
+			switch typ.Kind() {
+			case reflect.Array, reflect.Slice:
+				val := reflect.ValueOf(have)
+				keys = make([]interface{}, val.Len())
+				for i := 0; i < val.Len(); i++ {
+					keys[i] = val.Index(i).Interface()
+				}
+			default:
+				keys[0] = have
+			}
+		}
 	}
 
 	// Decode signature
@@ -90,8 +115,20 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 		return token, newError("could not base64 decode signature", ErrTokenMalformed, err)
 	}
 
-	// Perform signature validation
-	if err = token.Method.Verify(strings.Join(parts[0:2], "."), token.Signature, key); err != nil {
+	text := strings.Join(parts[0:2], ".")
+
+	// Assume there is an error until proven otherwise because an empty array of
+	// keys means no checks are performed.
+	err = ErrTokenSignatureInvalid
+	for _, key := range keys {
+		// Perform signature validation, skipping the rest when a match is found.
+		err = token.Method.Verify(text, token.Signature, key)
+		if err == nil {
+			break
+		}
+	}
+	// If the only key or last key checked failed, then it's an error.
+	if err != nil {
 		return token, newError("", ErrTokenSignatureInvalid, err)
 	}
 

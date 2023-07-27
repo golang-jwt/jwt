@@ -9,6 +9,8 @@ import (
 // the key for verification.  The function receives the parsed, but unverified
 // Token.  This allows you to use properties in the Header of the token (such as
 // `kid`) to identify which key to use.
+// The returned interface{} may be a single key or an array of keys to try.  If
+// an array of keys is returned an []interface{} with mixed types is allowed.
 type Keyfunc func(*Token) (interface{}, error)
 
 // Token represents a JWT Token.  Different fields will be used depending on
