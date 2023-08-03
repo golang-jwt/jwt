@@ -15,31 +15,11 @@ type SigningMethodHMAC struct {
 
 // Specific instances for HS256 and company
 var (
-	SigningMethodHS256  *SigningMethodHMAC
-	SigningMethodHS384  *SigningMethodHMAC
-	SigningMethodHS512  *SigningMethodHMAC
+	SigningMethodHS256  = initSigningMethod(&SigningMethodHMAC{"HS256", crypto.SHA256})
+	SigningMethodHS384  = initSigningMethod(&SigningMethodHMAC{"HS384", crypto.SHA384})
+	SigningMethodHS512  = initSigningMethod(&SigningMethodHMAC{"HS512", crypto.SHA512})
 	ErrSignatureInvalid = errors.New("signature is invalid")
 )
-
-func init() {
-	// HS256
-	SigningMethodHS256 = &SigningMethodHMAC{"HS256", crypto.SHA256}
-	RegisterSigningMethod(SigningMethodHS256.Alg(), func() SigningMethod {
-		return SigningMethodHS256
-	})
-
-	// HS384
-	SigningMethodHS384 = &SigningMethodHMAC{"HS384", crypto.SHA384}
-	RegisterSigningMethod(SigningMethodHS384.Alg(), func() SigningMethod {
-		return SigningMethodHS384
-	})
-
-	// HS512
-	SigningMethodHS512 = &SigningMethodHMAC{"HS512", crypto.SHA512}
-	RegisterSigningMethod(SigningMethodHS512.Alg(), func() SigningMethod {
-		return SigningMethodHS512
-	})
-}
 
 func (m *SigningMethodHMAC) Alg() string {
 	return m.Name

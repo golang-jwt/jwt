@@ -22,14 +22,7 @@ type SigningMethodRSAPSS struct {
 
 // Specific instances for RS/PS and company.
 var (
-	SigningMethodPS256 *SigningMethodRSAPSS
-	SigningMethodPS384 *SigningMethodRSAPSS
-	SigningMethodPS512 *SigningMethodRSAPSS
-)
-
-func init() {
-	// PS256
-	SigningMethodPS256 = &SigningMethodRSAPSS{
+	SigningMethodPS256 = initSigningMethodRSAPSS(&SigningMethodRSAPSS{
 		SigningMethodRSA: &SigningMethodRSA{
 			Name: "PS256",
 			Hash: crypto.SHA256,
@@ -40,13 +33,8 @@ func init() {
 		VerifyOptions: &rsa.PSSOptions{
 			SaltLength: rsa.PSSSaltLengthAuto,
 		},
-	}
-	RegisterSigningMethod(SigningMethodPS256.Alg(), func() SigningMethod {
-		return SigningMethodPS256
 	})
-
-	// PS384
-	SigningMethodPS384 = &SigningMethodRSAPSS{
+	SigningMethodPS384 = initSigningMethodRSAPSS(&SigningMethodRSAPSS{
 		SigningMethodRSA: &SigningMethodRSA{
 			Name: "PS384",
 			Hash: crypto.SHA384,
@@ -57,13 +45,8 @@ func init() {
 		VerifyOptions: &rsa.PSSOptions{
 			SaltLength: rsa.PSSSaltLengthAuto,
 		},
-	}
-	RegisterSigningMethod(SigningMethodPS384.Alg(), func() SigningMethod {
-		return SigningMethodPS384
 	})
-
-	// PS512
-	SigningMethodPS512 = &SigningMethodRSAPSS{
+	SigningMethodPS512 = initSigningMethodRSAPSS(&SigningMethodRSAPSS{
 		SigningMethodRSA: &SigningMethodRSA{
 			Name: "PS512",
 			Hash: crypto.SHA512,
@@ -74,10 +57,14 @@ func init() {
 		VerifyOptions: &rsa.PSSOptions{
 			SaltLength: rsa.PSSSaltLengthAuto,
 		},
-	}
-	RegisterSigningMethod(SigningMethodPS512.Alg(), func() SigningMethod {
-		return SigningMethodPS512
 	})
+)
+
+// initSigningMethod calls RegisterSigningMethod.
+// Used to initialize RSAPSS method instances
+func initSigningMethodRSAPSS(method *SigningMethodRSAPSS) *SigningMethodRSAPSS {
+	RegisterSigningMethod(method.Alg(), func() SigningMethod { return method })
+	return method
 }
 
 // Verify implements token verification for the SigningMethod.

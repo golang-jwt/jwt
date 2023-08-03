@@ -11,16 +11,12 @@ import (
 // For HMAC signing method, the key can be any []byte. It is recommended to generate
 // a key using crypto/rand or something equivalent. You need the same key for signing
 // and validating.
-var hmacSampleSecret []byte
-
-func init() {
+var hmacSampleSecret = func() []byte {
 	// Load sample key data
-	if keyData, e := os.ReadFile("test/hmacTestKey"); e == nil {
-		hmacSampleSecret = keyData
-	} else {
-		panic(e)
-	}
-}
+	keyData, err := os.ReadFile("test/hmacTestKey")
+	fatal(err)
+	return keyData
+}()
 
 // Example creating, signing, and encoding a JWT token using the HMAC signing method
 func ExampleNew_hmac() {

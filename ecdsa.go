@@ -24,30 +24,10 @@ type SigningMethodECDSA struct {
 
 // Specific instances for EC256 and company
 var (
-	SigningMethodES256 *SigningMethodECDSA
-	SigningMethodES384 *SigningMethodECDSA
-	SigningMethodES512 *SigningMethodECDSA
+	SigningMethodES256 = initSigningMethod(&SigningMethodECDSA{"ES256", crypto.SHA256, 32, 256})
+	SigningMethodES384 = initSigningMethod(&SigningMethodECDSA{"ES384", crypto.SHA384, 48, 384})
+	SigningMethodES512 = initSigningMethod(&SigningMethodECDSA{"ES512", crypto.SHA512, 66, 521})
 )
-
-func init() {
-	// ES256
-	SigningMethodES256 = &SigningMethodECDSA{"ES256", crypto.SHA256, 32, 256}
-	RegisterSigningMethod(SigningMethodES256.Alg(), func() SigningMethod {
-		return SigningMethodES256
-	})
-
-	// ES384
-	SigningMethodES384 = &SigningMethodECDSA{"ES384", crypto.SHA384, 48, 384}
-	RegisterSigningMethod(SigningMethodES384.Alg(), func() SigningMethod {
-		return SigningMethodES384
-	})
-
-	// ES512
-	SigningMethodES512 = &SigningMethodECDSA{"ES512", crypto.SHA512, 66, 521}
-	RegisterSigningMethod(SigningMethodES512.Alg(), func() SigningMethod {
-		return SigningMethodES512
-	})
-}
 
 func (m *SigningMethodECDSA) Alg() string {
 	return m.Name

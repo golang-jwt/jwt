@@ -18,7 +18,6 @@ type SigningMethod interface {
 }
 
 // RegisterSigningMethod registers the "alg" name and a factory function for signing method.
-// This is typically done during init() in the method's implementation
 func RegisterSigningMethod(alg string, f func() SigningMethod) {
 	signingMethodLock.Lock()
 	defer signingMethodLock.Unlock()
@@ -46,4 +45,11 @@ func GetAlgorithms() (algs []string) {
 		algs = append(algs, alg)
 	}
 	return
+}
+
+// initSigningMethod calls RegisterSigningMethod.
+// Used to initialize global signing method instances
+func initSigningMethod(method SigningMethod) SigningMethod {
+	RegisterSigningMethod(method.Alg(), func() SigningMethod { return method })
+	return method
 }

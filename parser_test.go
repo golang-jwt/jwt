@@ -1,7 +1,6 @@
 package jwt_test
 
 import (
-	"crypto"
 	"crypto/rsa"
 	"encoding/json"
 	"errors"
@@ -17,22 +16,8 @@ import (
 var errKeyFuncError error = fmt.Errorf("error loading key")
 
 var (
-	jwtTestDefaultKey      *rsa.PublicKey
-	jwtTestRSAPrivateKey   *rsa.PrivateKey
-	jwtTestEC256PublicKey  crypto.PublicKey
-	jwtTestEC256PrivateKey crypto.PrivateKey
-	paddedKey              crypto.PublicKey
-	defaultKeyFunc         jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return jwtTestDefaultKey, nil }
-	ecdsaKeyFunc           jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return jwtTestEC256PublicKey, nil }
-	paddedKeyFunc          jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return paddedKey, nil }
-	emptyKeyFunc           jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return nil, nil }
-	errorKeyFunc           jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return nil, errKeyFuncError }
-	nilKeyFunc             jwt.Keyfunc = nil
-)
-
-func init() {
 	// Load public keys
-	jwtTestDefaultKey = test.LoadRSAPublicKeyFromDisk("test/sample_key.pub")
+	jwtTestDefaultKey     = test.LoadRSAPublicKeyFromDisk("test/sample_key.pub")
 	jwtTestEC256PublicKey = test.LoadECPublicKeyFromDisk("test/ec256-public.pem")
 
 	// Load padded public key - note there is only a public key for this key pair and should only be used for the
@@ -40,9 +25,16 @@ func init() {
 	paddedKey = test.LoadECPublicKeyFromDisk("test/examplePaddedKey-public.pem")
 
 	// Load private keys
-	jwtTestRSAPrivateKey = test.LoadRSAPrivateKeyFromDisk("test/sample_key")
+	jwtTestRSAPrivateKey   = test.LoadRSAPrivateKeyFromDisk("test/sample_key")
 	jwtTestEC256PrivateKey = test.LoadECPrivateKeyFromDisk("test/ec256-private.pem")
-}
+
+	defaultKeyFunc jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return jwtTestDefaultKey, nil }
+	ecdsaKeyFunc   jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return jwtTestEC256PublicKey, nil }
+	paddedKeyFunc  jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return paddedKey, nil }
+	emptyKeyFunc   jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return nil, nil }
+	errorKeyFunc   jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return nil, errKeyFuncError }
+	nilKeyFunc     jwt.Keyfunc
+)
 
 var jwtTestData = []struct {
 	name          string

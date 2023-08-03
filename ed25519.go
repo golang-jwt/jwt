@@ -17,15 +17,8 @@ type SigningMethodEd25519 struct{}
 
 // Specific instance for EdDSA
 var (
-	SigningMethodEdDSA *SigningMethodEd25519
+	SigningMethodEdDSA = initSigningMethod(&SigningMethodEd25519{})
 )
-
-func init() {
-	SigningMethodEdDSA = &SigningMethodEd25519{}
-	RegisterSigningMethod(SigningMethodEdDSA.Alg(), func() SigningMethod {
-		return SigningMethodEdDSA
-	})
-}
 
 func (m *SigningMethodEd25519) Alg() string {
 	return "EdDSA"
