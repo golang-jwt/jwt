@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -26,9 +25,8 @@ const (
 )
 
 var (
-	verifyKey  *rsa.PublicKey
-	signKey    *rsa.PrivateKey
-	serverPort int
+	verifyKey *rsa.PublicKey
+	signKey   *rsa.PrivateKey
 )
 
 // read the key files before starting http handlers
@@ -44,19 +42,6 @@ func init() {
 
 	verifyKey, err = jwt.ParseRSAPublicKeyFromPEM(verifyBytes)
 	fatal(err)
-
-	http.HandleFunc("/authenticate", authHandler)
-	http.HandleFunc("/restricted", restrictedHandler)
-
-	// Setup listener
-	listener, err := net.ListenTCP("tcp", &net.TCPAddr{})
-	fatal(err)
-	serverPort = listener.Addr().(*net.TCPAddr).Port
-
-	log.Println("Listening...")
-	go func() {
-		fatal(http.Serve(listener, nil))
-	}()
 }
 
 func fatal(err error) {
@@ -78,8 +63,11 @@ type CustomClaimsExample struct {
 }
 
 func Example_getTokenViaHTTP() {
+	http.HandleFunc("/authenticate", authHandler)
+	go func() { _ = http.ListenAndServe("localhost:8080", nil) }()
+
 	// See func authHandler for an example auth handler that produces a token
-	res, err := http.PostForm(fmt.Sprintf("http://localhost:%v/authenticate", serverPort), url.Values{
+	res, err := http.PostForm("http://localhost:8080/authenticate", url.Values{
 		"user": {"test"},
 		"pass": {"known"},
 	})
@@ -112,6 +100,8 @@ func Example_getTokenViaHTTP() {
 }
 
 func Example_useTokenViaHTTP() {
+	http.HandleFunc("/restricted", restrictedHandler)
+	go func() { _ = http.ListenAndServe("localhost:8080", nil) }()
 	// Make a sample token
 	// In a real world situation, this token will have been acquired from
 	// some other API call (see Example_getTokenViaHTTP)
@@ -119,7 +109,7 @@ func Example_useTokenViaHTTP() {
 	fatal(err)
 
 	// Make request.  See func restrictedHandler for example request processor
-	req, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:%v/restricted", serverPort), nil)
+	req, err := http.NewRequest("GET", "http://localhost:8080/restricted", nil)
 	fatal(err)
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", token))
 	res, err := http.DefaultClient.Do(req)
