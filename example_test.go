@@ -52,7 +52,6 @@ func ExampleNewWithClaims_registeredClaims() {
 // in the custom type to allow for easy encoding, parsing and validation of registered claims.
 func ExampleNewWithClaims_customClaimsType() {
 	_, privateKey, err := ed25519.GenerateKey(nil)
-
 	if err != nil {
 		panic(err)
 	}
