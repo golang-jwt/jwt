@@ -88,13 +88,11 @@ func ExampleParseWithClaims_customClaimsType() {
 		return []byte("AllYourBase"), nil
 	})
 	if err != nil {
-		log.Fatal(err)
-	}
-
-	if claims, ok := token.Claims.(*MyCustomClaims); ok {
+		fmt.Println(err)
+	} else if claims, ok := token.Claims.(*MyCustomClaims); ok {
 		fmt.Printf("%v %v", claims.Foo, claims.RegisteredClaims.Issuer)
 	} else {
-		fmt.Println(err)
+		fmt.Printf("ParseWithClaims returned an unknown claims type, cannot proceed")
 	}
 
 	// Output: bar test
