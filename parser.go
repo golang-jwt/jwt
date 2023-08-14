@@ -147,6 +147,9 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 		return token, parts, newError("could not base64 decode claim", ErrTokenMalformed, err)
 	}
 
+	// If `useJSONNumber` is enabled then we must use *json.Decoder to decode
+	// the claims. However, this comes with a performance penalty so only use
+	// it if we must and, otherwise, simple use json.Unmarshal.
 	if !p.useJSONNumber {
 		// JSON Unmarshal. Special case for map type to avoid weird pointer behavior.
 		if c, ok := token.Claims.(MapClaims); ok {
