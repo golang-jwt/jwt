@@ -90,7 +90,7 @@ func (e BearerExtractor) ExtractToken(req *http.Request) (string, error) {
 	tokenHeader := req.Header.Get("Authorization")
 	// The usual convention is for "Bearer" to be title-cased. However, there's no
 	// strict rule around this, and it's best to follow the robustness principle here.
-	if tokenHeader == "" || !strings.HasPrefix(strings.ToLower(tokenHeader), "bearer ") {
+	if len(tokenHeader) < 7 || !strings.EqualFold(tokenHeader[:7], "bearer ") {
 		return "", ErrNoTokenInRequest
 	}
 	return tokenHeader[7:], nil

@@ -7,7 +7,7 @@ import (
 // Strips 'Bearer ' prefix from bearer token string
 func stripBearerPrefixFromTokenString(tok string) (string, error) {
 	// Should be a bearer token
-	if len(tok) > 6 && strings.ToUpper(tok[0:7]) == "BEARER " {
+	if len(tok) > 6 && strings.EqualFold(tok[:7], "bearer ") {
 		return tok[7:], nil
 	}
 	return tok, nil

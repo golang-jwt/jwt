@@ -4,7 +4,6 @@ package jwt_test
 // This is based on a (now outdated) example at https://gist.github.com/cryptix/45c33ecf0ae54828e63b
 
 import (
-	"bytes"
 	"crypto/rsa"
 	"fmt"
 	"io"
@@ -91,11 +90,10 @@ func Example_getTokenViaHTTP() {
 	}
 
 	// Read the token out of the response body
-	buf := new(bytes.Buffer)
-	_, err = io.Copy(buf, res.Body)
+	buf, err := io.ReadAll(res.Body)
 	fatal(err)
 	res.Body.Close()
-	tokenString := strings.TrimSpace(buf.String())
+	tokenString := strings.TrimSpace(string(buf))
 
 	// Parse the token
 	token, err := jwt.ParseWithClaims(tokenString, &CustomClaimsExample{}, func(token *jwt.Token) (interface{}, error) {
@@ -108,11 +106,10 @@ func Example_getTokenViaHTTP() {
 	claims := token.Claims.(*CustomClaimsExample)
 	fmt.Println(claims.CustomerInfo.Name)
 
-	//Output: test
+	// Output: test
 }
 
 func Example_useTokenViaHTTP() {
-
 	// Make a sample token
 	// In a real world situation, this token will have been acquired from
 	// some other API call (see Example_getTokenViaHTTP)
@@ -127,11 +124,10 @@ func Example_useTokenViaHTTP() {
 	fatal(err)
 
 	// Read the response body
-	buf := new(bytes.Buffer)
-	_, err = io.Copy(buf, res.Body)
+	buf, err := io.ReadAll(res.Body)
 	fatal(err)
 	res.Body.Close()
-	fmt.Println(buf.String())
+	fmt.Printf("%s", buf)
 
 	// Output: Welcome, foo
 }

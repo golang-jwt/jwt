@@ -130,9 +130,6 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 	// parse Header
 	var headerBytes []byte
 	if headerBytes, err = p.DecodeSegment(parts[0]); err != nil {
-		if strings.HasPrefix(strings.ToLower(tokenString), "bearer ") {
-			return token, parts, newError("tokenstring should not contain 'bearer '", ErrTokenMalformed)
-		}
 		return token, parts, newError("could not base64 decode header", ErrTokenMalformed, err)
 	}
 	if err = json.Unmarshal(headerBytes, &token.Header); err != nil {

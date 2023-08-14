@@ -17,7 +17,7 @@ func ExampleHeaderExtractor() {
 	} else {
 		fmt.Println(err)
 	}
-	//Output: A
+	// Output: A
 }
 
 func ExampleArgumentExtractor() {
@@ -28,5 +28,5 @@ func ExampleArgumentExtractor() {
 	} else {
 		fmt.Println(err)
 	}
-	//Output: A
+	// Output: A
 }
