@@ -30,7 +30,10 @@ var (
 	nilKeyFunc             jwt.Keyfunc = nil
 	multipleZeroKeyFunc    jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return []interface{}{}, nil }
 	multipleEmptyKeyFunc   jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return []interface{}{nil, nil}, nil }
-	multipleLastKeyFunc    jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) {
+	multiplePublicKeysFunc jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) {
+		return []jwt.PublicKey{jwtTestDefaultKey, jwtTestEC256PublicKey}, nil
+	}
+	multipleLastKeyFunc jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) {
 		return jwt.PublicKeyset{Keys: []jwt.PublicKey{jwtTestEC256PublicKey, jwtTestDefaultKey}}, nil
 	}
 	multipleFirstKeyFunc jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) {
@@ -132,6 +135,16 @@ var jwtTestData = []struct {
 		jwt.MapClaims{"foo": "bar"},
 		true,
 		nil,
+		nil,
+		jwt.SigningMethodRS256,
+	},
+	{
+		"public keys slice, not allowed",
+		"eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJmb28iOiJiYXIifQ.FhkiHkoESI_cG3NPigFrxEk9Z60_oXrOT2vGm9Pn6RDgYNovYORQmmA0zs1AoAOf09ly2Nx2YAg6ABqAYga1AcMFkJljwxTT5fYphTuqpWdy4BELeSYJx5Ty2gmr8e7RonuUztrdD5WfPqLKMm1Ozp_T6zALpRmwTIW0QPnaBXaQD90FplAg46Iy1UlDKr-Eupy0i5SLch5Q-p2ZpaL_5fnTIUDlxC3pWhJTyx_71qDI-mAA_5lE_VdroOeflG56sSmDxopPEG3bFlSu1eowyBfxtu0_CuVd-M42RU75Zc4Gsj6uV77MBtbMrf4_7M_NUTSgoIF3fRqxrj0NzihIBg",
+		multiplePublicKeysFunc,
+		jwt.MapClaims{"foo": "bar"},
+		false,
+		[]error{jwt.ErrTokenSignatureInvalid},
 		nil,
 		jwt.SigningMethodRS256,
 	},
