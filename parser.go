@@ -74,19 +74,18 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 		}
 	}
 
-	// Lookup key(s)
-	if keyFunc == nil {
-		// keyFunc was not provided.  short circuiting validation
-		return token, newError("no keyfunc was provided", ErrTokenUnverifiable)
-	}
-
 	// Decode signature
 	token.Signature, err = p.DecodeSegment(parts[2])
 	if err != nil {
 		return token, newError("could not base64 decode signature", ErrTokenMalformed, err)
 	}
-
 	text := strings.Join(parts[0:2], ".")
+
+	// Lookup key(s)
+	if keyFunc == nil {
+		// keyFunc was not provided.  short circuiting validation
+		return token, newError("no keyfunc was provided", ErrTokenUnverifiable)
+	}
 
 	got, err := keyFunc(token)
 	if err != nil {
