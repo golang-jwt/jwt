@@ -15,8 +15,7 @@ import (
 // multiple keys.
 type Keyfunc func(*Token) (interface{}, error)
 
-// PublicKey represents a generic public key interface that allows you to provide keys of various
-// types to the parser.
+// PublicKey represents a generic public key interface.
 type PublicKey interface {
 	crypto.PublicKey | []uint8
 }
