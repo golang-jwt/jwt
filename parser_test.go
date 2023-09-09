@@ -31,13 +31,13 @@ var (
 	multipleZeroKeyFunc    jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return []interface{}{}, nil }
 	multipleEmptyKeyFunc   jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return []interface{}{nil, nil}, nil }
 	multipleLastKeyFunc    jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) {
-		return []interface{}{jwtTestEC256PublicKey, jwtTestDefaultKey}, nil
+		return jwt.PublicKeyset{Keys: []jwt.PublicKey{jwtTestEC256PublicKey, jwtTestDefaultKey}}, nil
 	}
 	multipleFirstKeyFunc jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) {
-		return []interface{}{jwtTestDefaultKey, jwtTestEC256PublicKey}, nil
+		return jwt.PublicKeyset{Keys: []jwt.PublicKey{jwtTestDefaultKey, jwtTestEC256PublicKey}}, nil
 	}
 	multipleAltTypedKeyFunc jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) {
-		return []*rsa.PublicKey{jwtTestDefaultKey, jwtTestDefaultKey}, nil
+		return jwt.PublicKeyset{Keys: []jwt.PublicKey{jwtTestDefaultKey, jwtTestDefaultKey}}, nil
 	}
 )
 

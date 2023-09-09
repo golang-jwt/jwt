@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"reflect"
 	"strings"
 )
 
@@ -81,34 +80,6 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 		return token, newError("no keyfunc was provided", ErrTokenUnverifiable)
 	}
 
-	keys := make([]interface{}, 1)
-	// Convert the key or list of keys into a list of keys.
-	{
-		got, err := keyFunc(token)
-		if err != nil {
-			return token, newError("error while executing keyfunc", ErrTokenUnverifiable, err)
-		}
-
-		switch have := got.(type) {
-		case []interface{}:
-			keys = have
-		case []byte, []int8: // HMAC is an outlier, so treat it specially.
-			keys[0] = have
-		case interface{}:
-			typ := reflect.TypeOf(have)
-			switch typ.Kind() {
-			case reflect.Array, reflect.Slice:
-				val := reflect.ValueOf(have)
-				keys = make([]interface{}, val.Len())
-				for i := 0; i < val.Len(); i++ {
-					keys[i] = val.Index(i).Interface()
-				}
-			default:
-				keys[0] = have
-			}
-		}
-	}
-
 	// Decode signature
 	token.Signature, err = p.DecodeSegment(parts[2])
 	if err != nil {
@@ -117,19 +88,31 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 
 	text := strings.Join(parts[0:2], ".")
 
-	// Assume there is an error until proven otherwise because an empty array of
-	// keys means no checks are performed.
-	err = ErrTokenSignatureInvalid
-	for _, key := range keys {
-		// Perform signature validation, skipping the rest when a match is found.
-		err = token.Method.Verify(text, token.Signature, key)
-		if err == nil {
-			break
-		}
-	}
-	// If the only key or last key checked failed, then it's an error.
+	got, err := keyFunc(token)
 	if err != nil {
-		return token, newError("", ErrTokenSignatureInvalid, err)
+		return token, newError("error while executing keyfunc", ErrTokenUnverifiable, err)
+	}
+
+	switch have := got.(type) {
+	case PublicKeyset:
+		if len(have.Keys) == 0 {
+			return token, newError("keyfunc returned empty keyset", ErrTokenUnverifiable)
+		}
+		// Iterate through keys and verify signature, skipping the rest when a match is found.
+		// Return the last error if no match is found.
+		var err error
+		for _, key := range have.Keys {
+			if err = token.Method.Verify(text, token.Signature, key); err == nil {
+				break
+			}
+		}
+		if err != nil {
+			return token, ErrTokenSignatureInvalid
+		}
+	default:
+		if err := token.Method.Verify(text, token.Signature, have); err != nil {
+			return token, newError("", ErrTokenSignatureInvalid, err)
+		}
 	}
 
 	// Validate Claims

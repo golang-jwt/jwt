@@ -1,6 +1,7 @@
 package jwt
 
 import (
+	"crypto"
 	"encoding/base64"
 	"encoding/json"
 )
@@ -85,4 +86,16 @@ func (t *Token) SigningString() (string, error) {
 // than a global function.
 func (*Token) EncodeSegment(seg []byte) string {
 	return base64.RawURLEncoding.EncodeToString(seg)
+}
+
+// PublicKey represents a generic public key interface that allows you to provide keys of various
+// types to the parser.
+type PublicKey interface {
+	crypto.PublicKey | []uint8
+}
+
+// PublicKeyset is a set of public keys that can be used to verify a token. It is used by the parser
+// to verify a token.
+type PublicKeyset struct {
+	Keys []PublicKey
 }
