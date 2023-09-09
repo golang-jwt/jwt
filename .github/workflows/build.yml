@@ -13,16 +13,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go: ["1.18.x", "1.19.x", "1.20.x"]
+        go: ["1.19", "1.20", "1.21"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup Go
         uses: actions/setup-go@v4
         with:
           go-version: "${{ matrix.go }}"
           check-latest: true
-          cache: true
       - name: Check Go code formatting
         run: |
           if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
@@ -34,7 +33,7 @@ jobs:
         run: |
           go install github.com/mfridman/tparse@latest  
           go vet ./...
-          go test -v -race -count=1 -json -coverpkg=$(go list ./...) ./... | tee output.json | tparse -follow -notests || true
+          go test -v -race -count=1 -json -cover ./... | tee output.json | tparse -follow -notests || true
           tparse -format markdown -file output.json -all > $GITHUB_STEP_SUMMARY
           go build ./...
   coverage:
