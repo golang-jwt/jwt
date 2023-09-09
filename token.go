@@ -10,9 +10,22 @@ import (
 // the key for verification.  The function receives the parsed, but unverified
 // Token.  This allows you to use properties in the Header of the token (such as
 // `kid`) to identify which key to use.
-// The returned interface{} may be a single key or an array of keys to try.  If
-// an array of keys is returned an []interface{} with mixed types is allowed.
+//
+// The returned interface{} may be a single key or a PublicKeyset containing
+// multiple keys.
 type Keyfunc func(*Token) (interface{}, error)
+
+// PublicKey represents a generic public key interface that allows you to provide keys of various
+// types to the parser.
+type PublicKey interface {
+	crypto.PublicKey | []uint8
+}
+
+// PublicKeyset is a set of public keys that can be used to verify a token. It is used by the parser
+// to verify a token.
+type PublicKeyset struct {
+	Keys []PublicKey
+}
 
 // Token represents a JWT Token.  Different fields will be used depending on
 // whether you're creating or parsing/verifying a token.
@@ -86,16 +99,4 @@ func (t *Token) SigningString() (string, error) {
 // than a global function.
 func (*Token) EncodeSegment(seg []byte) string {
 	return base64.RawURLEncoding.EncodeToString(seg)
-}
-
-// PublicKey represents a generic public key interface that allows you to provide keys of various
-// types to the parser.
-type PublicKey interface {
-	crypto.PublicKey | []uint8
-}
-
-// PublicKeyset is a set of public keys that can be used to verify a token. It is used by the parser
-// to verify a token.
-type PublicKeyset struct {
-	Keys []PublicKey
 }
