@@ -100,19 +100,16 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 		}
 		// Iterate through keys and verify signature, skipping the rest when a match is found.
 		// Return the last error if no match is found.
-		var err error
 		for _, key := range have.Keys {
 			if err = token.Method.Verify(text, token.Signature, key); err == nil {
 				break
 			}
 		}
-		if err != nil {
-			return token, ErrTokenSignatureInvalid
-		}
 	default:
-		if err := token.Method.Verify(text, token.Signature, have); err != nil {
-			return token, newError("", ErrTokenSignatureInvalid, err)
-		}
+		err = token.Method.Verify(text, token.Signature, have)
+	}
+	if err != nil {
+		return token, newError("", ErrTokenSignatureInvalid, err)
 	}
 
 	// Validate Claims
