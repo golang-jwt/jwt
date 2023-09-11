@@ -133,8 +133,8 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 //
 // WARNING: Don't use this method unless you know what you're doing.
 //
-// It's only ever useful in cases where you know the signature is valid (because it has
-// been checked previously in the stack) and you want to extract values from it.
+// It's only ever useful in cases where you know the signature is valid (since it has already
+// been or will be checked elsewhere in the stack) and you want to extract values from it.
 func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Token, parts []string, err error) {
 	parts = strings.Split(tokenString, ".")
 	if len(parts) != 3 {
@@ -153,23 +153,33 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 	}
 
 	// parse Claims
-	var claimBytes []byte
 	token.Claims = claims
 
-	if claimBytes, err = p.DecodeSegment(parts[1]); err != nil {
+	claimBytes, err := p.DecodeSegment(parts[1])
+	if err != nil {
 		return token, parts, newError("could not base64 decode claim", ErrTokenMalformed, err)
 	}
-	dec := json.NewDecoder(bytes.NewBuffer(claimBytes))
-	if p.useJSONNumber {
-		dec.UseNumber()
-	}
-	// JSON Decode.  Special case for map type to avoid weird pointer behavior
-	if c, ok := token.Claims.(MapClaims); ok {
-		err = dec.Decode(&c)
+
+	// If `useJSONNumber` is enabled then we must use *json.Decoder to decode
+	// the claims. However, this comes with a performance penalty so only use
+	// it if we must and, otherwise, simple use json.Unmarshal.
+	if !p.useJSONNumber {
+		// JSON Unmarshal. Special case for map type to avoid weird pointer behavior.
+		if c, ok := token.Claims.(MapClaims); ok {
+			err = json.Unmarshal(claimBytes, &c)
+		} else {
+			err = json.Unmarshal(claimBytes, &claims)
+		}
 	} else {
-		err = dec.Decode(&claims)
+		dec := json.NewDecoder(bytes.NewBuffer(claimBytes))
+		dec.UseNumber()
+		// JSON Decode. Special case for map type to avoid weird pointer behavior.
+		if c, ok := token.Claims.(MapClaims); ok {
+			err = dec.Decode(&c)
+		} else {
+			err = dec.Decode(&claims)
+		}
 	}
-	// Handle decode error
 	if err != nil {
 		return token, parts, newError("could not JSON decode claim", ErrTokenMalformed, err)
 	}
