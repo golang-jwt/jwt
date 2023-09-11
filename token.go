@@ -15,15 +15,14 @@ import (
 // multiple keys.
 type Keyfunc func(*Token) (interface{}, error)
 
-// PublicKey represents a generic public key interface.
-type PublicKey interface {
+// VerificationKey represents a public or secret key for verifying a token's signature.
+type VerificationKey interface {
 	crypto.PublicKey | []uint8
 }
 
-// PublicKeyset is a set of public keys that can be used to verify a token. It is used by the parser
-// to verify a token.
-type PublicKeyset struct {
-	Keys []PublicKey
+// VerifyKeySet is a set of public or secret keys. It is used by the parser to verify a token.
+type VerifyKeySet struct {
+	Keys []VerificationKey
 }
 
 // Token represents a JWT Token.  Different fields will be used depending on
