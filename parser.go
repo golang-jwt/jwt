@@ -93,9 +93,9 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 	}
 
 	switch have := got.(type) {
-	case VerifyKeySet:
+	case VerificationKeySet:
 		if len(have.Keys) == 0 {
-			return token, newError("keyfunc returned empty keyset", ErrTokenUnverifiable)
+			return token, newError("keyfunc returned empty verification key set", ErrTokenUnverifiable)
 		}
 		// Iterate through keys and verify signature, skipping the rest when a match is found.
 		// Return the last error if no match is found.

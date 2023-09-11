@@ -20,8 +20,8 @@ type VerificationKey interface {
 	crypto.PublicKey | []uint8
 }
 
-// VerifyKeySet is a set of public or secret keys. It is used by the parser to verify a token.
-type VerifyKeySet struct {
+// VerificationKeySet is a set of public or secret keys. It is used by the parser to verify a token.
+type VerificationKeySet struct {
 	Keys []VerificationKey
 }
 
