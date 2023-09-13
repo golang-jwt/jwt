@@ -91,3 +91,10 @@ func (m *SigningMethodRSA) Sign(signingString string, key interface{}) ([]byte, 
 		return nil, err
 	}
 }
+
+// RSAPublicKey represents a [Keyfunc] that returns the RSA key specified in
+// key. Furthermore, it checks, whether the signing method matches
+// [SigningMethodRSA].
+func RSAPublicKey(key *rsa.PublicKey) Keyfunc {
+	return secureKeyFunc(key, []string{"RS256", "RS384", "RS512"})
+}
