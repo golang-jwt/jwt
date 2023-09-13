@@ -6,12 +6,12 @@ type TokenOption func(*Token)
 
 func WithJSONEncoder(f JSONMarshalFunc) TokenOption {
 	return func(token *Token) {
-		token.jsonEncoder = f
+		token.jsonMarshal = f
 	}
 }
 
 func WithBase64Encoder(f Base64EncodeFunc) TokenOption {
 	return func(token *Token) {
-		token.base64Encoder = f
+		token.base64Encode = f
 	}
 }

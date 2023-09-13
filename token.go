@@ -28,14 +28,19 @@ type VerificationKeySet struct {
 // Token represents a JWT Token.  Different fields will be used depending on
 // whether you're creating or parsing/verifying a token.
 type Token struct {
-	Raw           string                 // Raw contains the raw token.  Populated when you [Parse] a token
-	Method        SigningMethod          // Method is the signing method used or to be used
-	Header        map[string]interface{} // Header is the first segment of the token in decoded form
-	Claims        Claims                 // Claims is the second segment of the token in decoded form
-	Signature     []byte                 // Signature is the third segment of the token in decoded form.  Populated when you Parse a token
-	Valid         bool                   // Valid specifies if the token is valid.  Populated when you Parse/Verify a token
-	jsonEncoder   JSONMarshalFunc        // jsonEncoder is the custom json encoder/decoder
-	base64Encoder Base64EncodeFunc       // base64Encoder is the custom base64 encoder/decoder
+	Raw       string                 // Raw contains the raw token.  Populated when you [Parse] a token
+	Method    SigningMethod          // Method is the signing method used or to be used
+	Header    map[string]interface{} // Header is the first segment of the token in decoded form
+	Claims    Claims                 // Claims is the second segment of the token in decoded form
+	Signature []byte                 // Signature is the third segment of the token in decoded form.  Populated when you Parse a token
+	Valid     bool                   // Valid specifies if the token is valid.  Populated when you Parse/Verify a token
+
+	encoders
+}
+
+type encoders struct {
+	jsonMarshal  JSONMarshalFunc  // jsonEncoder is the custom json encoder/decoder
+	base64Encode Base64EncodeFunc // base64Encoder is the custom base64 encoder/decoder
 }
 
 // New creates a new [Token] with the specified signing method and an empty map
@@ -85,8 +90,8 @@ func (t *Token) SignedString(key interface{}) (string, error) {
 // straight for the SignedString.
 func (t *Token) SigningString() (string, error) {
 	var marshal JSONMarshalFunc
-	if t.jsonEncoder != nil {
-		marshal = t.jsonEncoder
+	if t.jsonMarshal != nil {
+		marshal = t.jsonMarshal
 	} else {
 		marshal = json.Marshal
 	}
@@ -110,8 +115,8 @@ func (t *Token) SigningString() (string, error) {
 // than a global function.
 func (t *Token) EncodeSegment(seg []byte) string {
 	var enc Base64EncodeFunc
-	if t.base64Encoder != nil {
-		enc = t.base64Encoder
+	if t.base64Encode != nil {
+		enc = t.base64Encode
 	} else {
 		enc = base64.RawURLEncoding.EncodeToString
 	}
