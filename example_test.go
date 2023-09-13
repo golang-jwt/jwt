@@ -124,6 +124,9 @@ type MyCustomClaims struct {
 	jwt.RegisteredClaims
 }
 
+// Ensure we implement [jwt.ClaimsValidator] at compile time so we know our custom Validate method is used.
+var _ jwt.ClaimsValidator = (*MyCustomClaims)(nil)
+
 // Validate can be used to execute additional application-specific claims
 // validation.
 func (m MyCustomClaims) Validate() error {
