@@ -1,6 +1,8 @@
 package jwt_test
 
 import (
+	"crypto/ed25519"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"time"
@@ -14,24 +16,45 @@ import (
 // no way to retrieve other fields after parsing.
 // See the CustomClaimsType example for intended usage.
 func ExampleNewWithClaims_registeredClaims() {
-	mySigningKey := []byte("AllYourBase")
+	publicKey, privateKey, err := ed25519.GenerateKey(nil)
+	if err != nil {
+		panic(err)
+	}
 
 	// Create the Claims
 	claims := &jwt.RegisteredClaims{
-		ExpiresAt: jwt.NewNumericDate(time.Unix(1516239022, 0)),
+		ExpiresAt: jwt.NewNumericDate(time.Unix(2516239022, 0)),
 		Issuer:    "test",
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	ss, err := token.SignedString(mySigningKey)
-	fmt.Printf("%v %v", ss, err)
-	// Output: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ0ZXN0IiwiZXhwIjoxNTE2MjM5MDIyfQ.0XN_1Tpp9FszFOonIBpwha0c_SfnNI22DhTnjMshPg8 <nil>
+	token := jwt.NewWithClaims(jwt.SigningMethodEdDSA, claims)
+	ss, err := token.SignedString(privateKey)
+	if err != nil {
+		panic(err)
+	}
+
+	// Validate the token
+	tk, err := jwt.ParseWithClaims(ss, claims, func(t *jwt.Token) (interface{}, error) {
+		return publicKey, nil
+	})
+
+	if err != nil {
+		panic(err)
+	}
+
+	issuer, err := tk.Claims.GetIssuer()
+	fmt.Printf("%v %v", issuer, err)
+
+	//Output: test <nil>
 }
 
 // Example creating a token using a custom claims type. The RegisteredClaims is embedded
 // in the custom type to allow for easy encoding, parsing and validation of registered claims.
 func ExampleNewWithClaims_customClaimsType() {
-	mySigningKey := []byte("AllYourBase")
+	_, privateKey, err := ed25519.GenerateKey(nil)
+	if err != nil {
+		panic(err)
+	}
 
 	type MyCustomClaims struct {
 		Foo string `json:"foo"`
@@ -65,18 +88,26 @@ func ExampleNewWithClaims_customClaimsType() {
 		},
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	ss, err := token.SignedString(mySigningKey)
-	fmt.Printf("%v %v", ss, err)
+	token := jwt.NewWithClaims(jwt.SigningMethodEdDSA, claims)
+	ss, err := token.SignedString(privateKey)
+
+	fmt.Println(len(ss), err)
 
 	// Output: foo: bar
-	// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJpc3MiOiJ0ZXN0IiwiZXhwIjoxNTE2MjM5MDIyfQ.xVuY2FZ_MRXMIEgVQ7J-TFtaucVFRXUzHm9LmV41goM <nil>
+	// 182 <nil>
 }
 
 // Example creating a token using a custom claims type.  The RegisteredClaims is embedded
 // in the custom type to allow for easy encoding, parsing and validation of standard claims.
 func ExampleParseWithClaims_customClaimsType() {
-	tokenString := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJpc3MiOiJ0ZXN0IiwiYXVkIjoic2luZ2xlIn0.QAWg1vGvnqRuCFTMcPkjZljXHh8U3L_qUjszOtQbeaA"
+	tokenString := "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJpc3MiOiJ0ZXN0IiwiZXhwIjoyNTE2MjM5MDIyfQ.JutXls8z2IUxAtUgCV2Ec7WRVKrTYX5gCByB0mGLJw0qC9xah3YwH9E82U3QZAPQOOXAalhEFP92KYEWAyITDw"
+
+	// Corresponding private key is a426d77a4edabfdef2830223c9e94e68c5ba1006d1d7ba2a8277ada9b3f93d5c9939cf856f57ee490076a5cc0104b7ae7d458be275cd1cc6fb91b509413e7f56
+	publicKeyBytes, err := hex.DecodeString("9939cf856f57ee490076a5cc0104b7ae7d458be275cd1cc6fb91b509413e7f56")
+	if err != nil {
+		panic(err)
+	}
+	publicKey := ed25519.PublicKey(publicKeyBytes)
 
 	type MyCustomClaims struct {
 		Foo string `json:"foo"`
@@ -84,7 +115,7 @@ func ExampleParseWithClaims_customClaimsType() {
 	}
 
 	token, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte("AllYourBase"), nil
+		return publicKey, nil
 	})
 
 	if claims, ok := token.Claims.(*MyCustomClaims); ok && token.Valid {
@@ -99,7 +130,14 @@ func ExampleParseWithClaims_customClaimsType() {
 // Example creating a token using a custom claims type and validation options.  The RegisteredClaims is embedded
 // in the custom type to allow for easy encoding, parsing and validation of standard claims.
 func ExampleParseWithClaims_validationOptions() {
-	tokenString := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJpc3MiOiJ0ZXN0IiwiYXVkIjoic2luZ2xlIn0.QAWg1vGvnqRuCFTMcPkjZljXHh8U3L_qUjszOtQbeaA"
+	tokenString := "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJpc3MiOiJ0ZXN0IiwiZXhwIjoyNTE2MjM5MDIyfQ.JutXls8z2IUxAtUgCV2Ec7WRVKrTYX5gCByB0mGLJw0qC9xah3YwH9E82U3QZAPQOOXAalhEFP92KYEWAyITDw"
+
+	// Corresponding private key is a426d77a4edabfdef2830223c9e94e68c5ba1006d1d7ba2a8277ada9b3f93d5c9939cf856f57ee490076a5cc0104b7ae7d458be275cd1cc6fb91b509413e7f56
+	publicKeyBytes, err := hex.DecodeString("9939cf856f57ee490076a5cc0104b7ae7d458be275cd1cc6fb91b509413e7f56")
+	if err != nil {
+		panic(err)
+	}
+	publicKey := ed25519.PublicKey(publicKeyBytes)
 
 	type MyCustomClaims struct {
 		Foo string `json:"foo"`
@@ -107,7 +145,7 @@ func ExampleParseWithClaims_validationOptions() {
 	}
 
 	token, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte("AllYourBase"), nil
+		return publicKey, nil
 	}, jwt.WithLeeway(5*time.Second))
 
 	if claims, ok := token.Claims.(*MyCustomClaims); ok && token.Valid {
@@ -142,10 +180,17 @@ func (m MyCustomClaims) Validate() error {
 // encoding, parsing and validation of standard claims and the function
 // CustomValidation is implemented.
 func ExampleParseWithClaims_customValidation() {
-	tokenString := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJpc3MiOiJ0ZXN0IiwiYXVkIjoic2luZ2xlIn0.QAWg1vGvnqRuCFTMcPkjZljXHh8U3L_qUjszOtQbeaA"
+	tokenString := "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJpc3MiOiJ0ZXN0IiwiZXhwIjoyNTE2MjM5MDIyfQ.JutXls8z2IUxAtUgCV2Ec7WRVKrTYX5gCByB0mGLJw0qC9xah3YwH9E82U3QZAPQOOXAalhEFP92KYEWAyITDw"
+
+	// Corresponding private key is a426d77a4edabfdef2830223c9e94e68c5ba1006d1d7ba2a8277ada9b3f93d5c9939cf856f57ee490076a5cc0104b7ae7d458be275cd1cc6fb91b509413e7f56
+	publicKeyBytes, err := hex.DecodeString("9939cf856f57ee490076a5cc0104b7ae7d458be275cd1cc6fb91b509413e7f56")
+	if err != nil {
+		panic(err)
+	}
+	publicKey := ed25519.PublicKey(publicKeyBytes)
 
 	token, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte("AllYourBase"), nil
+		return publicKey, nil
 	}, jwt.WithLeeway(5*time.Second))
 
 	if claims, ok := token.Claims.(*MyCustomClaims); ok && token.Valid {
@@ -160,10 +205,17 @@ func ExampleParseWithClaims_customValidation() {
 // An example of parsing the error types using errors.Is.
 func ExampleParse_errorChecking() {
 	// Token from another example.  This token is expired
-	var tokenString = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJleHAiOjE1MDAwLCJpc3MiOiJ0ZXN0In0.HE7fK0xOQwFEr4WDgRWj4teRPZ6i3GLwD5YCm6Pwu_c"
+	var tokenString = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJpc3MiOiJ0ZXN0IiwiZXhwIjoxNTE2MjM5MDIyfQ.XAxYEk_6fWzMe256fXeT-eDR1vo_t4gqkq3eD4lqKHm8VrvhnOBtIrfXAJvMY6S1c5Lb1CIhPAaCe366xsYJDg"
+
+	// Corresponding private key is 378446363ffa1eb526a61f4b250bd24bd60002d5d20e22fa9b20c786e7f5e2ea8fff42935411c4c9bd3772c4a96a710bf6f2ba5508a71fc6155bcd73eb952837
+	publicKeyBytes, err := hex.DecodeString("8fff42935411c4c9bd3772c4a96a710bf6f2ba5508a71fc6155bcd73eb952837")
+	if err != nil {
+		panic(err)
+	}
+	publicKey := ed25519.PublicKey(publicKeyBytes)
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return []byte("AllYourBase"), nil
+		return publicKey, nil
 	})
 
 	switch {
