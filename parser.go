@@ -20,14 +20,18 @@ type Parser struct {
 
 	validator *Validator
 
+	decoders
+}
+
+type decoders struct {
+	jsonUnmarshal JSONUnmarshalFunc
+	base64Decode  Base64DecodeFunc
+
 	// This field is disabled when using a custom base64 encoder.
 	decodeStrict bool
 
 	// This field is disabled when using a custom base64 encoder.
 	decodePaddingAllowed bool
-
-	unmarshalFunc    JSONUnmarshalFunc
-	base64DecodeFunc Base64DecodeFunc
 }
 
 // NewParser creates a new Parser with the specified options
@@ -156,8 +160,8 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 
 	// Choose our JSON decoder. If no custom function is supplied, we use the standard library.
 	var unmarshal JSONUnmarshalFunc
-	if p.unmarshalFunc != nil {
-		unmarshal = p.unmarshalFunc
+	if p.jsonUnmarshal != nil {
+		unmarshal = p.jsonUnmarshal
 	} else {
 		unmarshal = json.Unmarshal
 	}
@@ -214,8 +218,8 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 // take into account whether the [Parser] is configured with additional options,
 // such as [WithStrictDecoding] or [WithPaddingAllowed].
 func (p *Parser) DecodeSegment(seg string) ([]byte, error) {
-	if p.base64DecodeFunc != nil {
-		return p.base64DecodeFunc(seg)
+	if p.base64Decode != nil {
+		return p.base64Decode(seg)
 	}
 
 	encoding := base64.RawURLEncoding
