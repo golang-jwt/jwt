@@ -28,6 +28,25 @@ var (
 	emptyKeyFunc           jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return nil, nil }
 	errorKeyFunc           jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return nil, errKeyFuncError }
 	nilKeyFunc             jwt.Keyfunc = nil
+	multipleZeroKeyFunc    jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return []interface{}{}, nil }
+	multipleEmptyKeyFunc   jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) {
+		return jwt.VerificationKeySet{Keys: []jwt.VerificationKey{nil, nil}}, nil
+	}
+	multipleVerificationKeysFunc jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) {
+		return []jwt.VerificationKey{jwtTestDefaultKey, jwtTestEC256PublicKey}, nil
+	}
+	multipleLastKeyFunc jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) {
+		return jwt.VerificationKeySet{Keys: []jwt.VerificationKey{jwtTestEC256PublicKey, jwtTestDefaultKey}}, nil
+	}
+	multipleFirstKeyFunc jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) {
+		return jwt.VerificationKeySet{Keys: []jwt.VerificationKey{jwtTestDefaultKey, jwtTestEC256PublicKey}}, nil
+	}
+	multipleAltTypedKeyFunc jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) {
+		return jwt.VerificationKeySet{Keys: []jwt.VerificationKey{jwtTestDefaultKey, jwtTestDefaultKey}}, nil
+	}
+	emptyVerificationKeySetFunc jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) {
+		return jwt.VerificationKeySet{}, nil
+	}
 )
 
 func init() {
@@ -95,6 +114,46 @@ var jwtTestData = []struct {
 		jwt.SigningMethodRS256,
 	},
 	{
+		"multiple keys, last matches",
+		"eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJmb28iOiJiYXIifQ.FhkiHkoESI_cG3NPigFrxEk9Z60_oXrOT2vGm9Pn6RDgYNovYORQmmA0zs1AoAOf09ly2Nx2YAg6ABqAYga1AcMFkJljwxTT5fYphTuqpWdy4BELeSYJx5Ty2gmr8e7RonuUztrdD5WfPqLKMm1Ozp_T6zALpRmwTIW0QPnaBXaQD90FplAg46Iy1UlDKr-Eupy0i5SLch5Q-p2ZpaL_5fnTIUDlxC3pWhJTyx_71qDI-mAA_5lE_VdroOeflG56sSmDxopPEG3bFlSu1eowyBfxtu0_CuVd-M42RU75Zc4Gsj6uV77MBtbMrf4_7M_NUTSgoIF3fRqxrj0NzihIBg",
+		multipleLastKeyFunc,
+		jwt.MapClaims{"foo": "bar"},
+		true,
+		nil,
+		nil,
+		jwt.SigningMethodRS256,
+	},
+	{
+		"multiple keys not []interface{} type, all match",
+		"eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJmb28iOiJiYXIifQ.FhkiHkoESI_cG3NPigFrxEk9Z60_oXrOT2vGm9Pn6RDgYNovYORQmmA0zs1AoAOf09ly2Nx2YAg6ABqAYga1AcMFkJljwxTT5fYphTuqpWdy4BELeSYJx5Ty2gmr8e7RonuUztrdD5WfPqLKMm1Ozp_T6zALpRmwTIW0QPnaBXaQD90FplAg46Iy1UlDKr-Eupy0i5SLch5Q-p2ZpaL_5fnTIUDlxC3pWhJTyx_71qDI-mAA_5lE_VdroOeflG56sSmDxopPEG3bFlSu1eowyBfxtu0_CuVd-M42RU75Zc4Gsj6uV77MBtbMrf4_7M_NUTSgoIF3fRqxrj0NzihIBg",
+		multipleAltTypedKeyFunc,
+		jwt.MapClaims{"foo": "bar"},
+		true,
+		nil,
+		nil,
+		jwt.SigningMethodRS256,
+	},
+	{
+		"multiple keys, first matches",
+		"eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJmb28iOiJiYXIifQ.FhkiHkoESI_cG3NPigFrxEk9Z60_oXrOT2vGm9Pn6RDgYNovYORQmmA0zs1AoAOf09ly2Nx2YAg6ABqAYga1AcMFkJljwxTT5fYphTuqpWdy4BELeSYJx5Ty2gmr8e7RonuUztrdD5WfPqLKMm1Ozp_T6zALpRmwTIW0QPnaBXaQD90FplAg46Iy1UlDKr-Eupy0i5SLch5Q-p2ZpaL_5fnTIUDlxC3pWhJTyx_71qDI-mAA_5lE_VdroOeflG56sSmDxopPEG3bFlSu1eowyBfxtu0_CuVd-M42RU75Zc4Gsj6uV77MBtbMrf4_7M_NUTSgoIF3fRqxrj0NzihIBg",
+		multipleFirstKeyFunc,
+		jwt.MapClaims{"foo": "bar"},
+		true,
+		nil,
+		nil,
+		jwt.SigningMethodRS256,
+	},
+	{
+		"public keys slice, not allowed",
+		"eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJmb28iOiJiYXIifQ.FhkiHkoESI_cG3NPigFrxEk9Z60_oXrOT2vGm9Pn6RDgYNovYORQmmA0zs1AoAOf09ly2Nx2YAg6ABqAYga1AcMFkJljwxTT5fYphTuqpWdy4BELeSYJx5Ty2gmr8e7RonuUztrdD5WfPqLKMm1Ozp_T6zALpRmwTIW0QPnaBXaQD90FplAg46Iy1UlDKr-Eupy0i5SLch5Q-p2ZpaL_5fnTIUDlxC3pWhJTyx_71qDI-mAA_5lE_VdroOeflG56sSmDxopPEG3bFlSu1eowyBfxtu0_CuVd-M42RU75Zc4Gsj6uV77MBtbMrf4_7M_NUTSgoIF3fRqxrj0NzihIBg",
+		multipleVerificationKeysFunc,
+		jwt.MapClaims{"foo": "bar"},
+		false,
+		[]error{jwt.ErrTokenSignatureInvalid},
+		nil,
+		jwt.SigningMethodRS256,
+	},
+	{
 		"basic expired",
 		"", // autogen
 		defaultKeyFunc,
@@ -148,6 +207,36 @@ var jwtTestData = []struct {
 		"basic nokey",
 		"eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJmb28iOiJiYXIifQ.FhkiHkoESI_cG3NPigFrxEk9Z60_oXrOT2vGm9Pn6RDgYNovYORQmmA0zs1AoAOf09ly2Nx2YAg6ABqAYga1AcMFkJljwxTT5fYphTuqpWdy4BELeSYJx5Ty2gmr8e7RonuUztrdD5WfPqLKMm1Ozp_T6zALpRmwTIW0QPnaBXaQD90FplAg46Iy1UlDKr-Eupy0i5SLch5Q-p2ZpaL_5fnTIUDlxC3pWhJTyx_71qDI-mAA_5lE_VdroOeflG56sSmDxopPEG3bFlSu1eowyBfxtu0_CuVd-M42RU75Zc4Gsj6uV77MBtbMrf4_7M_NUTSgoIF3fRqxrj0NzihIBg",
 		emptyKeyFunc,
+		jwt.MapClaims{"foo": "bar"},
+		false,
+		[]error{jwt.ErrTokenSignatureInvalid},
+		nil,
+		jwt.SigningMethodRS256,
+	},
+	{
+		"multiple nokey",
+		"eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJmb28iOiJiYXIifQ.FhkiHkoESI_cG3NPigFrxEk9Z60_oXrOT2vGm9Pn6RDgYNovYORQmmA0zs1AoAOf09ly2Nx2YAg6ABqAYga1AcMFkJljwxTT5fYphTuqpWdy4BELeSYJx5Ty2gmr8e7RonuUztrdD5WfPqLKMm1Ozp_T6zALpRmwTIW0QPnaBXaQD90FplAg46Iy1UlDKr-Eupy0i5SLch5Q-p2ZpaL_5fnTIUDlxC3pWhJTyx_71qDI-mAA_5lE_VdroOeflG56sSmDxopPEG3bFlSu1eowyBfxtu0_CuVd-M42RU75Zc4Gsj6uV77MBtbMrf4_7M_NUTSgoIF3fRqxrj0NzihIBg",
+		multipleEmptyKeyFunc,
+		jwt.MapClaims{"foo": "bar"},
+		false,
+		[]error{jwt.ErrTokenSignatureInvalid},
+		nil,
+		jwt.SigningMethodRS256,
+	},
+	{
+		"empty verification key set",
+		"eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJmb28iOiJiYXIifQ.FhkiHkoESI_cG3NPigFrxEk9Z60_oXrOT2vGm9Pn6RDgYNovYORQmmA0zs1AoAOf09ly2Nx2YAg6ABqAYga1AcMFkJljwxTT5fYphTuqpWdy4BELeSYJx5Ty2gmr8e7RonuUztrdD5WfPqLKMm1Ozp_T6zALpRmwTIW0QPnaBXaQD90FplAg46Iy1UlDKr-Eupy0i5SLch5Q-p2ZpaL_5fnTIUDlxC3pWhJTyx_71qDI-mAA_5lE_VdroOeflG56sSmDxopPEG3bFlSu1eowyBfxtu0_CuVd-M42RU75Zc4Gsj6uV77MBtbMrf4_7M_NUTSgoIF3fRqxrj0NzihIBg",
+		emptyVerificationKeySetFunc,
+		jwt.MapClaims{"foo": "bar"},
+		false,
+		[]error{jwt.ErrTokenUnverifiable},
+		nil,
+		jwt.SigningMethodRS256,
+	},
+	{
+		"zero length key list",
+		"eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJmb28iOiJiYXIifQ.FhkiHkoESI_cG3NPigFrxEk9Z60_oXrOT2vGm9Pn6RDgYNovYORQmmA0zs1AoAOf09ly2Nx2YAg6ABqAYga1AcMFkJljwxTT5fYphTuqpWdy4BELeSYJx5Ty2gmr8e7RonuUztrdD5WfPqLKMm1Ozp_T6zALpRmwTIW0QPnaBXaQD90FplAg46Iy1UlDKr-Eupy0i5SLch5Q-p2ZpaL_5fnTIUDlxC3pWhJTyx_71qDI-mAA_5lE_VdroOeflG56sSmDxopPEG3bFlSu1eowyBfxtu0_CuVd-M42RU75Zc4Gsj6uV77MBtbMrf4_7M_NUTSgoIF3fRqxrj0NzihIBg",
+		multipleZeroKeyFunc,
 		jwt.MapClaims{"foo": "bar"},
 		false,
 		[]error{jwt.ErrTokenSignatureInvalid},

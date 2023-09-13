@@ -74,24 +74,40 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 		}
 	}
 
-	// Lookup key
-	var key interface{}
-	if keyFunc == nil {
-		// keyFunc was not provided.  short circuiting validation
-		return token, newError("no keyfunc was provided", ErrTokenUnverifiable)
-	}
-	if key, err = keyFunc(token); err != nil {
-		return token, newError("error while executing keyfunc", ErrTokenUnverifiable, err)
-	}
-
 	// Decode signature
 	token.Signature, err = p.DecodeSegment(parts[2])
 	if err != nil {
 		return token, newError("could not base64 decode signature", ErrTokenMalformed, err)
 	}
+	text := strings.Join(parts[0:2], ".")
 
-	// Perform signature validation
-	if err = token.Method.Verify(strings.Join(parts[0:2], "."), token.Signature, key); err != nil {
+	// Lookup key(s)
+	if keyFunc == nil {
+		// keyFunc was not provided.  short circuiting validation
+		return token, newError("no keyfunc was provided", ErrTokenUnverifiable)
+	}
+
+	got, err := keyFunc(token)
+	if err != nil {
+		return token, newError("error while executing keyfunc", ErrTokenUnverifiable, err)
+	}
+
+	switch have := got.(type) {
+	case VerificationKeySet:
+		if len(have.Keys) == 0 {
+			return token, newError("keyfunc returned empty verification key set", ErrTokenUnverifiable)
+		}
+		// Iterate through keys and verify signature, skipping the rest when a match is found.
+		// Return the last error if no match is found.
+		for _, key := range have.Keys {
+			if err = token.Method.Verify(text, token.Signature, key); err == nil {
+				break
+			}
+		}
+	default:
+		err = token.Method.Verify(text, token.Signature, have)
+	}
+	if err != nil {
 		return token, newError("", ErrTokenSignatureInvalid, err)
 	}
 
