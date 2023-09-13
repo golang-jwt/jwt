@@ -125,7 +125,7 @@ type MyCustomClaims struct {
 }
 
 // Ensure we implement [jwt.ClaimsValidator] at compile time so we know our custom Validate method is used.
-var _ jwt.ClaimsValidator = MyCustomClaims{}
+var _ jwt.ClaimsValidator = (*MyCustomClaims)(nil)
 
 // Validate can be used to execute additional application-specific claims
 // validation.
