@@ -162,6 +162,7 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 		unmarshal = json.Unmarshal
 	}
 
+	// JSON Unmarshal the header
 	err = unmarshal(headerBytes, &token.Header)
 	if err != nil {
 		return token, parts, newError("could not JSON decode header", ErrTokenMalformed, err)
@@ -175,25 +176,23 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 		return token, parts, newError("could not base64 decode claim", ErrTokenMalformed, err)
 	}
 
-	// If `useJSONNumber` is enabled then we must use *json.Decoder to decode
+	// If `useJSONNumber` is enabled, then we must use *json.Decoder to decode
 	// the claims. However, this comes with a performance penalty so only use
-	// it if we must and, otherwise, simple use our decode function.
-	if !p.useJSONNumber {
-		// JSON Unmarshal. Special case for map type to avoid weird pointer behavior.
-		if c, ok := token.Claims.(MapClaims); ok {
-			err = unmarshal(claimBytes, &c)
-		} else {
-			err = unmarshal(claimBytes, &claims)
+	// it if we must and, otherwise, simple use our existing unmarshal function.
+	if p.useJSONNumber {
+		unmarshal = func(data []byte, v any) error {
+			decoder := json.NewDecoder(bytes.NewBuffer(claimBytes))
+			decoder.UseNumber()
+			return decoder.Decode(v)
 		}
+	}
+
+	// JSON Unmarshal the claims. Special case for map type to avoid weird
+	// pointer behavior.
+	if c, ok := token.Claims.(MapClaims); ok {
+		err = unmarshal(claimBytes, &c)
 	} else {
-		dec := json.NewDecoder(bytes.NewBuffer(claimBytes))
-		dec.UseNumber()
-		// JSON Decode. Special case for map type to avoid weird pointer behavior.
-		if c, ok := token.Claims.(MapClaims); ok {
-			err = dec.Decode(&c)
-		} else {
-			err = dec.Decode(&claims)
-		}
+		err = unmarshal(claimBytes, &claims)
 	}
 	if err != nil {
 		return token, parts, newError("could not JSON decode claim", ErrTokenMalformed, err)
