@@ -12,7 +12,7 @@ type Parser struct {
 	// If populated, only these methods will be considered valid.
 	validMethods []string
 
-	// Use JSON Number format in JSON decoder. This field is disabled when using a custom json encoder.
+	// Use JSON Number format in JSON decoder.
 	useJSONNumber bool
 
 	// Skip claims validation during token parsing.
@@ -24,8 +24,9 @@ type Parser struct {
 }
 
 type decoders struct {
-	jsonUnmarshal JSONUnmarshalFunc
-	base64Decode  Base64DecodeFunc
+	jsonUnmarshal  JSONUnmarshalFunc
+	jsonNewDecoder JSONNewDecoderFunc[JSONDecoder]
+	base64Decode   Base64DecodeFunc
 
 	// This field is disabled when using a custom base64 encoder.
 	decodeStrict bool
@@ -180,12 +181,20 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 		return token, parts, newError("could not base64 decode claim", ErrTokenMalformed, err)
 	}
 
-	// If `useJSONNumber` is enabled, then we must use *json.Decoder to decode
-	// the claims. However, this comes with a performance penalty so only use
-	// it if we must and, otherwise, simple use our existing unmarshal function.
+	// If `useJSONNumber` is enabled, then we must use a dedicated JSONDecoder
+	// to decode the claims. However, this comes with a performance penalty so
+	// only use it if we must and, otherwise, simple use our existing unmarshal
+	// function.
 	if p.useJSONNumber {
 		unmarshal = func(data []byte, v any) error {
-			decoder := json.NewDecoder(bytes.NewBuffer(claimBytes))
+			buffer := bytes.NewBuffer(claimBytes)
+
+			var decoder JSONDecoder
+			if p.jsonNewDecoder != nil {
+				decoder = p.jsonNewDecoder(buffer)
+			} else {
+				decoder = json.NewDecoder(buffer)
+			}
 			decoder.UseNumber()
 			return decoder.Decode(v)
 		}

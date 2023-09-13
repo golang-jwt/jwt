@@ -1,6 +1,9 @@
 package jwt
 
-import "time"
+import (
+	"io"
+	"time"
+)
 
 // ParserOption is used to implement functional-style options that modify the
 // behavior of the parser. To add new options, just create a function (ideally
@@ -127,10 +130,15 @@ func WithStrictDecoding() ParserOption {
 	}
 }
 
-// WithJSONUnmarshal supports a custom [JSONUnmarshal] to use in parsing the JWT.
-func WithJSONUnmarshal(f JSONUnmarshalFunc) ParserOption {
+// WithJSONDecoder supports a custom [JSONUnmarshal] to use in parsing the JWT.
+func WithJSONDecoder[T JSONDecoder](f JSONUnmarshalFunc, f2 JSONNewDecoderFunc[T]) ParserOption {
 	return func(p *Parser) {
 		p.jsonUnmarshal = f
+		// This seems to be necessary, since we don't want to store the specific
+		// JSONDecoder type in our parser, but need it in the function interface.
+		p.jsonNewDecoder = func(r io.Reader) JSONDecoder {
+			return f2(r)
+		}
 	}
 }
 
