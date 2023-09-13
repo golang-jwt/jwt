@@ -11,7 +11,7 @@ import (
 // Token.  This allows you to use properties in the Header of the token (such as
 // `kid`) to identify which key to use.
 //
-// The returned interface{} may be a single key or a PublicKeyset containing
+// The returned interface{} may be a single key or a VerificationKeySet containing
 // multiple keys.
 type Keyfunc func(*Token) (interface{}, error)
 
