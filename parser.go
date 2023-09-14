@@ -26,12 +26,11 @@ type Parser struct {
 type decoders struct {
 	jsonUnmarshal  JSONUnmarshalFunc
 	jsonNewDecoder JSONNewDecoderFunc[JSONDecoder]
-	base64Decode   Base64DecodeFunc
 
-	// This field is disabled when using a custom base64 encoder.
-	decodeStrict bool
+	rawUrlBase64Encoding Base64Encoding
+	urlBase64Encoding    Base64Encoding
 
-	// This field is disabled when using a custom base64 encoder.
+	decodeStrict         bool
 	decodePaddingAllowed bool
 }
 
@@ -227,22 +226,35 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 // take into account whether the [Parser] is configured with additional options,
 // such as [WithStrictDecoding] or [WithPaddingAllowed].
 func (p *Parser) DecodeSegment(seg string) ([]byte, error) {
-	if p.base64Decode != nil {
-		return p.base64Decode(seg)
+	var encoding Base64Encoding
+	if p.rawUrlBase64Encoding != nil {
+		encoding = p.rawUrlBase64Encoding
+	} else {
+		encoding = base64.RawURLEncoding
 	}
-
-	encoding := base64.RawURLEncoding
 
 	if p.decodePaddingAllowed {
 		if l := len(seg) % 4; l > 0 {
 			seg += strings.Repeat("=", 4-l)
 		}
-		encoding = base64.URLEncoding
+
+		if p.urlBase64Encoding != nil {
+			encoding = p.urlBase64Encoding
+		} else {
+			encoding = base64.URLEncoding
+		}
 	}
 
 	if p.decodeStrict {
-		encoding = encoding.Strict()
+		// For now we can only support the standard library here because of the
+		// current state of the type parameter system
+		stricter, ok := encoding.(Stricter[*base64.Encoding])
+		if !ok {
+			return nil, newError("strict mode is only supported in encoding/base64", ErrUnsupported)
+		}
+		encoding = stricter.Strict()
 	}
+
 	return encoding.DecodeString(seg)
 }
 

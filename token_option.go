@@ -10,8 +10,8 @@ func WithJSONEncoder(f JSONMarshalFunc) TokenOption {
 	}
 }
 
-func WithBase64Encoder(f Base64EncodeFunc) TokenOption {
+func WithBase64Encoder(enc Base64Encoding) TokenOption {
 	return func(token *Token) {
-		token.base64Encode = f
+		token.base64Encoding = enc
 	}
 }

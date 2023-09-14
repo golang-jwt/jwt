@@ -39,8 +39,8 @@ type Token struct {
 }
 
 type encoders struct {
-	jsonMarshal  JSONMarshalFunc  // jsonEncoder is the custom json encoder/decoder
-	base64Encode Base64EncodeFunc // base64Encoder is the custom base64 encoder/decoder
+	jsonMarshal    JSONMarshalFunc // jsonEncoder is the custom json encoder/decoder
+	base64Encoding Base64Encoding  // base64Encoder is the custom base64 encoding
 }
 
 // New creates a new [Token] with the specified signing method and an empty map
@@ -114,12 +114,12 @@ func (t *Token) SigningString() (string, error) {
 // [TokenOption]. Therefore, this function exists as a method of [Token], rather
 // than a global function.
 func (t *Token) EncodeSegment(seg []byte) string {
-	var enc Base64EncodeFunc
-	if t.base64Encode != nil {
-		enc = t.base64Encode
+	var enc Base64Encoding
+	if t.base64Encoding != nil {
+		enc = t.base64Encoding
 	} else {
-		enc = base64.RawURLEncoding.EncodeToString
+		enc = base64.RawURLEncoding
 	}
 
-	return enc(seg)
+	return enc.EncodeToString(seg)
 }

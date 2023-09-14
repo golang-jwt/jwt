@@ -53,7 +53,7 @@ func TestToken_SigningString(t1 *testing.T) {
 				Valid:  false,
 				Options: []jwt.TokenOption{
 					jwt.WithJSONEncoder(json.Marshal),
-					jwt.WithBase64Encoder(base64.StdEncoding.EncodeToString),
+					jwt.WithBase64Encoder(base64.StdEncoding),
 				},
 			},
 			want:    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30",

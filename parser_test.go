@@ -454,7 +454,7 @@ var jwtTestData = []struct {
 		jwt.MapClaims{"foo": "bar"},
 		true,
 		nil,
-		jwt.NewParser(jwt.WithBase64Decoder(base64.RawURLEncoding.DecodeString)),
+		jwt.NewParser(jwt.WithBase64Decoder(base64.RawURLEncoding, base64.URLEncoding)),
 		jwt.SigningMethodRS256,
 	},
 	{

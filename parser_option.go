@@ -142,9 +142,10 @@ func WithJSONDecoder[T JSONDecoder](f JSONUnmarshalFunc, f2 JSONNewDecoderFunc[T
 	}
 }
 
-// WithBase64Decoder supports a custom [Base64Decoder] to use in parsing the JWT.
-func WithBase64Decoder(f Base64DecodeFunc) ParserOption {
+// WithBase64Decoder supports a custom [Base64Encoding] to use in parsing the JWT.
+func WithBase64Decoder(rawURL Base64Encoding, url Base64Encoding) ParserOption {
 	return func(p *Parser) {
-		p.base64Decode = f
+		p.rawUrlBase64Encoding = rawURL
+		p.urlBase64Encoding = url
 	}
 }
