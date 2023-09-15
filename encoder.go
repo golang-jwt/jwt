@@ -2,6 +2,8 @@ package jwt
 
 import "io"
 
+// Base64Encoding represents an object that can encode and decode base64. A
+// common example is [encoding/base64.Encoding].
 type Base64Encoding interface {
 	EncodeToString(src []byte) string
 	DecodeString(s string) ([]byte, error)

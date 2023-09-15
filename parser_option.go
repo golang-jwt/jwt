@@ -124,25 +124,67 @@ func WithPaddingAllowed() ParserOption {
 // WithStrictDecoding will switch the codec used for decoding JWTs into strict
 // mode. In this mode, the decoder requires that trailing padding bits are zero,
 // as described in RFC 4648 section 3.5.
+//
+// Note: This is only supported when using [encoding/base64.Encoding], but not
+// by any other decoder specified with [WithBase64Decoder].
 func WithStrictDecoding() ParserOption {
 	return func(p *Parser) {
 		p.decodeStrict = true
 	}
 }
 
-// WithJSONDecoder supports a custom [JSONUnmarshal] to use in parsing the JWT.
-func WithJSONDecoder[T JSONDecoder](f JSONUnmarshalFunc, f2 JSONNewDecoderFunc[T]) ParserOption {
+// WithJSONDecoder supports a custom JSON decoder to use in parsing the JWT.
+// There are two functions that can be supplied:
+//   - jsonUnmarshal is a [JSONUnmarshalFunc] that is used for the
+//     un-marshalling the header and claims when no other options are specified
+//   - jsonNewDecoder is a [JSONNewDecoderFunc] that is used to create an object
+//     satisfying the [JSONDecoder] interface.
+//
+// The latter is used when the [WithJSONNumber] option is used.
+//
+// If any of the supplied functions is set to nil, the defaults from the Go
+// standard library, [encoding/json.Unmarshal] and [encoding/json.NewDecoder]
+// are used.
+//
+// Example using the https://github.com/bytedance/sonic library.
+//
+//	import (
+//		"github.com/bytedance/sonic"
+//	)
+//
+//	var parser = NewParser(WithJSONDecoder(sonic.Unmarshal, sonic.ConfigDefault.NewDecoder))
+func WithJSONDecoder[T JSONDecoder](jsonUnmarshal JSONUnmarshalFunc, jsonNewDecoder JSONNewDecoderFunc[T]) ParserOption {
 	return func(p *Parser) {
-		p.jsonUnmarshal = f
+		p.jsonUnmarshal = jsonUnmarshal
 		// This seems to be necessary, since we don't want to store the specific
-		// JSONDecoder type in our parser, but need it in the function interface.
+		// JSONDecoder type in our parser, but need it in the function
+		// interface.
 		p.jsonNewDecoder = func(r io.Reader) JSONDecoder {
-			return f2(r)
+			return jsonNewDecoder(r)
 		}
 	}
 }
 
-// WithBase64Decoder supports a custom [Base64Encoding] to use in parsing the JWT.
+// WithBase64Decoder supports a custom Base64 when decoding a base64 encoded
+// token. Two encoding can be specified:
+//   - rawURL needs to contain a [Base64Encoding] that is based on base64url
+//     without padding. This is used for parsing tokens with the default
+//     options.
+//   - url needs to contain a [Base64Encoding] based on base64url with padding.
+//     The sole use of this to decode tokens when [WithPaddingAllowed] is
+//     enabled.
+//
+// If any of the supplied encodings are set to nil, the defaults from the Go
+// standard library, [encoding/base64.RawURLEncoding] and
+// [encoding/base64.URLEncoding] are used.
+//
+// Example using the https://github.com/segmentio/asm library.
+//
+//	import (
+//		asmbase64 "github.com/segmentio/asm/base64"
+//	)
+//
+//	var parser = NewParser(WithBase64Decoder(asmbase64.RawURLEncoding, asmbase64.URLEncoding))
 func WithBase64Decoder(rawURL Base64Encoding, url Base64Encoding) ParserOption {
 	return func(p *Parser) {
 		p.rawUrlBase64Encoding = rawURL
