@@ -152,7 +152,7 @@ func WithStrictDecoding() ParserOption {
 //		"github.com/bytedance/sonic"
 //	)
 //
-//	var parser = NewParser(WithJSONDecoder(sonic.Unmarshal, sonic.ConfigDefault.NewDecoder))
+//	var parser = jwt.NewParser(jwt.WithJSONDecoder(sonic.Unmarshal, sonic.ConfigDefault.NewDecoder))
 func WithJSONDecoder[T JSONDecoder](jsonUnmarshal JSONUnmarshalFunc, jsonNewDecoder JSONNewDecoderFunc[T]) ParserOption {
 	return func(p *Parser) {
 		p.jsonUnmarshal = jsonUnmarshal
@@ -184,10 +184,20 @@ func WithJSONDecoder[T JSONDecoder](jsonUnmarshal JSONUnmarshalFunc, jsonNewDeco
 //		asmbase64 "github.com/segmentio/asm/base64"
 //	)
 //
-//	var parser = NewParser(WithBase64Decoder(asmbase64.RawURLEncoding, asmbase64.URLEncoding))
-func WithBase64Decoder(rawURL Base64Encoding, url Base64Encoding) ParserOption {
+//	var parser = jwt.NewParser(jwt.WithBase64Decoder(asmbase64.RawURLEncoding, asmbase64.URLEncoding))
+func WithBase64Decoder[T Base64Encoding](rawURL Base64Encoding, url T) ParserOption {
 	return func(p *Parser) {
 		p.rawUrlBase64Encoding = rawURL
 		p.urlBase64Encoding = url
+
+		// Check, whether the library supports the Strict() function
+		stricter, ok := rawURL.(Stricter[T])
+		if ok {
+			// We need to get rid of the type parameter T, so we need to wrap it
+			// here
+			p.strict = func() Base64Encoding {
+				return stricter.Strict()
+			}
+		}
 	}
 }

@@ -9,8 +9,14 @@ type Base64Encoding interface {
 	DecodeString(s string) ([]byte, error)
 }
 
+type StrictFunc[T Base64Encoding] func() T
+
 type Stricter[T Base64Encoding] interface {
 	Strict() T
+}
+
+func DoStrict[S Base64Encoding, T Stricter[S]](x T) Base64Encoding {
+	return x.Strict()
 }
 
 // JSONMarshalFunc is an function type that allows to implement custom JSON

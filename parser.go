@@ -12,23 +12,24 @@ type Parser struct {
 	// If populated, only these methods will be considered valid.
 	validMethods []string
 
-	// Use JSON Number format in JSON decoder.
-	useJSONNumber bool
-
 	// Skip claims validation during token parsing.
 	skipClaimsValidation bool
 
 	validator *Validator
 
-	decoders
+	decoding
 }
 
-type decoders struct {
+type decoding struct {
 	jsonUnmarshal  JSONUnmarshalFunc
 	jsonNewDecoder JSONNewDecoderFunc[JSONDecoder]
 
 	rawUrlBase64Encoding Base64Encoding
 	urlBase64Encoding    Base64Encoding
+	strict               StrictFunc[Base64Encoding]
+
+	// Use JSON Number format in JSON decoder.
+	useJSONNumber bool
 
 	decodeStrict         bool
 	decodePaddingAllowed bool
@@ -246,13 +247,15 @@ func (p *Parser) DecodeSegment(seg string) ([]byte, error) {
 	}
 
 	if p.decodeStrict {
-		// For now we can only support the standard library here because of the
-		// current state of the type parameter system
-		stricter, ok := encoding.(Stricter[*base64.Encoding])
-		if !ok {
-			return nil, newError("strict mode is only supported in encoding/base64", ErrUnsupported)
+		if p.strict != nil {
+			encoding = p.strict()
+		} else {
+			stricter, ok := encoding.(Stricter[*base64.Encoding])
+			if !ok {
+				return nil, newError("WithStrictDecoding() was enabled but supplied base64 encoder does not support strict mode", ErrUnsupported)
+			}
+			encoding = stricter.Strict()
 		}
-		encoding = stricter.Strict()
 	}
 
 	return encoding.DecodeString(seg)
