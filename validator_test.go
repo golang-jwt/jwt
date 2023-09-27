@@ -20,7 +20,7 @@ func (m MyCustomClaims) Validate() error {
 	return nil
 }
 
-func Test_validator_Validate(t *testing.T) {
+func Test_Validator_Validate(t *testing.T) {
 	type fields struct {
 		leeway      time.Duration
 		timeFunc    func() time.Time
@@ -71,7 +71,7 @@ func Test_validator_Validate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			v := &validator{
+			v := &Validator{
 				leeway:      tt.fields.leeway,
 				timeFunc:    tt.fields.timeFunc,
 				verifyIat:   tt.fields.verifyIat,
@@ -86,7 +86,7 @@ func Test_validator_Validate(t *testing.T) {
 	}
 }
 
-func Test_validator_verifyExpiresAt(t *testing.T) {
+func Test_Validator_verifyExpiresAt(t *testing.T) {
 	type fields struct {
 		leeway   time.Duration
 		timeFunc func() time.Time
@@ -117,7 +117,7 @@ func Test_validator_verifyExpiresAt(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			v := &validator{
+			v := &Validator{
 				leeway:   tt.fields.leeway,
 				timeFunc: tt.fields.timeFunc,
 			}
@@ -130,7 +130,7 @@ func Test_validator_verifyExpiresAt(t *testing.T) {
 	}
 }
 
-func Test_validator_verifyIssuer(t *testing.T) {
+func Test_Validator_verifyIssuer(t *testing.T) {
 	type fields struct {
 		expectedIss string
 	}
@@ -160,7 +160,7 @@ func Test_validator_verifyIssuer(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			v := &validator{
+			v := &Validator{
 				expectedIss: tt.fields.expectedIss,
 			}
 			err := v.verifyIssuer(tt.args.claims, tt.args.cmp, tt.args.required)
@@ -171,7 +171,7 @@ func Test_validator_verifyIssuer(t *testing.T) {
 	}
 }
 
-func Test_validator_verifySubject(t *testing.T) {
+func Test_Validator_verifySubject(t *testing.T) {
 	type fields struct {
 		expectedSub string
 	}
@@ -201,7 +201,7 @@ func Test_validator_verifySubject(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			v := &validator{
+			v := &Validator{
 				expectedSub: tt.fields.expectedSub,
 			}
 			err := v.verifySubject(tt.args.claims, tt.args.cmp, tt.args.required)
@@ -212,7 +212,7 @@ func Test_validator_verifySubject(t *testing.T) {
 	}
 }
 
-func Test_validator_verifyIssuedAt(t *testing.T) {
+func Test_Validator_verifyIssuedAt(t *testing.T) {
 	type fields struct {
 		leeway    time.Duration
 		timeFunc  func() time.Time
@@ -248,7 +248,7 @@ func Test_validator_verifyIssuedAt(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			v := &validator{
+			v := &Validator{
 				leeway:    tt.fields.leeway,
 				timeFunc:  tt.fields.timeFunc,
 				verifyIat: tt.fields.verifyIat,

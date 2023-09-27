@@ -68,6 +68,16 @@ type Claims interface {
 }
 ```
 
+Users that previously directly called the `Valid` function on their claims,
+e.g., to perform validation independently of parsing/verifying a token, can now
+use the `jwt.NewValidator` function to create a `validator` independently of the
+`Parser`.
+
+```go
+var v = jwt.NewValidator(jwt.WithLeeway(5*time.Second))
+v.Validate(myClaims)
+```
+
 ### Supported Claim Types and Removal of `StandardClaims`
 
 The two standard claim types supported by this library, `MapClaims` and
