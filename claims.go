@@ -9,6 +9,12 @@ import (
 // Claims must just have a Valid method that determines
 // if the token is invalid for any supported reason
 type Claims interface {
+	// Deprecated: Starting with v5, we will change the way the Claims interface
+	// work. This should only impact users that implemented their own claims
+	// struct (without embedding one of the supplied structs). Users of v4
+	// should already try to avoid calling this function directly. In most
+	// cases, it is sufficient to rely on the error messages of
+	// [Parser.ParseWithClaims] or to use the property [Token.Valid].
 	Valid() error
 }
 
@@ -44,10 +50,16 @@ type RegisteredClaims struct {
 	ID string `json:"jti,omitempty"`
 }
 
-// Valid validates time based claims "exp, iat, nbf".
-// There is no accounting for clock skew.
-// As well, if any of the above claims are not in the token, it will still
-// be considered a valid claim.
+// Valid validates time based claims "exp, iat, nbf". There is no accounting for
+// clock skew. As well, if any of the above claims are not in the token, it will
+// still be considered a valid claim.
+//
+// Deprecated: Starting with v5, we will change the way the Claims interface
+// work. This should only impact users that implemented their own claims struct
+// (without embedding one of the supplied structs). Users of v4 should already
+// try to avoid calling this function directly. In most cases, it is sufficient
+// to rely on the error messages of [Parser.ParseWithClaims] or to use the
+// property [Token.Valid].
 func (c RegisteredClaims) Valid() error {
 	vErr := new(ValidationError)
 	now := TimeFunc()
