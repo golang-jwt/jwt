@@ -423,6 +423,16 @@ var jwtTestData = []struct {
 		jwt.NewParser(jwt.WithLeeway(2 * time.Minute)),
 		jwt.SigningMethodRS256,
 	},
+	{
+		"rejects if exp is required but missing",
+		"", // autogen
+		defaultKeyFunc,
+		&jwt.RegisteredClaims{},
+		false,
+		[]error{jwt.ErrTokenInvalidClaims},
+		jwt.NewParser(jwt.WithExpirationRequired()),
+		jwt.SigningMethodRS256,
+	},
 }
 
 // signToken creates and returns a signed JWT token using signingMethod.

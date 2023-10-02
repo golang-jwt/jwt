@@ -106,15 +106,6 @@ func TestMapclaimsVerifyExpiresAtInvalidTypeString(t *testing.T) {
 	}
 }
 
-func TestMapclaimsVerifyExpiresRequiredButMissing(t *testing.T) {
-	mapClaims := MapClaims{}
-	want := false
-	got := newValidator(WithRequiredExpiration()).Validate(mapClaims)
-
-	if want != (got == nil) {
-		t.Fatalf("Failed to verify claims, wanted: %v got %v", want, (got == nil))
-	}
-}
 func TestMapClaimsVerifyExpiresAtExpire(t *testing.T) {
 	exp := time.Now()
 	mapClaims := MapClaims{

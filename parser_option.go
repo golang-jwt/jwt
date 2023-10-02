@@ -58,9 +58,9 @@ func WithIssuedAt() ParserOption {
 	}
 }
 
-// WithRequiredExpiration returns the ParserOption to make exp claim required.
+// WithExpirationRequired returns the ParserOption to make exp claim required.
 // By default exp claim is optional.
-func WithRequiredExpiration() ParserOption {
+func WithExpirationRequired() ParserOption {
 	return func(p *Parser) {
 		p.validator.requireExp = true
 	}
