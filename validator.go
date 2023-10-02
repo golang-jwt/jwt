@@ -89,7 +89,8 @@ func (v *validator) Validate(claims Claims) error {
 	}
 
 	// We always need to check the expiration time, but usage of the claim
-	// itself is OPTIONAL.
+	// itself is OPTIONAL by default. requireExp overrides this behavior
+	// and makes the exp claim mandatory.
 	if err = v.verifyExpiresAt(claims, now, v.requireExp); err != nil {
 		errs = append(errs, err)
 	}
