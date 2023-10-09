@@ -3,6 +3,7 @@ package jwt_test
 import (
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -24,7 +25,7 @@ func ExampleNewWithClaims_registeredClaims() {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	ss, err := token.SignedString(mySigningKey)
-	fmt.Printf("%v %v", ss, err)
+	fmt.Println(ss, err)
 	// Output: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ0ZXN0IiwiZXhwIjoxNTE2MjM5MDIyfQ.0XN_1Tpp9FszFOonIBpwha0c_SfnNI22DhTnjMshPg8 <nil>
 }
 
@@ -67,7 +68,7 @@ func ExampleNewWithClaims_customClaimsType() {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	ss, err := token.SignedString(mySigningKey)
-	fmt.Printf("%v %v", ss, err)
+	fmt.Println(ss, err)
 
 	// Output: foo: bar
 	// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJpc3MiOiJ0ZXN0IiwiZXhwIjoxNTE2MjM5MDIyfQ.xVuY2FZ_MRXMIEgVQ7J-TFtaucVFRXUzHm9LmV41goM <nil>
@@ -86,11 +87,12 @@ func ExampleParseWithClaims_customClaimsType() {
 	token, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte("AllYourBase"), nil
 	})
-
-	if claims, ok := token.Claims.(*MyCustomClaims); ok && token.Valid {
-		fmt.Printf("%v %v", claims.Foo, claims.RegisteredClaims.Issuer)
+	if err != nil {
+		log.Fatal(err)
+	} else if claims, ok := token.Claims.(*MyCustomClaims); ok {
+		fmt.Println(claims.Foo, claims.RegisteredClaims.Issuer)
 	} else {
-		fmt.Println(err)
+		log.Fatal("unknown claims type, cannot proceed")
 	}
 
 	// Output: bar test
@@ -109,11 +111,12 @@ func ExampleParseWithClaims_validationOptions() {
 	token, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte("AllYourBase"), nil
 	}, jwt.WithLeeway(5*time.Second))
-
-	if claims, ok := token.Claims.(*MyCustomClaims); ok && token.Valid {
-		fmt.Printf("%v %v", claims.Foo, claims.RegisteredClaims.Issuer)
+	if err != nil {
+		log.Fatal(err)
+	} else if claims, ok := token.Claims.(*MyCustomClaims); ok {
+		fmt.Println(claims.Foo, claims.RegisteredClaims.Issuer)
 	} else {
-		fmt.Println(err)
+		log.Fatal("unknown claims type, cannot proceed")
 	}
 
 	// Output: bar test
@@ -147,11 +150,12 @@ func ExampleParseWithClaims_customValidation() {
 	token, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte("AllYourBase"), nil
 	}, jwt.WithLeeway(5*time.Second))
-
-	if claims, ok := token.Claims.(*MyCustomClaims); ok && token.Valid {
-		fmt.Printf("%v %v", claims.Foo, claims.RegisteredClaims.Issuer)
+	if err != nil {
+		log.Fatal(err)
+	} else if claims, ok := token.Claims.(*MyCustomClaims); ok {
+		fmt.Println(claims.Foo, claims.RegisteredClaims.Issuer)
 	} else {
-		fmt.Println(err)
+		log.Fatal("unknown claims type, cannot proceed")
 	}
 
 	// Output: bar test

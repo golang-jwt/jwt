@@ -83,9 +83,7 @@ func Example_getTokenViaHTTP() {
 		"user": {"test"},
 		"pass": {"known"},
 	})
-	if err != nil {
-		fatal(err)
-	}
+	fatal(err)
 
 	if res.StatusCode != 200 {
 		fmt.Println("Unexpected status code", res.StatusCode)

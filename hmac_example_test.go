@@ -2,6 +2,7 @@ package jwt_test
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -56,8 +57,11 @@ func ExampleParse_hmac() {
 		// hmacSampleSecret is a []byte containing your secret, e.g. []byte("my_secret_key")
 		return hmacSampleSecret, nil
 	})
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+	if claims, ok := token.Claims.(jwt.MapClaims); ok {
 		fmt.Println(claims["foo"], claims["nbf"])
 	} else {
 		fmt.Println(err)
