@@ -5,7 +5,7 @@ package jwt
 // common basis for validation, it is required that an implementation is able to
 // supply at least the claim names provided in
 // https://datatracker.ietf.org/doc/html/rfc7519#section-4.1 namely `exp`,
-// `iat`, `nbf`, `iss`, `sub`, `aud` and `jti“.
+// `iat`, `nbf`, `iss`, `sub`, `aud` and `jti`.
 type Claims interface {
 	GetExpirationTime() (*NumericDate, error)
 	GetIssuedAt() (*NumericDate, error)
