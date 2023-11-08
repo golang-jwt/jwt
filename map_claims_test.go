@@ -62,7 +62,7 @@ func TestVerifyAud(t *testing.T) {
 				opts = append(opts, WithAudience(test.Comparison))
 			}
 
-			validator := newValidator(opts...)
+			validator := NewValidator(opts...)
 			got := validator.Validate(test.MapClaims)
 
 			if (got == nil) != test.Expected {
@@ -77,7 +77,7 @@ func TestMapclaimsVerifyIssuedAtInvalidTypeString(t *testing.T) {
 		"iat": "foo",
 	}
 	want := false
-	got := newValidator(WithIssuedAt()).Validate(mapClaims)
+	got := NewValidator(WithIssuedAt()).Validate(mapClaims)
 	if want != (got == nil) {
 		t.Fatalf("Failed to verify claims, wanted: %v got %v", want, (got == nil))
 	}
@@ -88,7 +88,7 @@ func TestMapclaimsVerifyNotBeforeInvalidTypeString(t *testing.T) {
 		"nbf": "foo",
 	}
 	want := false
-	got := newValidator().Validate(mapClaims)
+	got := NewValidator().Validate(mapClaims)
 	if want != (got == nil) {
 		t.Fatalf("Failed to verify claims, wanted: %v got %v", want, (got == nil))
 	}
@@ -99,7 +99,7 @@ func TestMapclaimsVerifyExpiresAtInvalidTypeString(t *testing.T) {
 		"exp": "foo",
 	}
 	want := false
-	got := newValidator().Validate(mapClaims)
+	got := NewValidator().Validate(mapClaims)
 
 	if want != (got == nil) {
 		t.Fatalf("Failed to verify claims, wanted: %v got %v", want, (got == nil))
@@ -112,14 +112,14 @@ func TestMapClaimsVerifyExpiresAtExpire(t *testing.T) {
 		"exp": float64(exp.Unix()),
 	}
 	want := false
-	got := newValidator(WithTimeFunc(func() time.Time {
+	got := NewValidator(WithTimeFunc(func() time.Time {
 		return exp
 	})).Validate(mapClaims)
 	if want != (got == nil) {
 		t.Fatalf("Failed to verify claims, wanted: %v got %v", want, (got == nil))
 	}
 
-	got = newValidator(WithTimeFunc(func() time.Time {
+	got = NewValidator(WithTimeFunc(func() time.Time {
 		return exp.Add(1 * time.Second)
 	})).Validate(mapClaims)
 	if want != (got == nil) {
@@ -127,7 +127,7 @@ func TestMapClaimsVerifyExpiresAtExpire(t *testing.T) {
 	}
 
 	want = true
-	got = newValidator(WithTimeFunc(func() time.Time {
+	got = NewValidator(WithTimeFunc(func() time.Time {
 		return exp.Add(-1 * time.Second)
 	})).Validate(mapClaims)
 	if want != (got == nil) {
