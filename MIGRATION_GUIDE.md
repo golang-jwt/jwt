@@ -17,7 +17,7 @@ and corresponding updates for existing programs.
 
 ## Parsing and Validation Options
 
-Under the hood, a new `validator` struct takes care of validating the claims. A
+Under the hood, a new `Validator` struct takes care of validating the claims. A
 long awaited feature has been the option to fine-tune the validation of tokens.
 This is now possible with several `ParserOption` functions that can be appended
 to most `Parse` functions, such as `ParseWithClaims`. The most important options
@@ -70,7 +70,7 @@ type Claims interface {
 
 Users that previously directly called the `Valid` function on their claims,
 e.g., to perform validation independently of parsing/verifying a token, can now
-use the `jwt.NewValidator` function to create a `validator` independently of the
+use the `jwt.NewValidator` function to create a `Validator` independently of the
 `Parser`.
 
 ```go
