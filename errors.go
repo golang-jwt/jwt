@@ -7,7 +7,7 @@ import (
 
 var (
 	ErrInvalidKey                = errors.New("key is invalid")
-	ErrInvalidKeyType            = errors.New("key is of invalid go type")
+	ErrInvalidKeyType            = errors.New("key is of invalid type")
 	ErrHashUnavailable           = errors.New("the requested hash function is unavailable")
 	ErrTokenMalformed            = errors.New("token is malformed")
 	ErrTokenUnverifiable         = errors.New("token is unverifiable")
