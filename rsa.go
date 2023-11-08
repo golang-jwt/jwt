@@ -51,7 +51,7 @@ func (m *SigningMethodRSA) Verify(signingString string, sig []byte, key interfac
 	var ok bool
 
 	if rsaKey, ok = key.(*rsa.PublicKey); !ok {
-		return ErrInvalidKeyType
+		return newError("rsa verify expects *rsa.PublicKey", ErrInvalidKeyType)
 	}
 
 	// Create hasher
