@@ -73,7 +73,7 @@ func (m *SigningMethodRSA) Sign(signingString string, key interface{}) ([]byte, 
 
 	// Validate type of key
 	if rsaKey, ok = key.(*rsa.PrivateKey); !ok {
-		return nil, ErrInvalidKey
+		return nil, newError("rsa sign expects *rsa.PrivateKey", ErrInvalidKeyType)
 	}
 
 	// Create the hasher

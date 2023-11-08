@@ -88,7 +88,7 @@ func (m *SigningMethodRSAPSS) Verify(signingString string, sig []byte, key inter
 	case *rsa.PublicKey:
 		rsaKey = k
 	default:
-		return ErrInvalidKey
+		return newError("rsapss verify expects *rsa.PublicKey", ErrInvalidKeyType)
 	}
 
 	// Create hasher
