@@ -179,7 +179,7 @@ be a drop-in replacement, if you're having troubles migrating, please open an
 issue.
 
 You can replace all occurrences of `github.com/dgrijalva/jwt-go` or
-`github.com/golang-jwt/jwt` with `github.com/golang-jwt/jwt/v5`, either manually
+`github.com/golang-jwt/jwt` with `github.com/golang-jwt/jwt/v4`, either manually
 or by using tools such as `sed` or `gofmt`.
 
 And then you'd typically run:
