@@ -30,6 +30,9 @@ type RegisteredClaims struct {
 
 	// the `jti` (JWT ID) claim. See https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.7
 	ID string `json:"jti,omitempty"`
+
+	// the `azp` (Authorized Party) claim. Optional. See https://openid.net/specs/openid-connect-core-1_0.html#IDToken
+	Azp string `json:"azp,omitempty"`
 }
 
 // GetExpirationTime implements the Claims interface.
@@ -60,4 +63,9 @@ func (c RegisteredClaims) GetIssuer() (string, error) {
 // GetSubject implements the Claims interface.
 func (c RegisteredClaims) GetSubject() (string, error) {
 	return c.Subject, nil
+}
+
+// GetAzp implements the Claims interface.
+func (c RegisteredClaims) GetAzp() (string, error) {
+	return c.Azp, nil
 }
