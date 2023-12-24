@@ -91,7 +91,7 @@ func (m *SigningMethodHMAC) Verify(signingString string, sig []byte, key interfa
 func (m *SigningMethodHMAC) Sign(signingString string, key interface{}) ([]byte, error) {
 	if keyBytes, ok := key.([]byte); ok {
 		if !m.Hash.Available() {
-			return nil, newError("HMAC sign expects []byte", ErrInvalidKeyType)
+			return nil, ErrHashUnavailable
 		}
 
 		hasher := hmac.New(m.Hash.New, keyBytes)
