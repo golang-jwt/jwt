@@ -100,5 +100,5 @@ func (m *SigningMethodHMAC) Sign(signingString string, key interface{}) ([]byte,
 		return hasher.Sum(nil), nil
 	}
 
-	return nil, ErrInvalidKeyType
+	return nil, newError("HMAC sign expects []byte", ErrInvalidKeyType)
 }
