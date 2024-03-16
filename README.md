@@ -125,8 +125,8 @@ requests will land on `main`.  Periodically, versions will be tagged from
 `main`.  You can find all the releases on [the project releases
 page](https://github.com/golang-jwt/jwt/releases).
 
-**BREAKING CHANGES:*** A full list of breaking changes is available in
-`VERSION_HISTORY.md`.  See `MIGRATION_GUIDE.md` for more information on updating
+**BREAKING CHANGES:** A full list of breaking changes is available in
+`VERSION_HISTORY.md`.  See [`MIGRATION_GUIDE.md`](./MIGRATION_GUIDE.md) for more information on updating
 your code.
 
 ## Extensions
