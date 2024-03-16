@@ -39,6 +39,11 @@ func (m MapClaims) GetSubject() (string, error) {
 	return m.parseString("sub")
 }
 
+// GetSubject implements the Claims interface.
+func (m MapClaims) GetAzp() (string, error) {
+	return m.parseString("azp")
+}
+
 // parseNumericDate tries to parse a key in the map claims type as a number
 // date. This will succeed, if the underlying type is either a [float64] or a
 // [json.Number]. Otherwise, nil will be returned.
