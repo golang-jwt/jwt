@@ -19,11 +19,11 @@ func DoStrict[S Base64Encoding, T Stricter[S]](x T) Base64Encoding {
 	return x.Strict()
 }
 
-// JSONMarshalFunc is an function type that allows to implement custom JSON
+// JSONMarshalFunc is a function type that allows to implement custom JSON
 // encoding algorithms.
 type JSONMarshalFunc func(v any) ([]byte, error)
 
-// JSONUnmarshalFunc is an function type that allows to implement custom JSON
+// JSONUnmarshalFunc is a function type that allows to implement custom JSON
 // unmarshal algorithms.
 type JSONUnmarshalFunc func(data []byte, v any) error
 

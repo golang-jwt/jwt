@@ -1,6 +1,8 @@
 package jwt_test
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -8,6 +10,21 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 )
+
+// Example creating a token by passing jwt.WithJSONEncoder or jwt.WithBase64Encoder to
+// options to specify the custom encoders when sign the token to string.
+// You can try other encoders when you get tired of the standard library.
+func ExampleNew_customEncoder() {
+	mySigningKey := []byte("AllYourBase")
+
+	customJSONEncoderFunc := json.Marshal
+	customBase64Encoder := base64.RawURLEncoding
+	token := jwt.New(jwt.SigningMethodHS256, jwt.WithJSONEncoder(customJSONEncoderFunc), jwt.WithBase64Encoder(customBase64Encoder))
+
+	ss, err := token.SignedString(mySigningKey)
+	fmt.Println(ss, err)
+	// Output: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.E9f4bo8SFbMyEfLEOEXEO2RGcO9cQhznYfSKqTjWwrM <nil>
+}
 
 // Example (atypical) using the RegisteredClaims type by itself to parse a token.
 // The RegisteredClaims type is designed to be embedded into your custom types
@@ -159,6 +176,35 @@ func ExampleParseWithClaims_customValidation() {
 	}
 
 	// Output: bar test
+}
+
+// Example parsing a string to a token with using a custom decoders.
+// It's convenient to use the jwt.WithJSONDecoder or jwt.WithBase64Decoder options when create a parser
+// to parse string to token by using your favorite JSON or Base64 decoders.
+func ExampleParseWithClaims_customDecoder() {
+	tokenString := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJpc3MiOiJ0ZXN0IiwiYXVkIjoic2luZ2xlIn0.QAWg1vGvnqRuCFTMcPkjZljXHh8U3L_qUjszOtQbeaA"
+
+	customJSONUnmarshalFunc := json.Unmarshal
+	customNewJSONDecoderFunc := json.NewDecoder
+
+	customBase64RawUrlEncoder := base64.RawURLEncoding
+	customBase64UrlEncoder := base64.URLEncoding
+
+	jwtParser := jwt.NewParser(jwt.WithJSONDecoder(customJSONUnmarshalFunc, customNewJSONDecoderFunc), jwt.WithBase64Decoder(customBase64RawUrlEncoder, customBase64UrlEncoder))
+
+	token, err := jwtParser.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return []byte("AllYourBase"), nil
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	if !token.Valid {
+		log.Fatal("invalid")
+	} else {
+		fmt.Println("valid")
+	}
+
+	// Output: valid
 }
 
 // An example of parsing the error types using errors.Is.

@@ -41,7 +41,7 @@ func TestToken_SigningString(t1 *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "",
+			name: "encode with custom json and base64 encoder",
 			fields: fields{
 				Raw:    "",
 				Method: jwt.SigningMethodHS256,
