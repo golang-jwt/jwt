@@ -126,3 +126,9 @@ func WithStrictDecoding() ParserOption {
 		p.decodeStrict = true
 	}
 }
+
+func WithoutNotBeforeVerification() ParserOption {
+	return func(p *Parser) {
+		p.validator.skipNbfVerification = true
+	}
+}

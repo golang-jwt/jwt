@@ -130,6 +130,64 @@ func Test_Validator_verifyExpiresAt(t *testing.T) {
 	}
 }
 
+func Test_Validator_verifyNotBefore(t *testing.T) {
+	type fields struct {
+		leeway   time.Duration
+		timeFunc func() time.Time
+		skipNbfVerification bool
+	}
+	type args struct {
+		claims   Claims
+		cmp      time.Time
+		required bool
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr error
+	}{
+		{
+			name:    "good claim",
+			fields:  fields{timeFunc: time.Now},
+			args:    args{claims: RegisteredClaims{NotBefore: NewNumericDate(time.Now().Add(-100 * time.Minute))}, cmp: time.Now()},
+			wantErr: nil,
+		},
+		{
+			name:    "bad claim, not yet valid",
+			fields:  fields{timeFunc: time.Now},
+			args:    args{claims: RegisteredClaims{NotBefore: NewNumericDate(time.Now().Add(100 * time.Minute))}, cmp: time.Now()},
+			wantErr: ErrTokenNotValidYet,
+		},
+		{
+			name:    "bad claim, not yet valid but nbf verification skipped",
+			fields:  fields{timeFunc: time.Now, skipNbfVerification: true},
+			args:    args{claims: RegisteredClaims{NotBefore: NewNumericDate(time.Now().Add(100 * time.Minute))}, cmp: time.Now()},
+			wantErr: nil,
+		},
+		{
+			name:    "claims with invalid type",
+			fields:  fields{},
+			args:    args{claims: MapClaims{"nbf": "string"}},
+			wantErr: ErrInvalidType,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			v := &Validator{
+				leeway:   tt.fields.leeway,
+				timeFunc: tt.fields.timeFunc,
+				skipNbfVerification: tt.fields.skipNbfVerification,
+			}
+
+			err := v.verifyNotBefore(tt.args.claims, tt.args.cmp, tt.args.required)
+			if (err != nil) && !errors.Is(err, tt.wantErr) {
+				t.Errorf("validator.verifyNotBefore() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
 func Test_Validator_verifyIssuer(t *testing.T) {
 	type fields struct {
 		expectedIss string

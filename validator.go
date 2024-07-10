@@ -51,6 +51,10 @@ type Validator struct {
 	// unrealistic, i.e., in the future.
 	verifyIat bool
 
+	// skipNbfVerification specifies whether we want to skip the nbf (Not before)
+	// claim verification. This is useful to check a token upon receiption.
+	skipNbfVerification bool
+
 	// expectedAud contains the audience this token expects. Supplying an empty
 	// string will disable aud checking.
 	expectedAud string
@@ -207,6 +211,11 @@ func (v *Validator) verifyIssuedAt(claims Claims, cmp time.Time, required bool) 
 // Additionally, if any error occurs while retrieving the claim, e.g., when its
 // the wrong type, an ErrTokenUnverifiable error will be returned.
 func (v *Validator) verifyNotBefore(claims Claims, cmp time.Time, required bool) error {
+	// this verification can be skipped if the option is set
+	if v.skipNbfVerification {
+		return nil
+	}
+
 	nbf, err := claims.GetNotBefore()
 	if err != nil {
 		return err
