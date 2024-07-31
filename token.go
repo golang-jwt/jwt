@@ -1,7 +1,6 @@
 package jwt
 
 import (
-	"crypto"
 	"encoding/base64"
 	"encoding/json"
 )
@@ -16,9 +15,7 @@ import (
 type Keyfunc func(*Token) (interface{}, error)
 
 // VerificationKey represents a public or secret key for verifying a token's signature.
-type VerificationKey interface {
-	crypto.PublicKey | []uint8
-}
+type VerificationKey = any
 
 // VerificationKeySet is a set of public or secret keys. It is used by the parser to verify a token.
 type VerificationKeySet struct {
