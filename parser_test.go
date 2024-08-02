@@ -30,22 +30,26 @@ var (
 	nilKeyFunc             jwt.Keyfunc = nil
 	multipleZeroKeyFunc    jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return []interface{}{}, nil }
 	multipleEmptyKeyFunc   jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) {
-		return jwt.VerificationKeySet{Keys: []jwt.VerificationKey{nil, nil}}, nil
+		keys := []jwt.VerificationKey{nil, nil}
+		return jwt.VerificationKeySet[jwt.VerificationKey]{Keys: keys}, nil
 	}
 	multipleVerificationKeysFunc jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) {
 		return []jwt.VerificationKey{jwtTestDefaultKey, jwtTestEC256PublicKey}, nil
 	}
 	multipleLastKeyFunc jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) {
-		return jwt.VerificationKeySet{Keys: []jwt.VerificationKey{jwtTestEC256PublicKey, jwtTestDefaultKey}}, nil
+		keys := []jwt.VerificationKey{jwtTestEC256PublicKey, jwtTestDefaultKey}
+		return jwt.VerificationKeySet[jwt.VerificationKey]{Keys: keys}, nil
 	}
 	multipleFirstKeyFunc jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) {
-		return jwt.VerificationKeySet{Keys: []jwt.VerificationKey{jwtTestDefaultKey, jwtTestEC256PublicKey}}, nil
+		keys := []jwt.VerificationKey{jwtTestDefaultKey, jwtTestEC256PublicKey}
+		return jwt.VerificationKeySet[jwt.VerificationKey]{Keys: keys}, nil
 	}
 	multipleAltTypedKeyFunc jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) {
-		return jwt.VerificationKeySet{Keys: []jwt.VerificationKey{jwtTestDefaultKey, jwtTestDefaultKey}}, nil
+		keys := []jwt.VerificationKey{jwtTestDefaultKey, jwtTestDefaultKey}
+		return jwt.VerificationKeySet[jwt.VerificationKey]{Keys: keys}, nil
 	}
 	emptyVerificationKeySetFunc jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) {
-		return jwt.VerificationKeySet{}, nil
+		return jwt.VerificationKeySet[jwt.VerificationKey]{}, nil
 	}
 )
 

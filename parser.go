@@ -93,7 +93,7 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 	}
 
 	switch have := got.(type) {
-	case VerificationKeySet:
+	case VerificationKeySet[VerificationKey]:
 		if len(have.Keys) == 0 {
 			return token, newError("keyfunc returned empty verification key set", ErrTokenUnverifiable)
 		}
