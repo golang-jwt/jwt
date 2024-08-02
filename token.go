@@ -21,8 +21,8 @@ type VerificationKey interface {
 }
 
 // VerificationKeySet is a set of public or secret keys. It is used by the parser to verify a token.
-type VerificationKeySet struct {
-	Keys []VerificationKey
+type VerificationKeySet[T VerificationKey] struct {
+	Keys []T
 }
 
 // Token represents a JWT Token.  Different fields will be used depending on
