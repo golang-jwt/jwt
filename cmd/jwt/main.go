@@ -273,7 +273,7 @@ func showToken() error {
 		fmt.Fprintf(os.Stderr, "Token len: %v bytes\n", len(tokData))
 	}
 
-	token, err := jwt.Parse(string(tokData), nil)
+	token, _, err := jwt.NewParser().ParseUnverified(string(tokData), make(jwt.MapClaims))
 	if err != nil {
 		return fmt.Errorf("malformed token: %w", err)
 	}
