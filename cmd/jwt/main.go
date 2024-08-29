@@ -30,9 +30,9 @@ var (
 	flagHead    = make(ArgList)
 
 	// Modes - exactly one of these is required
-	flagSign   = flag.String("sign", "", "path to claims object to sign, '-' to read from stdin, or '+' to use only -claim args")
-	flagVerify = flag.String("verify", "", "path to JWT token to verify or '-' to read from stdin")
-	flagShow   = flag.String("show", "", "path to JWT file or '-' to read from stdin")
+	flagSign   = flag.String("sign", "", "path to claims file to sign, '-' to read from stdin, or '+' to use only -claim args")
+	flagVerify = flag.String("verify", "", "path to JWT token file to verify or '-' to read from stdin")
+	flagShow   = flag.String("show", "", "path to JWT token file to show without verification or '-' to read from stdin")
 )
 
 func main() {
@@ -43,7 +43,7 @@ func main() {
 	// Usage message if you ask for -help or if you mess up inputs.
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, "  One of the following flags is required: sign, verify\n")
+		fmt.Fprintf(os.Stderr, "  One of the following flags is required: sign, verify or show\n")
 		flag.PrintDefaults()
 	}
 
@@ -69,7 +69,7 @@ func start() error {
 		return showToken()
 	default:
 		flag.Usage()
-		return fmt.Errorf("none of the required flags are present.  What do you want me to do?")
+		return fmt.Errorf("none of the required flags are present. What do you want me to do?")
 	}
 }
 
