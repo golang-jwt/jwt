@@ -2,6 +2,7 @@ package jwt_test
 
 import (
 	"encoding/json"
+	"errors"
 	"math"
 	"testing"
 	"time"
@@ -34,13 +35,12 @@ func TestNumericDate(t *testing.T) {
 	jwt.TimePrecision = oldPrecision
 }
 
-func TestSingleArrayMarshal(t *testing.T) {
-	jwt.MarshalSingleStringAsArray = false
-
-	s := jwt.ClaimStrings{"test"}
-	expected := `"test"`
+func TestClaimStrings(t *testing.T) {
+	s := jwt.NewClaimStrings([]string{"test"})
+	expected := `["test"]`
 
 	b, err := json.Marshal(s)
+
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
@@ -48,13 +48,37 @@ func TestSingleArrayMarshal(t *testing.T) {
 	if expected != string(b) {
 		t.Errorf("Serialized format of string array mismatch. Expecting: %s  Got: %s", expected, string(b))
 	}
+}
 
-	jwt.MarshalSingleStringAsArray = true
+func TestClaimStringsInvalidType(t *testing.T) {
+	j := `1`
+	var s jwt.ClaimStrings
+	err := json.Unmarshal([]byte(j), &s)
+	if !errors.Is(err, jwt.ErrInvalidType) {
+		t.Errorf("expected `ErrInvalidType` but was: %v", err)
+	}
+	if s.Claims() != nil {
+		t.Errorf("expected claims to be nil but was: %v", err)
+	}
+}
 
-	expected = `["test"]`
+func TestClaimStringsMismatchedTypes(t *testing.T) {
+	j := `["test", 1]`
+	var s jwt.ClaimStrings
+	err := json.Unmarshal([]byte(j), &s)
+	if !errors.Is(err, jwt.ErrInvalidType) {
+		t.Errorf("expected `ErrInvalidType` but was: %v", err)
+	}
+	if s.Claims() != nil {
+		t.Errorf("expected claims to be nil but was: %v", err)
+	}
+}
 
-	b, err = json.Marshal(s)
+func TestSingleArrayMarshal(t *testing.T) {
+	s := jwt.NewClaimStrings([]string{"test"}, jwt.WithMarshalSingleStringAsArray(false))
+	expected := `"test"`
 
+	b, err := json.Marshal(s)
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
