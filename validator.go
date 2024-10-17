@@ -112,11 +112,10 @@ func (v *Validator) Validate(claims Claims) error {
 		errs = append(errs, err)
 	}
 
-	// Check issued-at if the option is enabled
-	if v.verifyIat {
-		if err = v.verifyIssuedAt(claims, now, false); err != nil {
-			errs = append(errs, err)
-		}
+	// Check issued-at if the option is enabled, but usage of the claim
+	// itself is OPTIONAL.
+	if err = v.verifyIssuedAt(claims, now, v.verifyIat); err != nil {
+		errs = append(errs, err)
 	}
 
 	// If we have an expected audience, we also require the audience claim

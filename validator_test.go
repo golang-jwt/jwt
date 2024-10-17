@@ -231,9 +231,15 @@ func Test_Validator_verifyIssuedAt(t *testing.T) {
 	}{
 		{
 			name:    "good claim without iat",
-			fields:  fields{verifyIat: true},
+			fields:  fields{verifyIat: false},
 			args:    args{claims: MapClaims{}, required: false},
 			wantErr: nil,
+		},
+		{
+			name:    "bad claim without iat",
+			fields:  fields{verifyIat: true},
+			args:    args{claims: MapClaims{}, required: true},
+			wantErr: ErrTokenRequiredClaimMissing,
 		},
 		{
 			name:   "good claim with iat",
@@ -241,7 +247,7 @@ func Test_Validator_verifyIssuedAt(t *testing.T) {
 			args: args{
 				claims:   RegisteredClaims{IssuedAt: NewNumericDate(time.Now())},
 				cmp:      time.Now().Add(10 * time.Minute),
-				required: false,
+				required: true,
 			},
 			wantErr: nil,
 		},
