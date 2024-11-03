@@ -112,6 +112,17 @@ var jwtTestData = []struct {
 		jwt.SigningMethodRS256,
 	},
 	{
+		"basic invalid and expired",
+		"eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJmb28iOiJiYXIiLCJleHAiOjEyMzR9.IbFvatLIJ2Z7B_MAaeIaRZsRSQF1CDzmAE0osHII3WfRTbPavonrDXz-p2Ap_oh9LT2lyohL_jCLoVcpTyu7K3Rt-hdgxZ1_r1StwM1we0SqW2BFFeXCzyS9SLf2YTaVR35lVvfwwlCpPBgOw1SBbczm9m6yPgA9Afsvw_lG_GU2civvG0UzHXxbzWWvJoflGokJDuoHQiku2bfxReyNsoUGcLjx5tfkY7cPihM3CffPpRFYCVjv_abHYelZWpVjdGULQyJDInGYqO8oANqNTtjui7aqxBpcFCUBwVVgktM4Q6Dvj-o5LrdPyJSEl0b_R2JstFE5CbEZGN5anN1yHa",
+		defaultKeyFunc,
+		jwt.MapClaims{"foo": "bar", "exp": 1234.0},
+		false,
+		jwt.ValidationErrorSignatureInvalid,
+		[]error{jwt.ErrTokenSignatureInvalid, rsa.ErrVerification},
+		nil,
+		jwt.SigningMethodRS256,
+	},
+	{
 		"basic nokeyfunc",
 		"eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJmb28iOiJiYXIifQ.FhkiHkoESI_cG3NPigFrxEk9Z60_oXrOT2vGm9Pn6RDgYNovYORQmmA0zs1AoAOf09ly2Nx2YAg6ABqAYga1AcMFkJljwxTT5fYphTuqpWdy4BELeSYJx5Ty2gmr8e7RonuUztrdD5WfPqLKMm1Ozp_T6zALpRmwTIW0QPnaBXaQD90FplAg46Iy1UlDKr-Eupy0i5SLch5Q-p2ZpaL_5fnTIUDlxC3pWhJTyx_71qDI-mAA_5lE_VdroOeflG56sSmDxopPEG3bFlSu1eowyBfxtu0_CuVd-M42RU75Zc4Gsj6uV77MBtbMrf4_7M_NUTSgoIF3fRqxrj0NzihIBg",
 		nilKeyFunc,

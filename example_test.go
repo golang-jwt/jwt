@@ -93,7 +93,7 @@ func ExampleParseWithClaims_customClaimsType() {
 	// Output: bar test
 }
 
-// An example of parsing the error types using bitfield checks
+// An example of parsing the error types using [errors.Is].
 func ExampleParse_errorChecking() {
 	// Token from another example.  This token is expired
 	var tokenString = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJleHAiOjE1MDAwLCJpc3MiOiJ0ZXN0In0.HE7fK0xOQwFEr4WDgRWj4teRPZ6i3GLwD5YCm6Pwu_c"
@@ -106,6 +106,10 @@ func ExampleParse_errorChecking() {
 		fmt.Println("You look nice today")
 	} else if errors.Is(err, jwt.ErrTokenMalformed) {
 		fmt.Println("That's not even a token")
+	} else if errors.Is(err, jwt.ErrTokenUnverifiable) {
+		fmt.Println("We could not verify this token")
+	} else if errors.Is(err, jwt.ErrTokenSignatureInvalid) {
+		fmt.Println("This token has an invalid signature")
 	} else if errors.Is(err, jwt.ErrTokenExpired) || errors.Is(err, jwt.ErrTokenNotValidYet) {
 		// Token is either expired or not active yet
 		fmt.Println("Timing is everything")
