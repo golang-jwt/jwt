@@ -50,7 +50,7 @@ func ExampleNewWithClaims_customClaimsType() {
 			Issuer:    "test",
 			Subject:   "somebody",
 			ID:        "1",
-			Audience:  []string{"somebody_else"},
+			Audience:  jwt.NewClaimStrings([]string{"somebody_else"}),
 		},
 	}
 

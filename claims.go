@@ -12,5 +12,5 @@ type Claims interface {
 	GetNotBefore() (*NumericDate, error)
 	GetIssuer() (string, error)
 	GetSubject() (string, error)
-	GetAudience() (ClaimStrings, error)
+	GetAudience() (*ClaimStrings, error)
 }

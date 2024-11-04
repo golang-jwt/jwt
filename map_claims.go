@@ -25,7 +25,7 @@ func (m MapClaims) GetIssuedAt() (*NumericDate, error) {
 }
 
 // GetAudience implements the Claims interface.
-func (m MapClaims) GetAudience() (ClaimStrings, error) {
+func (m MapClaims) GetAudience() (*ClaimStrings, error) {
 	return m.parseClaimsString("aud")
 }
 
@@ -66,7 +66,7 @@ func (m MapClaims) parseNumericDate(key string) (*NumericDate, error) {
 
 // parseClaimsString tries to parse a key in the map claims type as a
 // [ClaimsStrings] type, which can either be a string or an array of string.
-func (m MapClaims) parseClaimsString(key string) (ClaimStrings, error) {
+func (m MapClaims) parseClaimsString(key string) (*ClaimStrings, error) {
 	var cs []string
 	switch v := m[key].(type) {
 	case string:
@@ -83,7 +83,7 @@ func (m MapClaims) parseClaimsString(key string) (ClaimStrings, error) {
 		}
 	}
 
-	return cs, nil
+	return NewClaimStrings(cs), nil
 }
 
 // parseString tries to parse a key in the map claims type as a [string] type.

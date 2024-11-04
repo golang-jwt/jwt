@@ -6,7 +6,7 @@ package jwt
 //
 // This type can be used on its own, but then additional private and
 // public claims embedded in the JWT will not be parsed. The typical use-case
-// therefore is to embedded this in a user-defined claim type.
+// therefore is to embed this in a user-defined claim type.
 //
 // See examples for how to use this with your own claim types.
 type RegisteredClaims struct {
@@ -17,7 +17,7 @@ type RegisteredClaims struct {
 	Subject string `json:"sub,omitempty"`
 
 	// the `aud` (Audience) claim. See https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.3
-	Audience ClaimStrings `json:"aud,omitempty"`
+	Audience *ClaimStrings `json:"aud,omitempty"`
 
 	// the `exp` (Expiration Time) claim. See https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.4
 	ExpiresAt *NumericDate `json:"exp,omitempty"`
@@ -48,7 +48,7 @@ func (c RegisteredClaims) GetIssuedAt() (*NumericDate, error) {
 }
 
 // GetAudience implements the Claims interface.
-func (c RegisteredClaims) GetAudience() (ClaimStrings, error) {
+func (c RegisteredClaims) GetAudience() (*ClaimStrings, error) {
 	return c.Audience, nil
 }
 
