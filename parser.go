@@ -58,6 +58,12 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 		return token, err
 	}
 
+	return p.VerifyToken(token, parts, claims, keyFunc)
+}
+
+func (p *Parser) VerifyToken(token *Token, parts []string, claims Claims, keyFunc Keyfunc) (*Token, error) {
+	var err error
+
 	// Verify signing method is in the required set
 	if p.validMethods != nil {
 		var signingMethodValid = false
