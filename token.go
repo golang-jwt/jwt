@@ -71,6 +71,8 @@ func (t *Token) SignedString(key interface{}) (string, error) {
 		return "", err
 	}
 
+	t.Signature = sig
+
 	return sstr + "." + t.EncodeSegment(sig), nil
 }
 
