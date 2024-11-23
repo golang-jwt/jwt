@@ -55,6 +55,26 @@ func NewWithClaims(method SigningMethod, claims Claims, opts ...TokenOption) *To
 	}
 }
 
+type VersionedClaims interface {
+	Claims
+	Decode(claims Claims) (map[string]interface{}, error)
+	Version() string
+}
+
+// NewWithClaims creates a new [Token] with the specified signing method and
+// claims. Additional options can be specified, but are currently unused.
+func NewWithVersion(method SigningMethod, claims VersionedClaims, opts ...TokenOption) *Token {
+	return &Token{
+		Header: map[string]interface{}{
+			"typ":     "JWT",
+			"alg":     method.Alg(),
+			"version": claims.Version(),
+		},
+		Claims: claims,
+		Method: method,
+	}
+}
+
 // SignedString creates and returns a complete, signed JWT. The token is signed
 // using the SigningMethod specified in the token. Please refer to
 // https://golang-jwt.github.io/jwt/usage/signing_methods/#signing-methods-and-key-types
