@@ -25,7 +25,7 @@ func Test_Validator_Validate(t *testing.T) {
 		leeway      time.Duration
 		timeFunc    func() time.Time
 		verifyIat   bool
-		expectedAud string
+		expectedAud []string
 		expectedIss string
 		expectedSub string
 	}
@@ -255,6 +255,53 @@ func Test_Validator_verifyIssuedAt(t *testing.T) {
 			}
 			if err := v.verifyIssuedAt(tt.args.claims, tt.args.cmp, tt.args.required); (err != nil) && !errors.Is(err, tt.wantErr) {
 				t.Errorf("validator.verifyIssuedAt() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func Test_Validator_verifyAudience(t *testing.T) {
+	type fields struct {
+		expectedAud []string
+	}
+	type args struct {
+		claims   Claims
+		cmp      []string
+		required bool
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr error
+	}{
+		{
+			name:    "single value in aud claim",
+			fields:  fields{expectedAud: []string{"me", "you"}},
+			args:    args{claims: MapClaims{"aud": "me"}, cmp: []string{"me"}},
+			wantErr: nil,
+		},
+		{
+			name:    "multiple values in aud claim",
+			fields:  fields{expectedAud: []string{"me"}},
+			args:    args{claims: MapClaims{"aud": []string{"me", "you"}}, cmp: []string{"me"}},
+			wantErr: nil,
+		},
+		{
+			name:    "claims with invalid audience",
+			fields:  fields{expectedAud: []string{"me"}},
+			args:    args{claims: MapClaims{"aud": "you"}, cmp: []string{"me"}},
+			wantErr: ErrTokenInvalidAudience,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			v := &Validator{
+				expectedAud: tt.fields.expectedAud,
+			}
+			err := v.verifyAudience(tt.args.claims, tt.args.cmp, tt.args.required)
+			if (err != nil) && !errors.Is(err, tt.wantErr) {
+				t.Errorf("validator.verifyAudience() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

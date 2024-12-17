@@ -66,15 +66,15 @@ func WithExpirationRequired() ParserOption {
 	}
 }
 
-// WithAudience configures the validator to require the specified audience in
-// the `aud` claim. Validation will fail if the audience is not listed in the
-// token or the `aud` claim is missing.
+// WithAudience configures the validator to require ONE of the specified
+// audiences to be present in the `aud` claim. Validation will fail if none of
+// the audiences is listed in the token or the `aud` claim is missing.
 //
 // NOTE: While the `aud` claim is OPTIONAL in a JWT, the handling of it is
 // application-specific. Since this validation API is helping developers in
 // writing secure application, we decided to REQUIRE the existence of the claim,
 // if an audience is expected.
-func WithAudience(aud string) ParserOption {
+func WithAudience(aud ...string) ParserOption {
 	return func(p *Parser) {
 		p.validator.expectedAud = aud
 	}
