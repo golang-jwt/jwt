@@ -80,6 +80,19 @@ func WithAudience(aud string) ParserOption {
 	}
 }
 
+// WithAudiences configures the validator to require the specified audiences in
+// the `auds` claim. Validation will fail if the audience is not listed in the
+// token or the `aud` claim is missing.
+//
+// matchAll is a boolean flag that determines if all expected audiences must be present in the token.
+// If matchAll is true, the token must contain all expected audiences. If matchAll is false, the token must contain at least one of the expected audiences.
+func WithAudiences(auds []string, matchAll bool) ParserOption {
+	return func(p *Parser) {
+		p.validator.expectedAuds = auds
+		p.validator.expectedAudsMatchAll = matchAll
+	}
+}
+
 // WithIssuer configures the validator to require the specified issuer in the
 // `iss` claim. Validation will fail if a different issuer is specified in the
 // token or the `iss` claim is missing.
