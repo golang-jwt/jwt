@@ -135,9 +135,9 @@ func (v *Validator) Validate(claims Claims) error {
 
 	// If we have expected audiences, we also require the audiences claim
 	if len(v.expectedAuds) != 0 {
-			if err := v.verifyAudiences(claims, v.expectedAuds, true, v.expectedAudsMatchAll); err != nil {
-				errs = append(errs, err)
-			}
+		if err := v.verifyAudiences(claims, v.expectedAuds, true, v.expectedAudsMatchAll); err != nil {
+			errs = append(errs, err)
+		}
 	}
 
 	// If we have an expected issuer, we also require the issuer claim
@@ -331,7 +331,7 @@ func (v *Validator) verifyAudiences(claims Claims, cmps []string, required bool,
 
 		matchFound := false
 
-	// Label to break out of both loops if a match is found
+		// Label to break out of both loops if a match is found
 	outer:
 
 		// Check all aud values
