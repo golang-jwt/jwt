@@ -53,7 +53,7 @@ type Validator struct {
 
 	// expectedAud contains the audience this token expects. Supplying an empty
 	// string will disable aud checking.
-	expectedAud string
+	expectedAud []string
 
 	// expectedIss contains the issuer this token expects. Supplying an empty
 	// string will disable iss checking.
@@ -120,7 +120,7 @@ func (v *Validator) Validate(claims Claims) error {
 	}
 
 	// If we have an expected audience, we also require the audience claim
-	if v.expectedAud != "" {
+	if len(v.expectedAud) > 0 {
 		if err = v.verifyAudience(claims, v.expectedAud, true); err != nil {
 			errs = append(errs, err)
 		}
@@ -226,7 +226,7 @@ func (v *Validator) verifyNotBefore(claims Claims, cmp time.Time, required bool)
 //
 // Additionally, if any error occurs while retrieving the claim, e.g., when its
 // the wrong type, an ErrTokenUnverifiable error will be returned.
-func (v *Validator) verifyAudience(claims Claims, cmp string, required bool) error {
+func (v *Validator) verifyAudience(claims Claims, cmp []string, required bool) error {
 	aud, err := claims.GetAudience()
 	if err != nil {
 		return err
@@ -241,10 +241,12 @@ func (v *Validator) verifyAudience(claims Claims, cmp string, required bool) err
 
 	var stringClaims string
 	for _, a := range aud {
-		if subtle.ConstantTimeCompare([]byte(a), []byte(cmp)) != 0 {
-			result = true
+		for _, c := range cmp {
+			if subtle.ConstantTimeCompare([]byte(a), []byte(c)) != 0 {
+				result = true
+			}
+			stringClaims = stringClaims + a
 		}
-		stringClaims = stringClaims + a
 	}
 
 	// case where "" is sent in one or many aud claims
