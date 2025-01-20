@@ -22,6 +22,7 @@ var (
 	ErrTokenInvalidId            = errors.New("token has invalid id")
 	ErrTokenInvalidClaims        = errors.New("token has invalid claims")
 	ErrInvalidType               = errors.New("invalid type for claim")
+	ErrUnsupported               = errors.New("operation is unsupported")
 )
 
 // joinedError is an error type that works similar to what [errors.Join]
