@@ -236,3 +236,57 @@ func Parse(tokenString string, keyFunc Keyfunc, options ...ParserOption) (*Token
 func ParseWithClaims(tokenString string, claims Claims, keyFunc Keyfunc, options ...ParserOption) (*Token, error) {
 	return NewParser(options...).ParseWithClaims(tokenString, claims, keyFunc)
 }
+
+// ParseWithVersionedClaims parses and validates a JWT token with versioned claims.
+// It extracts the "version" field from the token header to select the appropriate claims
+// structure from the provided claimsMap. The keyFunc supplies the key for verification.
+//
+// Parameters:
+//   - tokenString: The JWT token string to parse.
+//   - claimsMap: A map associating version strings with corresponding VersionedClaims structs.
+//   - keyFunc: A function returning the key for verification based on the parsed token.
+//   - options: Optional ParserOption(s) for parsing configuration.
+//
+// Returns:
+//   - map[string]interface{}: The decoded claims.
+//   - error: An error if parsing or validation fails.
+func ParseWithVersionedClaims(tokenString string, claimsMap map[string]VersionedClaims, keyFunc Keyfunc, options ...ParserOption) (map[string]interface{}, error) {
+	p := NewParser(options...)
+	parts := strings.Split(tokenString, ".")
+	if len(parts) != 3 {
+		return nil, newError("token contains an invalid number of segments", ErrTokenMalformed)
+	}
+
+	token := &Token{Raw: tokenString}
+
+	headerBytes, err := p.DecodeSegment(parts[0])
+	if err != nil {
+		return nil, newError("could not base64 decode header", ErrTokenMalformed, err)
+	}
+
+	if err = json.Unmarshal(headerBytes, &token.Header); err != nil {
+		return nil, newError("could not JSON decode header", ErrTokenMalformed, err)
+	}
+
+	versionValue, ok := token.Header["version"]
+	if !ok {
+		return nil, newError("version field missing in token header", ErrTokenMalformed)
+	}
+
+	versionStr, ok := versionValue.(string)
+	if !ok {
+		return nil, newError("version field in token header is not a string", ErrTokenMalformed)
+	}
+
+	claims, ok := claimsMap[versionStr]
+	if !ok {
+		return nil, newError(fmt.Sprintf("unsupported token version: %s", versionStr), ErrTokenMalformed)
+	}
+
+	token, err = NewParser(options...).ParseWithClaims(tokenString, claims, keyFunc)
+	if err != nil {
+		return nil, newError("could not parse token with claims", ErrTokenMalformed, err)
+	}
+
+	return claims.Decode(token.Claims)
+}

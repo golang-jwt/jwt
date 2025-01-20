@@ -98,6 +98,75 @@ func ExampleParseWithClaims_customClaimsType() {
 	// Output: bar test
 }
 
+type claimsV1 struct {
+	jwt.RegisteredClaims
+	ID  string
+	Exp int64
+}
+
+type claimsV2 struct {
+	jwt.RegisteredClaims
+	ID     string
+	UserID string
+}
+
+func (c *claimsV1) Valid() error    { return nil }
+func (c *claimsV2) Valid() error    { return nil }
+func (c *claimsV1) Version() string { return "v1" }
+func (c *claimsV2) Version() string { return "v2" }
+
+func (c *claimsV1) Decode(claims jwt.Claims) (map[string]interface{}, error) {
+	c, ok := claims.(*claimsV1)
+	if !ok {
+		return map[string]interface{}{}, errors.New("couldnt decode")
+	}
+
+	return map[string]interface{}{
+		"id":         "bar",
+		"expiration": fmt.Sprint(c.Exp),
+	}, nil
+}
+
+func (c *claimsV2) Decode(claims jwt.Claims) (map[string]interface{}, error) {
+	c, ok := claims.(*claimsV2)
+	if !ok {
+		return map[string]interface{}{}, errors.New("couldnt decode")
+	}
+
+	return map[string]interface{}{
+		"id":      " test",
+		"user_id": fmt.Sprint(c.UserID),
+	}, nil
+}
+
+func ExampleParseWitVersionedClaims_customClaimsType() {
+	tokenStringV1 := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsInZlcnNpb24iOiJ2MSJ9.eyJJRCI6IjEyMyIsIkV4cCI6MTIzfQ.qbEStFoXm9UspByQtuSVa7vxP3z4-eGeLWf3mlONPgI"
+	tokenStringV2 := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsInZlcnNpb24iOiJ2MiJ9.eyJJRCI6IjEyMyIsIlVzZXJJRCI6IjEyMyJ9.HM6A9inm-Lo8S-2JhS1W7zyqOUWNcMROOfIYnQP2Rcw"
+
+	jwtVersions := map[string]jwt.VersionedClaims{
+		"v1": &claimsV1{},
+		"v2": &claimsV2{},
+	}
+
+	claimsDataV1, err := jwt.ParseWithVersionedClaims(tokenStringV1, jwtVersions, func(token *jwt.Token) (interface{}, error) {
+		return []byte("1"), nil
+	})
+
+	claimsDataV2, err := jwt.ParseWithVersionedClaims(tokenStringV2, jwtVersions, func(token *jwt.Token) (interface{}, error) {
+		return []byte("1"), nil
+	})
+
+	if err != nil {
+		log.Fatal(err)
+	} else if len(claimsDataV1) > 0 && len(claimsDataV1) > 0 {
+		fmt.Println(claimsDataV1["id"].(string) + claimsDataV2["id"].(string))
+	} else {
+		log.Fatal("unknown claims type, cannot proceed")
+	}
+
+	// Output: bar test
+}
+
 // Example creating a token using a custom claims type and validation options.  The RegisteredClaims is embedded
 // in the custom type to allow for easy encoding, parsing and validation of standard claims.
 func ExampleParseWithClaims_validationOptions() {
