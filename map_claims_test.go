@@ -80,11 +80,11 @@ func TestVerifyAuds(t *testing.T) {
 	type test struct {
 		Name       string
 		MapClaims  MapClaims // MapClaims to validate
-		Expected   bool // Whether the validation is expected to pass
-		Comparison []string // Cmp audience values
+		Expected   bool      // Whether the validation is expected to pass
+		Comparison []string  // Cmp audience values
 
-		AllAudMatching  bool // Whether to require all auds matching all cmps
-		Required   bool // Whether the aud claim is required
+		AllAudMatching bool // Whether to require all auds matching all cmps
+		Required       bool // Whether the aud claim is required
 	}
 
 	tests := []test{
@@ -97,14 +97,14 @@ func TestVerifyAuds(t *testing.T) {
 		{Name: "[]String aud with any expected cmps required and match not required, single expected aud ", MapClaims: MapClaims{"aud": []string{"example.com", "example.example.com"}}, Expected: true, Required: true, Comparison: []string{"example.com"}, AllAudMatching: false},
 
 		// Non-matching auds and cmps
-			// Required = true
+		// Required = true
 		{Name: "[]String aud with all expected cmps required and match not required, single claim aud", MapClaims: MapClaims{"aud": []string{"example.com"}}, Expected: false, Required: true, Comparison: []string{"example.com", "example.example.com"}, AllAudMatching: true},
 		{Name: "[]String aud with all expected cmps required and match not required, single expected aud ", MapClaims: MapClaims{"aud": []string{"example.com", "example.example.com"}}, Expected: false, Required: true, Comparison: []string{"example.com"}, AllAudMatching: true},
 		{Name: "[]String aud with all expected cmps required and match not required, different auds", MapClaims: MapClaims{"aud": []string{"example.example.com"}}, Expected: false, Required: true, Comparison: []string{"example.com"}, AllAudMatching: true},
 
 		{Name: "[]String aud with any expected cmps required and match not required, different auds", MapClaims: MapClaims{"aud": []string{"example.example.com"}}, Expected: false, Required: true, Comparison: []string{"example.com"}, AllAudMatching: false},
 
-			// Required = false
+		// Required = false
 		{Name: "[]String aud with all expected cmps required and match not required, single claim aud", MapClaims: MapClaims{"aud": []string{"example.com"}}, Expected: true, Required: false, Comparison: []string{"example.com", "example.example.com"}, AllAudMatching: true},
 		{Name: "[]String aud with all expected cmps required and match not required, single expected aud ", MapClaims: MapClaims{"aud": []string{"example.com", "example.example.com"}}, Expected: true, Required: false, Comparison: []string{"example.com"}, AllAudMatching: true},
 		{Name: "[]String aud with all expected cmps required and match not required, different auds", MapClaims: MapClaims{"aud": []string{"example.example.com"}}, Expected: true, Required: false, Comparison: []string{"example.com"}, AllAudMatching: true},
