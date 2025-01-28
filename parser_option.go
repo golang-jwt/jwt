@@ -89,7 +89,7 @@ func WithAudience(aud string) ParserOption {
 func WithAudiences(auds []string, matchAll bool) ParserOption {
 	return func(p *Parser) {
 		p.validator.expectedAuds = auds
-		p.validator.expectedAudsMatchAll = matchAll
+		p.validator.matchAllAud = matchAll
 	}
 }
 
