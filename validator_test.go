@@ -22,12 +22,14 @@ func (m MyCustomClaims) Validate() error {
 
 func Test_Validator_Validate(t *testing.T) {
 	type fields struct {
-		leeway      time.Duration
-		timeFunc    func() time.Time
-		verifyIat   bool
-		expectedAud string
-		expectedIss string
-		expectedSub string
+		leeway               time.Duration
+		timeFunc             func() time.Time
+		verifyIat            bool
+		expectedAud          string
+		expectedAuds         []string
+		expectedAudsMatchAll bool
+		expectedIss          string
+		expectedSub          string
 	}
 	type args struct {
 		claims Claims
@@ -72,12 +74,14 @@ func Test_Validator_Validate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v := &Validator{
-				leeway:      tt.fields.leeway,
-				timeFunc:    tt.fields.timeFunc,
-				verifyIat:   tt.fields.verifyIat,
-				expectedAud: tt.fields.expectedAud,
-				expectedIss: tt.fields.expectedIss,
-				expectedSub: tt.fields.expectedSub,
+				leeway:               tt.fields.leeway,
+				timeFunc:             tt.fields.timeFunc,
+				verifyIat:            tt.fields.verifyIat,
+				expectedAud:          tt.fields.expectedAud,
+				expectedAuds:         tt.fields.expectedAuds,
+				expectedAudsMatchAll: tt.fields.expectedAudsMatchAll,
+				expectedIss:          tt.fields.expectedIss,
+				expectedSub:          tt.fields.expectedSub,
 			}
 			if err := v.Validate(tt.args.claims); (err != nil) && !errors.Is(err, tt.wantErr) {
 				t.Errorf("validator.Validate() error = %v, wantErr %v", err, tt.wantErr)
