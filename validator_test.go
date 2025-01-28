@@ -27,7 +27,7 @@ func Test_Validator_Validate(t *testing.T) {
 		verifyIat            bool
 		expectedAud          string
 		expectedAuds         []string
-		expectedAudsMatchAll bool
+		matchAllAud          bool
 		expectedIss          string
 		expectedSub          string
 	}
@@ -79,7 +79,7 @@ func Test_Validator_Validate(t *testing.T) {
 				verifyIat:            tt.fields.verifyIat,
 				expectedAud:          tt.fields.expectedAud,
 				expectedAuds:         tt.fields.expectedAuds,
-				expectedAudsMatchAll: tt.fields.expectedAudsMatchAll,
+				matchAllAud:          tt.fields.matchAllAud,
 				expectedIss:          tt.fields.expectedIss,
 				expectedSub:          tt.fields.expectedSub,
 			}
