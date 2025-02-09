@@ -283,13 +283,16 @@ func (v *Validator) verifyAudiences(claims Claims, cmps []string, required bool,
 		return errorIfRequired(required, "aud")
 	}
 
+	// Deduplicate the aud and cmps slices
+	aud = deduplicateStrings(aud)
+	cmps = deduplicateStrings(cmps)
+
 	var stringClaims string
 
 	// If matchAllAuds is true, check if all the cmps matches any of the aud
 	if matchAllAuds {
 
 		// cmps and aud length should match if matchAllAuds is true
-		// Note that this does not account for possible duplicates
 		if len(cmps) != len(aud) {
 			return errorIfFalse(false, ErrTokenInvalidAudience)
 		}
@@ -297,11 +300,14 @@ func (v *Validator) verifyAudiences(claims Claims, cmps []string, required bool,
 		// Check all cmps values
 		for _, cmp := range cmps {
 			matchFound := false
+
+			// Check all aud values
 			for _, a := range aud {
 
 				// Perform constant time comparison
 				result := subtle.ConstantTimeCompare([]byte(a), []byte(cmp)) != 0
 
+				// Concatenate all aud values to stringClaims
 				stringClaims = stringClaims + a
 
 				// If a match is found, set matchFound to true and break out of inner aud loop and continue to next cmp
@@ -327,11 +333,14 @@ func (v *Validator) verifyAudiences(claims Claims, cmps []string, required bool,
 
 		// Check all aud values
 		for _, a := range aud {
+
+			// Check all cmp values
 			for _, cmp := range cmps {
 
 				// Perform constant time comparison
 				result := subtle.ConstantTimeCompare([]byte(a), []byte(cmp)) != 0
 
+				// Concatenate all aud values to stringClaims
 				stringClaims = stringClaims + a
 
 				// If a match is found, break out of both loops and finish comparison
@@ -354,6 +363,19 @@ func (v *Validator) verifyAudiences(claims Claims, cmps []string, required bool,
 	}
 
 	return nil
+}
+
+// deduplicateStrings removes duplicate elements from a string slice
+func deduplicateStrings(slice []string) []string {
+    unique := make(map[string]bool)
+    var result []string
+    for _, item := range slice {
+        if _, found := unique[item]; !found {
+            unique[item] = true
+            result = append(result, item)
+        }
+    }
+    return result
 }
 
 // verifyIssuer compares the iss claim in claims against cmp.
