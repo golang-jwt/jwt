@@ -66,26 +66,17 @@ func WithExpirationRequired() ParserOption {
 	}
 }
 
-// WithAudience configures the validator to require the specified audience in
-// the `aud` claim. Validation will fail if the audience is not listed in the
-// token or the `aud` claim is missing.
-//
-// NOTE: While the `aud` claim is OPTIONAL in a JWT, the handling of it is
-// application-specific. Since this validation API is helping developers in
-// writing secure application, we decided to REQUIRE the existence of the claim,
-// if an audience is expected.
-func WithAudience(aud string) ParserOption {
-	return func(p *Parser) {
-		p.validator.expectedAud = aud
-	}
-}
-
 // WithAudiences configures the validator to require the specified audiences in
 // the `auds` claim. Validation will fail if the audience is not listed in the
 // token or the `aud` claim is missing.
 //
 // matchAll is a boolean flag that determines if all expected audiences must be present in the token.
 // If matchAll is true, the token must contain all expected audiences. If matchAll is false, the token must contain at least one of the expected audiences.
+//  
+// NOTE: While the `aud` claim is OPTIONAL in a JWT, the handling of it is
+// application-specific. Since this validation API is helping developers in
+// writing secure application, we decided to REQUIRE the existence of the claim,
+// if an audience is expected.
 func WithAudiences(auds []string, matchAll bool) ParserOption {
 	return func(p *Parser) {
 		p.validator.expectedAuds = auds

@@ -77,7 +77,6 @@ func Test_Validator_Validate(t *testing.T) {
 				leeway:       tt.fields.leeway,
 				timeFunc:     tt.fields.timeFunc,
 				verifyIat:    tt.fields.verifyIat,
-				expectedAud:  tt.fields.expectedAud,
 				expectedAuds: tt.fields.expectedAuds,
 				matchAllAud:  tt.fields.matchAllAud,
 				expectedIss:  tt.fields.expectedIss,

@@ -51,10 +51,6 @@ type Validator struct {
 	// unrealistic, i.e., in the future.
 	verifyIat bool
 
-	// expectedAud contains the audience this token expects. Supplying an empty
-	// string will disable aud checking.
-	expectedAud string
-
 	//expectedAuds contains the audiences this token expects. Supplying an empty
 	// []string will disable auds checking.
 	expectedAuds []string
@@ -122,13 +118,6 @@ func (v *Validator) Validate(claims Claims) error {
 	// Check issued-at if the option is enabled
 	if v.verifyIat {
 		if err = v.verifyIssuedAt(claims, now, false); err != nil {
-			errs = append(errs, err)
-		}
-	}
-
-	// If we have an expected audience, we also require the audience claim
-	if v.expectedAud != "" {
-		if err = v.verifyAudience(claims, v.expectedAud, true); err != nil {
 			errs = append(errs, err)
 		}
 	}
@@ -281,13 +270,111 @@ func (v *Validator) verifyAudience(claims Claims, cmp string, required bool) err
 //
 // Additionally, if any error occurs while retrieving the claim, e.g., when its
 // the wrong type, an ErrTokenUnverifiable error will be returned.
-func (v *Validator) verifyAudiences(claims Claims, cmps []string, required bool, matchAllAuds bool) error {
+func (v *Validator) verifyAudiences2(claims Claims, cmps []string, required bool, matchAllAuds bool) error {
 
 	aud, err := claims.GetAudience()
 	if err != nil {
 		return err
 	}
 
+	if len(aud) == 0 {
+		return errorIfRequired(required, "aud")
+	}
+
+	var stringClaims string
+
+	// If matchAllAuds is true, check if all the cmps matches any of the aud
+	if matchAllAuds {
+
+		// cmps and aud length should match if matchAllAuds is true
+		// Note that this does not account for possible duplicates
+		if len(cmps) != len(aud) {
+			return errorIfFalse(false, ErrTokenInvalidAudience)
+		}
+
+		// Check all cmps values
+		for _, cmp := range cmps {
+			matchFound := false
+			for _, a := range aud {
+
+				// Perform constant time comparison
+				result := subtle.ConstantTimeCompare([]byte(a), []byte(cmp)) != 0
+
+				stringClaims = stringClaims + a
+
+				// If a match is found, set matchFound to true and break out of inner aud loop and continue to next cmp
+				if result {
+					matchFound = true
+					break
+				}
+			}
+
+			// If no match was found for the current cmp, return a ErrTokenInvalidAudience error
+			if !matchFound {
+				return ErrTokenInvalidAudience
+			}
+		}
+
+	} else {
+		// if matchAllAuds is false, check if any of the cmps matches any of the aud
+
+		matchFound := false
+
+		// Label to break out of both loops if a match is found
+	outer:
+
+		// Check all aud values
+		for _, a := range aud {
+			for _, cmp := range cmps {
+
+				// Perform constant time comparison
+				result := subtle.ConstantTimeCompare([]byte(a), []byte(cmp)) != 0
+
+				stringClaims = stringClaims + a
+
+				// If a match is found, break out of both loops and finish comparison
+				if result {
+					matchFound = true
+					break outer
+				}
+			}
+		}
+
+		// If no match was found for any cmp, return an error
+		if !matchFound {
+			return errorIfFalse(false, ErrTokenInvalidAudience)
+		}
+	}
+
+	// case where "" is sent in one or many aud claims
+	if stringClaims == "" {
+		return errorIfRequired(required, "aud")
+	}
+
+	return nil
+}
+
+// / verifyAudiences compares the aud claim against cmps.
+// If matchAllAuds is true, all cmps must match a aud.
+// If matchAllAuds is false, at least one cmp must match a aud.
+//
+// If matchAllAuds is true and aud length does not match cmps length, an ErrTokenInvalidAudience error will be returned.
+// Note that this does not account for any duplicate aud or cmps
+//
+// If aud is not set or an empty list, it will succeed if the claim is not required,
+// otherwise ErrTokenRequiredClaimMissing will be returned.
+//
+// Additionally, if any error occurs while retrieving the claim, e.g., when its
+// the wrong type, an ErrTokenUnverifiable error will be returned.
+func (v *Validator) verifyAudiences(claims Claims, cmps []string, required bool, matchAllAuds bool) error {
+
+	// Get the audience claim(s) from the token
+	aud, err := claims.GetAudience()
+	if err != nil {
+		return err
+	}
+
+	// If no audience is provided, return an error if required
 	if len(aud) == 0 {
 		return errorIfRequired(required, "aud")
 	}
