@@ -222,42 +222,6 @@ func (v *Validator) verifyNotBefore(claims Claims, cmp time.Time, required bool)
 	return errorIfFalse(!cmp.Before(nbf.Add(-v.leeway)), ErrTokenNotValidYet)
 }
 
-// verifyAudience compares the aud claim against cmp.
-//
-// If aud is not set or an empty list, it will succeed if the claim is not required,
-// otherwise ErrTokenRequiredClaimMissing will be returned.
-//
-// Additionally, if any error occurs while retrieving the claim, e.g., when its
-// the wrong type, an ErrTokenUnverifiable error will be returned.
-func (v *Validator) verifyAudience(claims Claims, cmp string, required bool) error {
-	aud, err := claims.GetAudience()
-	if err != nil {
-		return err
-	}
-
-	if len(aud) == 0 {
-		return errorIfRequired(required, "aud")
-	}
-
-	// use a var here to keep constant time compare when looping over a number of claims
-	result := false
-
-	var stringClaims string
-	for _, a := range aud {
-		if subtle.ConstantTimeCompare([]byte(a), []byte(cmp)) != 0 {
-			result = true
-		}
-		stringClaims = stringClaims + a
-	}
-
-	// case where "" is sent in one or many aud claims
-	if stringClaims == "" {
-		return errorIfRequired(required, "aud")
-	}
-
-	return errorIfFalse(result, ErrTokenInvalidAudience)
-}
-
 // / verifyAudiences compares the aud claim against cmps.
 // If matchAllAuds is true, all cmps must match a aud.
 // If matchAllAuds is false, at least one cmp must match a aud.
