@@ -250,6 +250,7 @@ func (v *Validator) verifyAudience(claims Claims, cmp []string, expectAllAud boo
 	// compare the expected aud with the actual aud in a constant time manner by looping over all actual values
 	var stringClaims string
 	for _, a := range aud {
+		a := a
 		_, ok := matching[a]
 		if ok {
 			matching[a] = true
