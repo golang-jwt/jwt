@@ -232,7 +232,7 @@ func (v *Validator) verifyAudience(claims Claims, cmp string, required bool) err
 		return err
 	}
 
-	if len(aud) == 0 {
+	if aud.Len() == 0 {
 		return errorIfRequired(required, "aud")
 	}
 
@@ -240,7 +240,7 @@ func (v *Validator) verifyAudience(claims Claims, cmp string, required bool) err
 	result := false
 
 	var stringClaims string
-	for _, a := range aud {
+	for _, a := range aud.Claims() {
 		if subtle.ConstantTimeCompare([]byte(a), []byte(cmp)) != 0 {
 			result = true
 		}

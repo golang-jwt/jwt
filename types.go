@@ -17,16 +17,6 @@ import (
 // no fractional timestamps are generated.
 var TimePrecision = time.Second
 
-// MarshalSingleStringAsArray modifies the behavior of the ClaimStrings type,
-// especially its MarshalJSON function.
-//
-// If it is set to true (the default), it will always serialize the type as an
-// array of strings, even if it just contains one element, defaulting to the
-// behavior of the underlying []string. If it is set to false, it will serialize
-// to a single string, if it contains one element. Otherwise, it will serialize
-// to an array of strings.
-var MarshalSingleStringAsArray = true
-
 // NumericDate represents a JSON numeric date value, as referenced at
 // https://datatracker.ietf.org/doc/html/rfc7519#section-2.
 type NumericDate struct {
@@ -100,10 +90,52 @@ func (date *NumericDate) UnmarshalJSON(b []byte) (err error) {
 // ClaimStrings is basically just a slice of strings, but it can be either
 // serialized from a string array or just a string. This type is necessary,
 // since the "aud" claim can either be a single string or an array.
-type ClaimStrings []string
+type ClaimStrings struct {
+	claims                     []string
+	marshalSingleStringAsArray bool
+}
+
+type ClaimStringOption func(*ClaimStrings)
+
+func NewClaimStrings(claims []string, opts ...ClaimStringOption) *ClaimStrings {
+	ret := ClaimStrings{
+		claims:                     claims,
+		marshalSingleStringAsArray: true,
+	}
+	for _, opt := range opts {
+		opt(&ret)
+	}
+	return &ret
+}
+
+// WithMarshalSingleStringAsArray modifies the behavior of the ClaimStrings type,
+// especially its MarshalJSON function.
+//
+// If it is set to true (the default), it will always serialize the type as an
+// array of strings, even if it just contains one element, defaulting to the
+// behavior of the underlying []string. If it is set to false, it will serialize
+// to a single string, if it contains one element. Otherwise, it will serialize
+// to an array of strings.
+func WithMarshalSingleStringAsArray(marshalSingleStringAsArray bool) func(claims *ClaimStrings) {
+	return func(claims *ClaimStrings) {
+		claims.marshalSingleStringAsArray = marshalSingleStringAsArray
+	}
+}
+
+func (s *ClaimStrings) Len() int {
+	return len(s.claims)
+}
+
+func (s *ClaimStrings) Claims() []string {
+	return s.claims
+}
+
+func (s *ClaimStrings) String() string {
+	return fmt.Sprintf("%v", s.claims)
+}
 
 func (s *ClaimStrings) UnmarshalJSON(data []byte) (err error) {
-	var value interface{}
+	var value any
 
 	if err = json.Unmarshal(data, &value); err != nil {
 		return err
@@ -115,7 +147,7 @@ func (s *ClaimStrings) UnmarshalJSON(data []byte) (err error) {
 	case string:
 		aud = append(aud, v)
 	case []string:
-		aud = ClaimStrings(v)
+		aud = v
 	case []interface{}:
 		for _, vv := range v {
 			vs, ok := vv.(string)
@@ -130,20 +162,20 @@ func (s *ClaimStrings) UnmarshalJSON(data []byte) (err error) {
 		return ErrInvalidType
 	}
 
-	*s = aud
+	s.claims = aud
 
 	return
 }
 
-func (s ClaimStrings) MarshalJSON() (b []byte, err error) {
+func (s *ClaimStrings) MarshalJSON() (b []byte, err error) {
 	// This handles a special case in the JWT RFC. If the string array, e.g.
 	// used by the "aud" field, only contains one element, it MAY be serialized
 	// as a single string. This may or may not be desired based on the ecosystem
 	// of other JWT library used, so we make it configurable by the variable
 	// MarshalSingleStringAsArray.
-	if len(s) == 1 && !MarshalSingleStringAsArray {
-		return json.Marshal(s[0])
+	if len(s.claims) == 1 && !s.marshalSingleStringAsArray {
+		return json.Marshal(s.claims[0])
 	}
 
-	return json.Marshal([]string(s))
+	return json.Marshal(s.claims)
 }

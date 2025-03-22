@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"slices"
 	"testing"
 	"time"
 
@@ -360,7 +361,7 @@ var jwtTestData = []struct {
 		"",
 		defaultKeyFunc,
 		&jwt.RegisteredClaims{
-			Audience: jwt.ClaimStrings{"test"},
+			Audience: jwt.NewClaimStrings([]string{"test"}),
 		},
 		true,
 		nil,
@@ -372,7 +373,7 @@ var jwtTestData = []struct {
 		"",
 		defaultKeyFunc,
 		&jwt.RegisteredClaims{
-			Audience: jwt.ClaimStrings{"test", "test"},
+			Audience: jwt.NewClaimStrings([]string{"test", "test"}),
 		},
 		true,
 		nil,
@@ -384,7 +385,7 @@ var jwtTestData = []struct {
 		"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOjF9.8mAIDUfZNQT3TGm1QFIQp91OCpJpQpbB1-m9pA2mkHc", // { "aud": 1 }
 		defaultKeyFunc,
 		&jwt.RegisteredClaims{
-			Audience: nil, // because of the unmarshal error, this will be empty
+			Audience: jwt.NewClaimStrings([]string{}), // because of the unmarshal error, this will be empty
 		},
 		false,
 		[]error{jwt.ErrTokenMalformed},
@@ -396,7 +397,7 @@ var jwtTestData = []struct {
 		"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsidGVzdCIsMV19.htEBUf7BVbfSmVoTFjXf3y6DLmDUuLy1vTJ14_EX7Ws", // { "aud": ["test", 1] }
 		defaultKeyFunc,
 		&jwt.RegisteredClaims{
-			Audience: nil, // because of the unmarshal error, this will be empty
+			Audience: jwt.NewClaimStrings([]string{}), // because of the unmarshal error, this will be empty
 		},
 		false,
 		[]error{jwt.ErrTokenMalformed},
@@ -449,6 +450,50 @@ func signToken(claims jwt.Claims, signingMethod jwt.SigningMethod) string {
 	return test.MakeSampleToken(claims, signingMethod, privateKey)
 }
 
+func claimsEqual(a, b jwt.Claims) error {
+	aExp, aErr := a.GetExpirationTime()
+	bExp, bErr := b.GetExpirationTime()
+	if !reflect.DeepEqual(aExp, bExp) || !reflect.DeepEqual(aErr, bErr) {
+		return fmt.Errorf("mismatched `exp`: expected %v vs. %v", aExp, bExp)
+	}
+
+	aIat, aErr := a.GetIssuedAt()
+	bIat, bErr := b.GetIssuedAt()
+	if !reflect.DeepEqual(aIat, bIat) || !reflect.DeepEqual(aErr, bErr) {
+		return fmt.Errorf("mismatched `iat`: expected %v vs. %v", aIat, bIat)
+	}
+
+	aNbf, aErr := a.GetNotBefore()
+	bNbf, bErr := b.GetNotBefore()
+	if !reflect.DeepEqual(aNbf, bNbf) || !reflect.DeepEqual(aErr, bErr) {
+		return fmt.Errorf("mismatched `nbf`: expected %v vs. %v", aNbf, bNbf)
+	}
+
+	aIss, aErr := a.GetIssuer()
+	bIss, bErr := b.GetIssuer()
+	if aIss != bIss || !reflect.DeepEqual(aErr, bErr) {
+		return fmt.Errorf("mismatched `iss`: expected %v vs. %v", aIss, bIss)
+	}
+
+	aSub, aErr := a.GetSubject()
+	bSub, bErr := b.GetSubject()
+	if aSub != bSub || !reflect.DeepEqual(aErr, bErr) {
+		return fmt.Errorf("mismatched `sub`: expected %v vs. %v", aSub, bSub)
+	}
+
+	aAud, aErr := a.GetAudience()
+	bAud, bErr := b.GetAudience()
+	if aAud != bAud {
+		if aAud == nil || bAud == nil {
+			return fmt.Errorf("mismatched `aud`: expected %v vs. %v", aAud, bAud)
+		}
+		if !slices.Equal(aAud.Claims(), bAud.Claims()) || !reflect.DeepEqual(aErr, bErr) {
+			return fmt.Errorf("mismatched `aud`: expected  %v vs %v", aAud, bAud)
+		}
+	}
+	return nil
+}
+
 func TestParser_Parse(t *testing.T) {
 	// Iterate over test data set and run tests
 	for _, data := range jwtTestData {
@@ -476,8 +521,10 @@ func TestParser_Parse(t *testing.T) {
 			}
 
 			// Verify result matches expectation
-			if data.claims != nil && !reflect.DeepEqual(data.claims, token.Claims) {
-				t.Errorf("[%v] Claims mismatch. Expecting: %v  Got: %v", data.name, data.claims, token.Claims)
+			if data.claims != nil {
+				if err := claimsEqual(data.claims, token.Claims); err != nil {
+					t.Errorf("[%v] Claims mismatch. Expecting: %v  Got: %v: %v", data.name, data.claims, token.Claims, err)
+				}
 			}
 
 			if data.valid && err != nil {
@@ -557,8 +604,8 @@ func TestParser_ParseUnverified(t *testing.T) {
 			}
 
 			// Verify result matches expectation
-			if !reflect.DeepEqual(data.claims, token.Claims) {
-				t.Errorf("[%v] Claims mismatch. Expecting: %v  Got: %v", data.name, data.claims, token.Claims)
+			if err := claimsEqual(data.claims, token.Claims); err != nil {
+				t.Errorf("[%v] Claims mismatch. Expecting: %v  Got: %v %v", data.name, data.claims, token.Claims, err)
 			}
 
 			if data.valid && err != nil {
