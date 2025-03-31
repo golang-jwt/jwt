@@ -744,7 +744,7 @@ func TestSetPadding(t *testing.T) {
 			// Parse the token
 			var token *jwt.Token
 			var err error
-			var opts []jwt.ParserOption = []jwt.ParserOption{jwt.WithoutClaimsValidation()}
+			var opts = []jwt.ParserOption{jwt.WithoutClaimsValidation()}
 
 			if data.paddedDecode {
 				opts = append(opts, jwt.WithPaddingAllowed())

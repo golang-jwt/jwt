@@ -92,7 +92,7 @@ func Example_getTokenViaHTTP() {
 	// Read the token out of the response body
 	buf, err := io.ReadAll(res.Body)
 	fatal(err)
-	res.Body.Close()
+	_ = res.Body.Close()
 	tokenString := strings.TrimSpace(string(buf))
 
 	// Parse the token
@@ -104,7 +104,7 @@ func Example_getTokenViaHTTP() {
 	fatal(err)
 
 	claims := token.Claims.(*CustomClaimsExample)
-	fmt.Println(claims.CustomerInfo.Name)
+	fmt.Println(claims.Name)
 
 	// Output: test
 }
@@ -126,7 +126,7 @@ func Example_useTokenViaHTTP() {
 	// Read the response body
 	buf, err := io.ReadAll(res.Body)
 	fatal(err)
-	res.Body.Close()
+	_ = res.Body.Close()
 	fmt.Printf("%s", buf)
 
 	// Output: Welcome, foo
@@ -156,7 +156,7 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 	// make sure its post
 	if r.Method != "POST" {
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintln(w, "No POST", r.Method)
+		_, _ = fmt.Fprintln(w, "No POST", r.Method)
 		return
 	}
 
@@ -168,21 +168,21 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 	// check values
 	if user != "test" || pass != "known" {
 		w.WriteHeader(http.StatusForbidden)
-		fmt.Fprintln(w, "Wrong info")
+		_, _ = fmt.Fprintln(w, "Wrong info")
 		return
 	}
 
 	tokenString, err := createToken(user)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintln(w, "Sorry, error while Signing Token!")
+		_, _ = fmt.Fprintln(w, "Sorry, error while Signing Token!")
 		log.Printf("Token Signing error: %v\n", err)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/jwt")
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintln(w, tokenString)
+	_, _ = fmt.Fprintln(w, tokenString)
 }
 
 // only accessible with a valid token
@@ -197,10 +197,10 @@ func restrictedHandler(w http.ResponseWriter, r *http.Request) {
 	// If the token is missing or invalid, return error
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Fprintln(w, "Invalid token:", err)
+		_, _ = fmt.Fprintln(w, "Invalid token:", err)
 		return
 	}
 
 	// Token is valid
-	fmt.Fprintln(w, "Welcome,", token.Claims.(*CustomClaimsExample).Name)
+	_, _ = fmt.Fprintln(w, "Welcome,", token.Claims.(*CustomClaimsExample).Name)
 }
