@@ -88,7 +88,7 @@ func NewValidator(opts ...ParserOption) *Validator {
 func (v *Validator) Validate(claims Claims) error {
 	var (
 		now  time.Time
-		errs []error = make([]error, 0, 6)
+		errs = make([]error, 0, 6)
 		err  error
 	)
 

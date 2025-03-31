@@ -90,7 +90,7 @@ func ExampleParseWithClaims_customClaimsType() {
 	if err != nil {
 		log.Fatal(err)
 	} else if claims, ok := token.Claims.(*MyCustomClaims); ok {
-		fmt.Println(claims.Foo, claims.RegisteredClaims.Issuer)
+		fmt.Println(claims.Foo, claims.Issuer)
 	} else {
 		log.Fatal("unknown claims type, cannot proceed")
 	}
@@ -114,7 +114,7 @@ func ExampleParseWithClaims_validationOptions() {
 	if err != nil {
 		log.Fatal(err)
 	} else if claims, ok := token.Claims.(*MyCustomClaims); ok {
-		fmt.Println(claims.Foo, claims.RegisteredClaims.Issuer)
+		fmt.Println(claims.Foo, claims.Issuer)
 	} else {
 		log.Fatal("unknown claims type, cannot proceed")
 	}
@@ -153,7 +153,7 @@ func ExampleParseWithClaims_customValidation() {
 	if err != nil {
 		log.Fatal(err)
 	} else if claims, ok := token.Claims.(*MyCustomClaims); ok {
-		fmt.Println(claims.Foo, claims.RegisteredClaims.Issuer)
+		fmt.Println(claims.Foo, claims.Issuer)
 	} else {
 		log.Fatal("unknown claims type, cannot proceed")
 	}
