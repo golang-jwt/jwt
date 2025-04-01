@@ -1,7 +1,6 @@
 package jwt
 
 import (
-	"crypto/subtle"
 	"fmt"
 	"time"
 )
@@ -52,8 +51,12 @@ type Validator struct {
 	verifyIat bool
 
 	// expectedAud contains the audience this token expects. Supplying an empty
-	// string will disable aud checking.
-	expectedAud string
+	// slice will disable aud checking.
+	expectedAud []string
+
+	// expectAllAud specifies whether all expected audiences must be present in
+	// the token. If false, only one of the expected audiences must be present.
+	expectAllAud bool
 
 	// expectedIss contains the issuer this token expects. Supplying an empty
 	// string will disable iss checking.
@@ -120,8 +123,8 @@ func (v *Validator) Validate(claims Claims) error {
 	}
 
 	// If we have an expected audience, we also require the audience claim
-	if v.expectedAud != "" {
-		if err = v.verifyAudience(claims, v.expectedAud, true); err != nil {
+	if len(v.expectedAud) > 0 {
+		if err = v.verifyAudience(claims, v.expectedAud, v.expectAllAud, true); err != nil {
 			errs = append(errs, err)
 		}
 	}
@@ -226,7 +229,7 @@ func (v *Validator) verifyNotBefore(claims Claims, cmp time.Time, required bool)
 //
 // Additionally, if any error occurs while retrieving the claim, e.g., when its
 // the wrong type, an ErrTokenUnverifiable error will be returned.
-func (v *Validator) verifyAudience(claims Claims, cmp string, required bool) error {
+func (v *Validator) verifyAudience(claims Claims, cmp []string, expectAllAud bool, required bool) error {
 	aud, err := claims.GetAudience()
 	if err != nil {
 		return err
@@ -237,14 +240,33 @@ func (v *Validator) verifyAudience(claims Claims, cmp string, required bool) err
 	}
 
 	// use a var here to keep constant time compare when looping over a number of claims
-	result := false
+	matching := make(map[string]bool, 0)
 
+	// build a matching hashmap out of the expected aud
+	for _, expected := range cmp {
+		matching[expected] = false
+	}
+
+	// compare the expected aud with the actual aud in a constant time manner by looping over all actual values
 	var stringClaims string
 	for _, a := range aud {
-		if subtle.ConstantTimeCompare([]byte(a), []byte(cmp)) != 0 {
-			result = true
+		a := a
+		_, ok := matching[a]
+		if ok {
+			matching[a] = true
 		}
+
 		stringClaims = stringClaims + a
+	}
+
+	// check if all expected auds are present
+	result := true
+	for _, match := range matching {
+		if !expectAllAud && match {
+			break
+		} else if !match {
+			result = false
+		}
 	}
 
 	// case where "" is sent in one or many aud claims
