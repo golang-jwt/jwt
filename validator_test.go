@@ -4,6 +4,7 @@ import (
 	"errors"
 	"testing"
 	"time"
+	"slices"
 )
 
 var ErrFooBar = errors.New("must be foobar")
@@ -22,12 +23,14 @@ func (m MyCustomClaims) Validate() error {
 
 func Test_Validator_Validate(t *testing.T) {
 	type fields struct {
-		leeway      time.Duration
-		timeFunc    func() time.Time
-		verifyIat   bool
-		expectedAud string
-		expectedIss string
-		expectedSub string
+		leeway       time.Duration
+		timeFunc     func() time.Time
+		verifyIat    bool
+		expectedAud  string
+		expectedAuds []string
+		matchAllAud  bool
+		expectedIss  string
+		expectedSub  string
 	}
 	type args struct {
 		claims Claims
@@ -72,12 +75,13 @@ func Test_Validator_Validate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v := &Validator{
-				leeway:      tt.fields.leeway,
-				timeFunc:    tt.fields.timeFunc,
-				verifyIat:   tt.fields.verifyIat,
-				expectedAud: tt.fields.expectedAud,
-				expectedIss: tt.fields.expectedIss,
-				expectedSub: tt.fields.expectedSub,
+				leeway:       tt.fields.leeway,
+				timeFunc:     tt.fields.timeFunc,
+				verifyIat:    tt.fields.verifyIat,
+				expectedAuds: tt.fields.expectedAuds,
+				matchAllAud:  tt.fields.matchAllAud,
+				expectedIss:  tt.fields.expectedIss,
+				expectedSub:  tt.fields.expectedSub,
 			}
 			if err := v.Validate(tt.args.claims); (err != nil) && !errors.Is(err, tt.wantErr) {
 				t.Errorf("validator.Validate() error = %v, wantErr %v", err, tt.wantErr)
@@ -258,4 +262,42 @@ func Test_Validator_verifyIssuedAt(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Test_deduplicateStrings(t *testing.T) {
+    tests := []struct {
+        name     string
+        input    []string
+        expected []string
+    }{
+        {
+            name:     "With duplicates",
+            input:    []string{"a", "b", "a", "c"},
+            expected: []string{"a", "b", "c"},
+        },
+        {
+            name:     "Without duplicates",
+            input:    []string{"a", "b", "c"},
+            expected: []string{"a", "b", "c"},
+        },
+        {
+            name:     "Empty slice",
+            input:    []string{},
+            expected: []string{},
+        },
+        {
+            name:     "All duplicates",
+            input:    []string{"a", "a", "a"},
+            expected: []string{"a"},
+        },
+    }
+
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            deduplicated := deduplicateStrings(tt.input)
+            if !slices.Equal(deduplicated, tt.expected) {
+                t.Errorf("deduplicateStrings() = %v, want %v", deduplicated, tt.expected)
+            }
+        })
+    }
 }

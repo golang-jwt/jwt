@@ -51,9 +51,12 @@ type Validator struct {
 	// unrealistic, i.e., in the future.
 	verifyIat bool
 
-	// expectedAud contains the audience this token expects. Supplying an empty
-	// string will disable aud checking.
-	expectedAud string
+	//expectedAuds contains the audiences this token expects. Supplying an empty
+	// []string will disable auds checking.
+	expectedAuds []string
+
+	// matchAllAud specifies whether all expected audiences must match all auds from claim
+	matchAllAud bool
 
 	// expectedIss contains the issuer this token expects. Supplying an empty
 	// string will disable iss checking.
@@ -119,9 +122,9 @@ func (v *Validator) Validate(claims Claims) error {
 		}
 	}
 
-	// If we have an expected audience, we also require the audience claim
-	if v.expectedAud != "" {
-		if err = v.verifyAudience(claims, v.expectedAud, true); err != nil {
+	// If we have expected audiences, we also require the audiences claim
+	if len(v.expectedAuds) > 0 {
+		if err := v.verifyAudiences(claims, v.expectedAuds, true, v.matchAllAud); err != nil {
 			errs = append(errs, err)
 		}
 	}
@@ -219,32 +222,103 @@ func (v *Validator) verifyNotBefore(claims Claims, cmp time.Time, required bool)
 	return errorIfFalse(!cmp.Before(nbf.Add(-v.leeway)), ErrTokenNotValidYet)
 }
 
-// verifyAudience compares the aud claim against cmp.
+// / verifyAudiences compares the aud claim against cmps.
+// If matchAllAuds is true, all cmps must match a aud.
+// If matchAllAuds is false, at least one cmp must match a aud.
+//
+// If matchAllAuds is true and aud length does not match cmps length, an ErrTokenInvalidAudience error will be returned.
+// Note that this does not account for any duplicate aud or cmps
 //
 // If aud is not set or an empty list, it will succeed if the claim is not required,
 // otherwise ErrTokenRequiredClaimMissing will be returned.
 //
 // Additionally, if any error occurs while retrieving the claim, e.g., when its
 // the wrong type, an ErrTokenUnverifiable error will be returned.
-func (v *Validator) verifyAudience(claims Claims, cmp string, required bool) error {
+func (v *Validator) verifyAudiences(claims Claims, cmps []string, required bool, matchAllAuds bool) error {
+
+	// Get the audience claim(s) from the token
 	aud, err := claims.GetAudience()
 	if err != nil {
 		return err
 	}
 
+	// If no audience is provided, return an error if required
 	if len(aud) == 0 {
 		return errorIfRequired(required, "aud")
 	}
 
-	// use a var here to keep constant time compare when looping over a number of claims
-	result := false
+	// Deduplicate the aud and cmps slices
+	aud = deduplicateStrings(aud)
+	cmps = deduplicateStrings(cmps)
 
 	var stringClaims string
-	for _, a := range aud {
-		if subtle.ConstantTimeCompare([]byte(a), []byte(cmp)) != 0 {
-			result = true
+
+	// If matchAllAuds is true, check if all the cmps matches any of the aud
+	if matchAllAuds {
+
+		// cmps and aud length should match if matchAllAuds is true
+		if len(cmps) != len(aud) {
+			return errorIfFalse(false, ErrTokenInvalidAudience)
 		}
-		stringClaims = stringClaims + a
+
+		// Check all cmps values
+		for _, cmp := range cmps {
+			matchFound := false
+
+			// Check all aud values
+			for _, a := range aud {
+
+				// Perform constant time comparison
+				result := subtle.ConstantTimeCompare([]byte(a), []byte(cmp)) != 0
+
+				// Concatenate all aud values to stringClaims
+				stringClaims = stringClaims + a
+
+				// If a match is found, set matchFound to true and break out of inner aud loop and continue to next cmp
+				if result {
+					matchFound = true
+					break
+				}
+			}
+
+			// If no match was found for the current cmp, return a ErrTokenInvalidAudience error
+			if !matchFound {
+				return ErrTokenInvalidAudience
+			}
+		}
+
+	} else {
+		// if matchAllAuds is false, check if any of the cmps matches any of the aud
+
+		matchFound := false
+
+		// Label to break out of both loops if a match is found
+	outer:
+
+		// Check all aud values
+		for _, a := range aud {
+
+			// Check all cmp values
+			for _, cmp := range cmps {
+
+				// Perform constant time comparison
+				result := subtle.ConstantTimeCompare([]byte(a), []byte(cmp)) != 0
+
+				// Concatenate all aud values to stringClaims
+				stringClaims = stringClaims + a
+
+				// If a match is found, break out of both loops and finish comparison
+				if result {
+					matchFound = true
+					break outer
+				}
+			}
+		}
+
+		// If no match was found for any cmp, return an error
+		if !matchFound {
+			return errorIfFalse(false, ErrTokenInvalidAudience)
+		}
 	}
 
 	// case where "" is sent in one or many aud claims
@@ -252,7 +326,20 @@ func (v *Validator) verifyAudience(claims Claims, cmp string, required bool) err
 		return errorIfRequired(required, "aud")
 	}
 
-	return errorIfFalse(result, ErrTokenInvalidAudience)
+	return nil
+}
+
+// deduplicateStrings removes duplicate elements from a string slice
+func deduplicateStrings(slice []string) []string {
+    unique := make(map[string]bool)
+    var result []string
+    for _, item := range slice {
+        if _, found := unique[item]; !found {
+            unique[item] = true
+            result = append(result, item)
+        }
+    }
+    return result
 }
 
 // verifyIssuer compares the iss claim in claims against cmp.
