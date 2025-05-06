@@ -1,6 +1,8 @@
 package jwt_test
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"testing"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -14,6 +16,7 @@ func TestToken_SigningString(t1 *testing.T) {
 		Claims    jwt.Claims
 		Signature []byte
 		Valid     bool
+		Options   []jwt.TokenOption
 	}
 	tests := []struct {
 		name    string
@@ -30,8 +33,28 @@ func TestToken_SigningString(t1 *testing.T) {
 					"typ": "JWT",
 					"alg": jwt.SigningMethodHS256.Alg(),
 				},
+				Claims:  jwt.RegisteredClaims{},
+				Valid:   false,
+				Options: nil,
+			},
+			want:    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30",
+			wantErr: false,
+		},
+		{
+			name: "encode with custom json and base64 encoder",
+			fields: fields{
+				Raw:    "",
+				Method: jwt.SigningMethodHS256,
+				Header: map[string]interface{}{
+					"typ": "JWT",
+					"alg": jwt.SigningMethodHS256.Alg(),
+				},
 				Claims: jwt.RegisteredClaims{},
 				Valid:  false,
+				Options: []jwt.TokenOption{
+					jwt.WithJSONEncoder(json.Marshal),
+					jwt.WithBase64Encoder(base64.StdEncoding),
+				},
 			},
 			want:    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30",
 			wantErr: false,

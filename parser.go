@@ -14,16 +14,26 @@ type Parser struct {
 	// If populated, only these methods will be considered valid.
 	validMethods []string
 
-	// Use JSON Number format in JSON decoder.
-	useJSONNumber bool
-
 	// Skip claims validation during token parsing.
 	skipClaimsValidation bool
 
 	validator *Validator
 
-	decodeStrict bool
+	decoding
+}
 
+type decoding struct {
+	jsonUnmarshal  JSONUnmarshalFunc
+	jsonNewDecoder JSONNewDecoderFunc[JSONDecoder]
+
+	rawUrlBase64Encoding Base64Encoding
+	urlBase64Encoding    Base64Encoding
+	strict               StrictFunc[Base64Encoding]
+
+	// Use JSON Number format in JSON decoder.
+	useJSONNumber bool
+
+	decodeStrict         bool
 	decodePaddingAllowed bool
 }
 
@@ -151,7 +161,18 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 	if headerBytes, err = p.DecodeSegment(parts[0]); err != nil {
 		return token, parts, newError("could not base64 decode header", ErrTokenMalformed, err)
 	}
-	if err = json.Unmarshal(headerBytes, &token.Header); err != nil {
+
+	// Choose our JSON decoder. If no custom function is supplied, we use the standard library.
+	var unmarshal JSONUnmarshalFunc
+	if p.jsonUnmarshal != nil {
+		unmarshal = p.jsonUnmarshal
+	} else {
+		unmarshal = json.Unmarshal
+	}
+
+	// JSON Unmarshal the header
+	err = unmarshal(headerBytes, &token.Header)
+	if err != nil {
 		return token, parts, newError("could not JSON decode header", ErrTokenMalformed, err)
 	}
 
@@ -163,25 +184,31 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 		return token, parts, newError("could not base64 decode claim", ErrTokenMalformed, err)
 	}
 
-	// If `useJSONNumber` is enabled then we must use *json.Decoder to decode
-	// the claims. However, this comes with a performance penalty so only use
-	// it if we must and, otherwise, simple use json.Unmarshal.
-	if !p.useJSONNumber {
-		// JSON Unmarshal. Special case for map type to avoid weird pointer behavior.
-		if c, ok := token.Claims.(MapClaims); ok {
-			err = json.Unmarshal(claimBytes, &c)
-		} else {
-			err = json.Unmarshal(claimBytes, &claims)
+	// If `useJSONNumber` is enabled, then we must use a dedicated JSONDecoder
+	// to decode the claims. However, this comes with a performance penalty so
+	// only use it if we must and, otherwise, simple use our existing unmarshal
+	// function.
+	if p.useJSONNumber {
+		unmarshal = func(data []byte, v any) error {
+			buffer := bytes.NewBuffer(claimBytes)
+
+			var decoder JSONDecoder
+			if p.jsonNewDecoder != nil {
+				decoder = p.jsonNewDecoder(buffer)
+			} else {
+				decoder = json.NewDecoder(buffer)
+			}
+			decoder.UseNumber()
+			return decoder.Decode(v)
 		}
+	}
+
+	// JSON Unmarshal the claims. Special case for map type to avoid weird
+	// pointer behavior.
+	if c, ok := token.Claims.(MapClaims); ok {
+		err = unmarshal(claimBytes, &c)
 	} else {
-		dec := json.NewDecoder(bytes.NewBuffer(claimBytes))
-		dec.UseNumber()
-		// JSON Decode. Special case for map type to avoid weird pointer behavior.
-		if c, ok := token.Claims.(MapClaims); ok {
-			err = dec.Decode(&c)
-		} else {
-			err = dec.Decode(&claims)
-		}
+		err = unmarshal(claimBytes, &claims)
 	}
 	if err != nil {
 		return token, parts, newError("could not JSON decode claim", ErrTokenMalformed, err)
@@ -230,18 +257,37 @@ func splitToken(token string) ([]string, bool) {
 // take into account whether the [Parser] is configured with additional options,
 // such as [WithStrictDecoding] or [WithPaddingAllowed].
 func (p *Parser) DecodeSegment(seg string) ([]byte, error) {
-	encoding := base64.RawURLEncoding
+	var encoding Base64Encoding
+	if p.rawUrlBase64Encoding != nil {
+		encoding = p.rawUrlBase64Encoding
+	} else {
+		encoding = base64.RawURLEncoding
+	}
 
 	if p.decodePaddingAllowed {
 		if l := len(seg) % 4; l > 0 {
 			seg += strings.Repeat("=", 4-l)
 		}
-		encoding = base64.URLEncoding
+
+		if p.urlBase64Encoding != nil {
+			encoding = p.urlBase64Encoding
+		} else {
+			encoding = base64.URLEncoding
+		}
 	}
 
 	if p.decodeStrict {
-		encoding = encoding.Strict()
+		if p.strict != nil {
+			encoding = p.strict()
+		} else {
+			stricter, ok := encoding.(Stricter[*base64.Encoding])
+			if !ok {
+				return nil, newError("WithStrictDecoding() was enabled but supplied base64 encoder does not support strict mode", ErrUnsupported)
+			}
+			encoding = stricter.Strict()
+		}
 	}
+
 	return encoding.DecodeString(seg)
 }
 
