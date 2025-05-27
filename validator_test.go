@@ -261,3 +261,121 @@ func Test_Validator_verifyIssuedAt(t *testing.T) {
 		})
 	}
 }
+
+func Test_Validator_verifyAudience(t *testing.T) {
+	type fields struct {
+		expectedAud []string
+	}
+	type args struct {
+		claims       Claims
+		cmp          []string
+		expectAllAud bool
+		required     bool
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr error
+	}{
+		{
+			name:   "good without audience when expecting one aud match",
+			fields: fields{expectedAud: []string{"example.com"}},
+			args: args{
+				claims:       MapClaims{},
+				cmp:          []string{"example.com"},
+				expectAllAud: false,
+				required:     false,
+			},
+			wantErr: nil,
+		},
+		{
+			name:   "good without audience when expecting all aud matches",
+			fields: fields{expectedAud: []string{"example.com"}},
+			args: args{
+				claims:       MapClaims{},
+				cmp:          []string{"example.com"},
+				expectAllAud: true,
+				required:     false,
+			},
+			wantErr: nil,
+		},
+		{
+			name:   "audience matches",
+			fields: fields{expectedAud: []string{"example.com"}},
+			args: args{
+				claims:       RegisteredClaims{Audience: ClaimStrings{"example.com"}},
+				cmp:          []string{"example.com"},
+				expectAllAud: false,
+				required:     true,
+			},
+			wantErr: nil,
+		},
+		{
+			name:   "audience matches with one value",
+			fields: fields{expectedAud: []string{"example.org", "example.com"}},
+			args: args{
+				claims:       RegisteredClaims{Audience: ClaimStrings{"example.com"}},
+				cmp:          []string{"example.org", "example.com"},
+				expectAllAud: false,
+				required:     true,
+			},
+			wantErr: nil,
+		},
+		{
+			name:   "audience matches with all values",
+			fields: fields{expectedAud: []string{"example.org", "example.com"}},
+			args: args{
+				claims:       RegisteredClaims{Audience: ClaimStrings{"example.org", "example.com"}},
+				cmp:          []string{"example.org", "example.com"},
+				expectAllAud: true,
+				required:     true,
+			},
+			wantErr: nil,
+		},
+		{
+			name:   "audience not matching",
+			fields: fields{expectedAud: []string{"example.org", "example.com"}},
+			args: args{
+				claims:       RegisteredClaims{Audience: ClaimStrings{"example.net"}},
+				cmp:          []string{"example.org", "example.com"},
+				expectAllAud: false,
+				required:     true,
+			},
+			wantErr: ErrTokenInvalidAudience,
+		},
+		{
+			name:   "audience not matching all values",
+			fields: fields{expectedAud: []string{"example.org", "example.com"}},
+			args: args{
+				claims:       RegisteredClaims{Audience: ClaimStrings{"example.org", "example.net"}},
+				cmp:          []string{"example.org", "example.com"},
+				expectAllAud: true,
+				required:     true,
+			},
+			wantErr: ErrTokenInvalidAudience,
+		},
+		{
+			name:   "audience missing when required",
+			fields: fields{expectedAud: []string{"example.org", "example.com"}},
+			args: args{
+				claims:       MapClaims{},
+				cmp:          []string{"example.org", "example.com"},
+				expectAllAud: true,
+				required:     true,
+			},
+			wantErr: ErrTokenRequiredClaimMissing,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			v := &Validator{
+				expectedAud:  tt.fields.expectedAud,
+				expectAllAud: tt.args.expectAllAud,
+			}
+			if err := v.verifyAudience(tt.args.claims, tt.args.cmp, tt.args.expectAllAud, tt.args.required); (err != nil) && !errors.Is(err, tt.wantErr) {
+				t.Errorf("validator.verifyAudience() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
