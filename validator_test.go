@@ -64,6 +64,12 @@ func Test_Validator_Validate(t *testing.T) {
 			wantErr: ErrTokenRequiredClaimMissing,
 		},
 		{
+			name:    "expected iat is missing",
+			fields:  fields{verifyIat: true},
+			args:    args{RegisteredClaims{}},
+			wantErr: ErrTokenRequiredClaimMissing,
+		},
+		{
 			name:    "custom validator",
 			fields:  fields{},
 			args:    args{MyCustomClaims{Foo: "not-bar"}},
@@ -81,8 +87,14 @@ func Test_Validator_Validate(t *testing.T) {
 				expectedIss:  tt.fields.expectedIss,
 				expectedSub:  tt.fields.expectedSub,
 			}
-			if err := v.Validate(tt.args.claims); (err != nil) && !errors.Is(err, tt.wantErr) {
-				t.Errorf("validator.Validate() error = %v, wantErr %v", err, tt.wantErr)
+
+			err := v.Validate(tt.args.claims)
+			if err != nil {
+				if !errors.Is(err, tt.wantErr) {
+					t.Errorf("validator.Validate() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			} else if tt.wantErr != nil {
+				t.Errorf("validator.Validate() did not return error, but test expects '%v'", tt.wantErr)
 			}
 		})
 	}

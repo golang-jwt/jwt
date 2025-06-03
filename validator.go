@@ -117,7 +117,7 @@ func (v *Validator) Validate(claims Claims) error {
 
 	// Check issued-at if the option is enabled
 	if v.verifyIat {
-		if err = v.verifyIssuedAt(claims, now, false); err != nil {
+		if err = v.verifyIssuedAt(claims, now, true); err != nil {
 			errs = append(errs, err)
 		}
 	}
