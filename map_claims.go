@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-// MapClaims is a claims type that uses the map[string]interface{} for JSON
+// MapClaims is a claims type that uses the map[string]any for JSON
 // decoding. This is the default claims type if you don't supply one
 type MapClaims map[string]any
 

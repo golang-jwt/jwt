@@ -47,13 +47,13 @@ func TestVerifyAud(t *testing.T) {
 		// Required = false
 		{Name: "Empty []String Aud without match required", MapClaims: MapClaims{"aud": []string{""}}, Expected: true, Required: false, Comparison: []string{"example.com"}},
 
-		// []interface{}
+		// []any
 		{Name: "Empty []interface{} Aud without match required", MapClaims: MapClaims{"aud": nilListInterface}, Expected: true, Required: false, Comparison: []string{"example.com"}},
 		{Name: "[]interface{} Aud with match required", MapClaims: MapClaims{"aud": []any{"a", "foo", "example.com"}}, Expected: true, Required: true, Comparison: []string{"example.com"}},
 		{Name: "[]interface{} Aud with match but invalid types", MapClaims: MapClaims{"aud": []any{"a", 5, "example.com"}}, Expected: false, Required: true, Comparison: []string{"example.com"}},
 		{Name: "[]interface{} Aud int with match required", MapClaims: MapClaims{"aud": intListInterface}, Expected: false, Required: true, Comparison: []string{"example.com"}},
 
-		// interface{}
+		// any
 		{Name: "Empty interface{} Aud without match not required", MapClaims: MapClaims{"aud": nilInterface}, Expected: true, Required: false, Comparison: []string{"example.com"}},
 	}
 
