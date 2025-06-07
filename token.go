@@ -11,9 +11,9 @@ import (
 // Token.  This allows you to use properties in the Header of the token (such as
 // `kid`) to identify which key to use.
 //
-// The returned interface{} may be a single key or a VerificationKeySet containing
+// The returned any may be a single key or a VerificationKeySet containing
 // multiple keys.
-type Keyfunc func(*Token) (interface{}, error)
+type Keyfunc func(*Token) (any, error)
 
 // VerificationKey represents a public or secret key for verifying a token's signature.
 type VerificationKey interface {
