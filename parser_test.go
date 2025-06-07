@@ -28,7 +28,7 @@ var (
 	emptyKeyFunc           jwt.Keyfunc = func(t *jwt.Token) (any, error) { return nil, nil }
 	errorKeyFunc           jwt.Keyfunc = func(t *jwt.Token) (any, error) { return nil, errKeyFuncError }
 	nilKeyFunc             jwt.Keyfunc = nil
-	multipleZeroKeyFunc    jwt.Keyfunc = func(t *jwt.Token) (any, error) { return []interface{}{}, nil }
+	multipleZeroKeyFunc    jwt.Keyfunc = func(t *jwt.Token) (any, error) { return []any{}, nil }
 	multipleEmptyKeyFunc   jwt.Keyfunc = func(t *jwt.Token) (any, error) {
 		return jwt.VerificationKeySet{Keys: []jwt.VerificationKey{nil, nil}}, nil
 	}
@@ -437,7 +437,7 @@ var jwtTestData = []struct {
 
 // signToken creates and returns a signed JWT token using signingMethod.
 func signToken(claims jwt.Claims, signingMethod jwt.SigningMethod) string {
-	var privateKey interface{}
+	var privateKey any
 	switch signingMethod {
 	case jwt.SigningMethodRS256:
 		privateKey = jwtTestRSAPrivateKey
@@ -812,7 +812,7 @@ func benchmarkParsing(b *testing.B, parser *jwt.Parser, tokenString string, clai
 }
 
 // Helper method for benchmarking various signing methods
-func benchmarkSigning(b *testing.B, method jwt.SigningMethod, key interface{}) {
+func benchmarkSigning(b *testing.B, method jwt.SigningMethod, key any) {
 	b.Helper()
 	t := jwt.New(method)
 	b.ReportAllocs()

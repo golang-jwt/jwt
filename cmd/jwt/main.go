@@ -99,7 +99,7 @@ func loadData(p string) ([]byte, error) {
 }
 
 // Print a json object in accordance with the prophecy (or the command line options)
-func printJSON(j interface{}) error {
+func printJSON(j any) error {
 	var out []byte
 	var err error
 
@@ -132,7 +132,7 @@ func verifyToken() error {
 	}
 
 	// Parse the token.  Load the key from command line option
-	token, err := jwt.Parse(string(tokData), func(t *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(string(tokData), func(t *jwt.Token) (any, error) {
 		if isNone() {
 			return jwt.UnsafeAllowNoneSignatureType, nil
 		}
@@ -196,7 +196,7 @@ func signToken() error {
 	}
 
 	// get the key
-	var key interface{}
+	var key any
 	if isNone() {
 		key = jwt.UnsafeAllowNoneSignatureType
 	} else {

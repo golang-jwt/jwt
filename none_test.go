@@ -12,8 +12,8 @@ var noneTestData = []struct {
 	name        string
 	tokenString string
 	alg         string
-	key         interface{}
-	claims      map[string]interface{}
+	key         any
+	claims      map[string]any
 	valid       bool
 }{
 	{
@@ -21,7 +21,7 @@ var noneTestData = []struct {
 		"eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJmb28iOiJiYXIifQ.",
 		"none",
 		jwt.UnsafeAllowNoneSignatureType,
-		map[string]interface{}{"foo": "bar"},
+		map[string]any{"foo": "bar"},
 		true,
 	},
 	{
@@ -29,7 +29,7 @@ var noneTestData = []struct {
 		"eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJmb28iOiJiYXIifQ.",
 		"none",
 		nil,
-		map[string]interface{}{"foo": "bar"},
+		map[string]any{"foo": "bar"},
 		false,
 	},
 	{
@@ -37,7 +37,7 @@ var noneTestData = []struct {
 		"eyJhbGciOiJSUzM4NCIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIifQ.W-jEzRfBigtCWsinvVVuldiuilzVdU5ty0MvpLaSaqK9PlAWWlDQ1VIQ_qSKzwL5IXaZkvZFJXT3yL3n7OUVu7zCNJzdwznbC8Z-b0z2lYvcklJYi2VOFRcGbJtXUqgjk2oGsiqUMUMOLP70TTefkpsgqDxbRh9CDUfpOJgW-dU7cmgaoswe3wjUAUi6B6G2YEaiuXC0XScQYSYVKIzgKXJV8Zw-7AN_DBUI4GkTpsvQ9fVVjZM9csQiEXhYekyrKu1nu_POpQonGd8yqkIyXPECNmmqH5jH4sFiF67XhD7_JpkvLziBpI-uh86evBUadmHhb9Otqw3uV3NTaXLzJw",
 		"none",
 		jwt.UnsafeAllowNoneSignatureType,
-		map[string]interface{}{"foo": "bar"},
+		map[string]any{"foo": "bar"},
 		false,
 	},
 }
