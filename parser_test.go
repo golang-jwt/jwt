@@ -22,29 +22,29 @@ var (
 	jwtTestEC256PublicKey  crypto.PublicKey
 	jwtTestEC256PrivateKey crypto.PrivateKey
 	paddedKey              crypto.PublicKey
-	defaultKeyFunc         jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return jwtTestDefaultKey, nil }
-	ecdsaKeyFunc           jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return jwtTestEC256PublicKey, nil }
-	paddedKeyFunc          jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return paddedKey, nil }
-	emptyKeyFunc           jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return nil, nil }
-	errorKeyFunc           jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return nil, errKeyFuncError }
+	defaultKeyFunc         jwt.Keyfunc = func(t *jwt.Token) (any, error) { return jwtTestDefaultKey, nil }
+	ecdsaKeyFunc           jwt.Keyfunc = func(t *jwt.Token) (any, error) { return jwtTestEC256PublicKey, nil }
+	paddedKeyFunc          jwt.Keyfunc = func(t *jwt.Token) (any, error) { return paddedKey, nil }
+	emptyKeyFunc           jwt.Keyfunc = func(t *jwt.Token) (any, error) { return nil, nil }
+	errorKeyFunc           jwt.Keyfunc = func(t *jwt.Token) (any, error) { return nil, errKeyFuncError }
 	nilKeyFunc             jwt.Keyfunc = nil
-	multipleZeroKeyFunc    jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return []interface{}{}, nil }
-	multipleEmptyKeyFunc   jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) {
+	multipleZeroKeyFunc    jwt.Keyfunc = func(t *jwt.Token) (any, error) { return []any{}, nil }
+	multipleEmptyKeyFunc   jwt.Keyfunc = func(t *jwt.Token) (any, error) {
 		return jwt.VerificationKeySet{Keys: []jwt.VerificationKey{nil, nil}}, nil
 	}
-	multipleVerificationKeysFunc jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) {
+	multipleVerificationKeysFunc jwt.Keyfunc = func(t *jwt.Token) (any, error) {
 		return []jwt.VerificationKey{jwtTestDefaultKey, jwtTestEC256PublicKey}, nil
 	}
-	multipleLastKeyFunc jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) {
+	multipleLastKeyFunc jwt.Keyfunc = func(t *jwt.Token) (any, error) {
 		return jwt.VerificationKeySet{Keys: []jwt.VerificationKey{jwtTestEC256PublicKey, jwtTestDefaultKey}}, nil
 	}
-	multipleFirstKeyFunc jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) {
+	multipleFirstKeyFunc jwt.Keyfunc = func(t *jwt.Token) (any, error) {
 		return jwt.VerificationKeySet{Keys: []jwt.VerificationKey{jwtTestDefaultKey, jwtTestEC256PublicKey}}, nil
 	}
-	multipleAltTypedKeyFunc jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) {
+	multipleAltTypedKeyFunc jwt.Keyfunc = func(t *jwt.Token) (any, error) {
 		return jwt.VerificationKeySet{Keys: []jwt.VerificationKey{jwtTestDefaultKey, jwtTestDefaultKey}}, nil
 	}
-	emptyVerificationKeySetFunc jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) {
+	emptyVerificationKeySetFunc jwt.Keyfunc = func(t *jwt.Token) (any, error) {
 		return jwt.VerificationKeySet{}, nil
 	}
 )
@@ -437,7 +437,7 @@ var jwtTestData = []struct {
 
 // signToken creates and returns a signed JWT token using signingMethod.
 func signToken(claims jwt.Claims, signingMethod jwt.SigningMethod) string {
-	var privateKey interface{}
+	var privateKey any
 	switch signingMethod {
 	case jwt.SigningMethodRS256:
 		privateKey = jwtTestRSAPrivateKey
@@ -812,7 +812,7 @@ func benchmarkParsing(b *testing.B, parser *jwt.Parser, tokenString string, clai
 }
 
 // Helper method for benchmarking various signing methods
-func benchmarkSigning(b *testing.B, method jwt.SigningMethod, key interface{}) {
+func benchmarkSigning(b *testing.B, method jwt.SigningMethod, key any) {
 	b.Helper()
 	t := jwt.New(method)
 	b.ReportAllocs()

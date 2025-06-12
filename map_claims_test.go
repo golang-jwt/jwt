@@ -6,9 +6,9 @@ import (
 )
 
 func TestVerifyAud(t *testing.T) {
-	var nilInterface interface{}
-	var nilListInterface []interface{}
-	var intListInterface interface{} = []int{1, 2, 3}
+	var nilInterface any
+	var nilListInterface []any
+	var intListInterface any = []int{1, 2, 3}
 	type test struct {
 		Name        string
 		MapClaims   MapClaims
@@ -47,13 +47,13 @@ func TestVerifyAud(t *testing.T) {
 		// Required = false
 		{Name: "Empty []String Aud without match required", MapClaims: MapClaims{"aud": []string{""}}, Expected: true, Required: false, Comparison: []string{"example.com"}},
 
-		// []interface{}
+		// []any
 		{Name: "Empty []interface{} Aud without match required", MapClaims: MapClaims{"aud": nilListInterface}, Expected: true, Required: false, Comparison: []string{"example.com"}},
-		{Name: "[]interface{} Aud with match required", MapClaims: MapClaims{"aud": []interface{}{"a", "foo", "example.com"}}, Expected: true, Required: true, Comparison: []string{"example.com"}},
-		{Name: "[]interface{} Aud with match but invalid types", MapClaims: MapClaims{"aud": []interface{}{"a", 5, "example.com"}}, Expected: false, Required: true, Comparison: []string{"example.com"}},
+		{Name: "[]interface{} Aud with match required", MapClaims: MapClaims{"aud": []any{"a", "foo", "example.com"}}, Expected: true, Required: true, Comparison: []string{"example.com"}},
+		{Name: "[]interface{} Aud with match but invalid types", MapClaims: MapClaims{"aud": []any{"a", 5, "example.com"}}, Expected: false, Required: true, Comparison: []string{"example.com"}},
 		{Name: "[]interface{} Aud int with match required", MapClaims: MapClaims{"aud": intListInterface}, Expected: false, Required: true, Comparison: []string{"example.com"}},
 
-		// interface{}
+		// any
 		{Name: "Empty interface{} Aud without match not required", MapClaims: MapClaims{"aud": nilInterface}, Expected: true, Required: false, Comparison: []string{"example.com"}},
 	}
 
