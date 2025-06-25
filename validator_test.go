@@ -270,7 +270,6 @@ func Test_Validator_verifyAudience(t *testing.T) {
 		claims       Claims
 		cmp          []string
 		expectAllAud bool
-		required     bool
 	}
 	tests := []struct {
 		name    string
@@ -285,7 +284,6 @@ func Test_Validator_verifyAudience(t *testing.T) {
 				claims:       MapClaims{},
 				cmp:          []string{"example.com"},
 				expectAllAud: false,
-				required:     false,
 			},
 			wantErr: nil,
 		},
@@ -296,117 +294,76 @@ func Test_Validator_verifyAudience(t *testing.T) {
 				claims:       MapClaims{},
 				cmp:          []string{"example.com"},
 				expectAllAud: true,
-				required:     false,
 			},
 			wantErr: nil,
 		},
 		{
-			name:   "audience matches",
+			name:   "good when audience matches",
 			fields: fields{expectedAud: []string{"example.com"}},
 			args: args{
 				claims:       RegisteredClaims{Audience: ClaimStrings{"example.com"}},
 				cmp:          []string{"example.com"},
 				expectAllAud: false,
-				required:     true,
 			},
 			wantErr: nil,
 		},
 		{
-			name:   "audience matches with one value",
+			name:   "fail when audience matches with one value",
 			fields: fields{expectedAud: []string{"example.org", "example.com"}},
 			args: args{
 				claims:       RegisteredClaims{Audience: ClaimStrings{"example.com"}},
 				cmp:          []string{"example.org", "example.com"},
 				expectAllAud: false,
-				required:     true,
 			},
 			wantErr: nil,
 		},
 		{
-			name:   "audience matches with all values",
+			name:   "fail when audience matches with all values",
 			fields: fields{expectedAud: []string{"example.org", "example.com"}},
 			args: args{
 				claims:       RegisteredClaims{Audience: ClaimStrings{"example.org", "example.com"}},
 				cmp:          []string{"example.org", "example.com"},
 				expectAllAud: true,
-				required:     true,
 			},
 			wantErr: nil,
 		},
 		{
-			name:   "audience not matching",
+			name:   "fail when audience not matching",
 			fields: fields{expectedAud: []string{"example.org", "example.com"}},
 			args: args{
 				claims:       RegisteredClaims{Audience: ClaimStrings{"example.net"}},
 				cmp:          []string{"example.org", "example.com"},
 				expectAllAud: false,
-				required:     true,
 			},
 			wantErr: ErrTokenInvalidAudience,
 		},
 		{
-			name:   "audience not matching all values",
+			name:   "fail when audience not matching all values",
 			fields: fields{expectedAud: []string{"example.org", "example.com"}},
 			args: args{
 				claims:       RegisteredClaims{Audience: ClaimStrings{"example.org", "example.net"}},
 				cmp:          []string{"example.org", "example.com"},
 				expectAllAud: true,
-				required:     true,
 			},
 			wantErr: ErrTokenInvalidAudience,
 		},
 		{
-			name:   "audience missing when required",
+			name:   "fail when audience missing",
 			fields: fields{expectedAud: []string{"example.org", "example.com"}},
 			args: args{
 				claims:       MapClaims{},
 				cmp:          []string{"example.org", "example.com"},
 				expectAllAud: true,
-				required:     true,
 			},
 			wantErr: ErrTokenRequiredClaimMissing,
 		},
 		{
-			name:   "audience empty when required",
-			fields: fields{expectedAud: []string{"example.org", "example.com"}},
-			args: args{
-				claims:       MapClaims{},
-				cmp:          []string{},
-				expectAllAud: true,
-				required:     true,
-			},
-			wantErr: ErrTokenRequiredClaimMissing,
-		},
-		{
-			name:   "audience empty when required",
-			fields: fields{expectedAud: []string{"example.org", "example.com"}},
-			args: args{
-				claims:       MapClaims{},
-				cmp:          []string{},
-				expectAllAud: false,
-				required:     true,
-			},
-			wantErr: ErrTokenRequiredClaimMissing,
-		},
-		{
-			name:   "audience empty when not required",
-			fields: fields{expectedAud: []string{"example.org", "example.com"}},
-			args: args{
-				claims:       MapClaims{},
-				cmp:          []string{},
-				expectAllAud: false,
-				required:     false,
-			},
-			wantErr: nil,
-		},
-		{
-			name:   "audience empty when not required and not expecting",
+			name:   "good when audience empty and not expecting",
 			fields: fields{expectedAud: []string{}},
 			args: args{
 				claims:       MapClaims{},
 				cmp:          []string{},
 				expectAllAud: false,
-				required:     false,
 			},
 			wantErr: nil,
 		},
@@ -417,7 +374,11 @@ func Test_Validator_verifyAudience(t *testing.T) {
 				expectedAud:  tt.fields.expectedAud,
 				expectAllAud: tt.args.expectAllAud,
 			}
-			if err := v.verifyAudience(tt.args.claims, tt.args.cmp, tt.args.expectAllAud, tt.args.required); (err != nil) && !errors.Is(err, tt.wantErr) {
+
+			err := v.verifyAudience(tt.args.claims, tt.args.cmp, tt.args.expectAllAud)
+			if tt.wantErr == nil && err != nil {
+				t.Errorf("validator.verifyAudience() error = %v, wantErr %v", err, tt.wantErr)
+			} else if tt.wantErr != nil && !errors.Is(err, tt.wantErr) {
 				t.Errorf("validator.verifyAudience() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

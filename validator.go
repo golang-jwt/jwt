@@ -125,7 +125,7 @@ func (v *Validator) Validate(claims Claims) error {
 
 	// If we have an expected audience, we also require the audience claim
 	if len(v.expectedAud) > 0 {
-		if err = v.verifyAudience(claims, v.expectedAud, v.expectAllAud, true); err != nil {
+		if err = v.verifyAudience(claims, v.expectedAud, v.expectAllAud); err != nil {
 			errs = append(errs, err)
 		}
 	}
@@ -230,7 +230,7 @@ func (v *Validator) verifyNotBefore(claims Claims, cmp time.Time, required bool)
 //
 // Additionally, if any error occurs while retrieving the claim, e.g., when its
 // the wrong type, an ErrTokenUnverifiable error will be returned.
-func (v *Validator) verifyAudience(claims Claims, cmp []string, expectAllAud bool, required bool) error {
+func (v *Validator) verifyAudience(claims Claims, cmp []string, expectAllAud bool) error {
 	aud, err := claims.GetAudience()
 	if err != nil {
 		return err
@@ -238,7 +238,7 @@ func (v *Validator) verifyAudience(claims Claims, cmp []string, expectAllAud boo
 
 	// Check that aud exists and is not empty.
 	if len(aud) == 0 || len(aud) == 1 && aud[0] == "" {
-		return errorIfRequired(required, "aud")
+		return errorIfRequired(true, "aud")
 	}
 
 	if !expectAllAud {
