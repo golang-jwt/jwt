@@ -236,9 +236,11 @@ func (v *Validator) verifyAudience(claims Claims, cmp []string, expectAllAud boo
 		return err
 	}
 
-	// Check that aud exists and is not empty.
+	// Check that aud exists and is not empty. We only require the aud claim
+	// if we expect at least one audience to be present.
 	if len(aud) == 0 || len(aud) == 1 && aud[0] == "" {
-		return errorIfRequired(true, "aud")
+		required := len(v.expectedAud) > 0
+		return errorIfRequired(required, "aud")
 	}
 
 	if !expectAllAud {

@@ -278,24 +278,24 @@ func Test_Validator_verifyAudience(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name:   "good without audience when expecting one aud match",
+			name:   "fail without audience when expecting one aud match",
 			fields: fields{expectedAud: []string{"example.com"}},
 			args: args{
 				claims:       MapClaims{},
 				cmp:          []string{"example.com"},
 				expectAllAud: false,
 			},
-			wantErr: nil,
+			wantErr: ErrTokenRequiredClaimMissing,
 		},
 		{
-			name:   "good without audience when expecting all aud matches",
+			name:   "fail without audience when expecting all aud matches",
 			fields: fields{expectedAud: []string{"example.com"}},
 			args: args{
 				claims:       MapClaims{},
 				cmp:          []string{"example.com"},
 				expectAllAud: true,
 			},
-			wantErr: nil,
+			wantErr: ErrTokenRequiredClaimMissing,
 		},
 		{
 			name:   "good when audience matches",
@@ -356,16 +356,6 @@ func Test_Validator_verifyAudience(t *testing.T) {
 				expectAllAud: true,
 			},
 			wantErr: ErrTokenRequiredClaimMissing,
-		},
-		{
-			name:   "good when audience empty and not expecting",
-			fields: fields{expectedAud: []string{}},
-			args: args{
-				claims:       MapClaims{},
-				cmp:          []string{},
-				expectAllAud: false,
-			},
-			wantErr: nil,
 		},
 	}
 	for _, tt := range tests {
