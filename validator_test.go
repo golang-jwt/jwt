@@ -366,6 +366,50 @@ func Test_Validator_verifyAudience(t *testing.T) {
 			},
 			wantErr: ErrTokenRequiredClaimMissing,
 		},
+		{
+			name:   "audience empty when required",
+			fields: fields{expectedAud: []string{"example.org", "example.com"}},
+			args: args{
+				claims:       MapClaims{},
+				cmp:          []string{},
+				expectAllAud: true,
+				required:     true,
+			},
+			wantErr: ErrTokenRequiredClaimMissing,
+		},
+		{
+			name:   "audience empty when required",
+			fields: fields{expectedAud: []string{"example.org", "example.com"}},
+			args: args{
+				claims:       MapClaims{},
+				cmp:          []string{},
+				expectAllAud: false,
+				required:     true,
+			},
+			wantErr: ErrTokenRequiredClaimMissing,
+		},
+		{
+			name:   "audience empty when not required",
+			fields: fields{expectedAud: []string{"example.org", "example.com"}},
+			args: args{
+				claims:       MapClaims{},
+				cmp:          []string{},
+				expectAllAud: false,
+				required:     false,
+			},
+			wantErr: nil,
+		},
+		{
+			name:   "audience empty when not required and not expecting",
+			fields: fields{expectedAud: []string{}},
+			args: args{
+				claims:       MapClaims{},
+				cmp:          []string{},
+				expectAllAud: false,
+				required:     false,
+			},
+			wantErr: nil,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
