@@ -1,6 +1,7 @@
 package jwt
 
 import (
+	"errors"
 	"testing"
 	"time"
 )
@@ -119,5 +120,44 @@ func TestMapClaimsVerifyExpiresAtExpire(t *testing.T) {
 	got = mapClaims.VerifyExpiresAt(exp-1, true)
 	if want != got {
 		t.Fatalf("Failed to verify claims, wanted: %v got %v", want, got)
+	}
+}
+
+func TestMapClaimsValidErrorCombinations(t *testing.T) {
+	now := time.Now().Unix()
+
+	claims := MapClaims{
+		"exp": float64(now - 3600), // expired
+		"iat": float64(now + 1800), // used before issued
+		"nbf": float64(now + 3600), // not valid yet
+	}
+
+	err := claims.Valid()
+
+	if err == nil {
+		t.Fatal("Expected error but got nil")
+	}
+
+	var vErr *ValidationError
+
+	if !errors.As(err, &vErr) {
+		t.Fatalf("Expected ValidationError, got %T", err)
+	}
+
+	expectedFlags := ValidationErrorExpired | ValidationErrorIssuedAt | ValidationErrorNotValidYet
+	if vErr.Errors != expectedFlags {
+		t.Errorf("Expected combined error flags %v, got %v", expectedFlags, vErr.Errors)
+	}
+
+	if !errors.Is(err, ErrTokenExpired) {
+		t.Error("Should detect ErrTokenExpired")
+	}
+
+	if !errors.Is(err, ErrTokenUsedBeforeIssued) {
+		t.Error("Should detect ErrTokenUsedBeforeIssued")
+	}
+
+	if !errors.Is(err, ErrTokenNotValidYet) {
+		t.Error("Should detect ErrTokenNotValidYet")
 	}
 }
