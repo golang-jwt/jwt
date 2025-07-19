@@ -91,9 +91,7 @@ func loadData(p string) ([]byte, error) {
 			return nil, err
 		}
 		rdr = f
-		if err := f.Close(); err != nil {
-			return nil, err
-		}
+		defer f.Close()
 	}
 	return io.ReadAll(rdr)
 }
