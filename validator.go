@@ -44,7 +44,7 @@ type Validator struct {
 	// requireExp specifies whether the exp claim is required
 	requireExp bool
 
-	// requireExp specifies whether the exp claim is required
+	// requireNbf specifies whether the nbf claim is required
 	requireNbf bool
 
 	// verifyIat specifies whether the iat (Issued At) claim will be verified.
@@ -94,16 +94,14 @@ func NewValidator(opts ...ParserOption) *Validator {
 // verified.
 func (v *Validator) Validate(claims Claims) error {
 	var (
-		now  time.Time
-		errs = make([]error, 0, 6)
+		now  time.Time = time.Now()
+		errs           = make([]error, 0, 6)
 		err  error
 	)
 
 	// Check, if we have a time func
 	if v.timeFunc != nil {
 		now = v.timeFunc()
-	} else {
-		now = time.Now()
 	}
 
 	// We always need to check the expiration time, but usage of the claim
