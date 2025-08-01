@@ -1,0 +1,21 @@
+[default]
+extend-ignore-re = [
+    # Ignore JWT/JWE tokens
+    "\\beyJ[\\dA-Za-z=_-]+(?:\\.[\\dA-Za-z=_-]{3,}){1,4}",
+]
+
+[default.extend-identifiers]
+# Common registered claim abbreviations
+alg = "alg"
+typ = "typ"
+iss = "iss"
+sub = "sub"
+aud = "aud"
+exp = "exp"
+nbf = "nbf"
+iat = "iat"
+jti = "jti"
+cty = "cty"
+
+# Custom exceptions (i.e. Github Usernames, proper nouns etc)
+thaJeztah = "thaJeztah"
