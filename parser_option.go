@@ -66,6 +66,14 @@ func WithExpirationRequired() ParserOption {
 	}
 }
 
+// WithNotBeforeRequired returns the ParserOption to make nbf claim required.
+// By default nbf claim is optional.
+func WithNotBeforeRequired() ParserOption {
+	return func(p *Parser) {
+		p.validator.requireNbf = true
+	}
+}
+
 // WithAudience configures the validator to require any of the specified
 // audiences in the `aud` claim. Validation will fail if the audience is not
 // listed in the token or the `aud` claim is missing.

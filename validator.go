@@ -44,6 +44,9 @@ type Validator struct {
 	// requireExp specifies whether the exp claim is required
 	requireExp bool
 
+	// requireNbf specifies whether the nbf claim is required
+	requireNbf bool
+
 	// verifyIat specifies whether the iat (Issued At) claim will be verified.
 	// According to https://www.rfc-editor.org/rfc/rfc7519#section-4.1.6 this
 	// only specifies the age of the token, but no validation check is
@@ -91,16 +94,14 @@ func NewValidator(opts ...ParserOption) *Validator {
 // verified.
 func (v *Validator) Validate(claims Claims) error {
 	var (
-		now  time.Time
-		errs = make([]error, 0, 6)
+		now  time.Time = time.Now()
+		errs           = make([]error, 0, 6)
 		err  error
 	)
 
 	// Check, if we have a time func
 	if v.timeFunc != nil {
 		now = v.timeFunc()
-	} else {
-		now = time.Now()
 	}
 
 	// We always need to check the expiration time, but usage of the claim
@@ -111,8 +112,9 @@ func (v *Validator) Validate(claims Claims) error {
 	}
 
 	// We always need to check not-before, but usage of the claim itself is
-	// OPTIONAL.
-	if err = v.verifyNotBefore(claims, now, false); err != nil {
+	// OPTIONAL by default. requireNbf overrides this behavior and makes
+	// the nbf claim mandatory.
+	if err = v.verifyNotBefore(claims, now, v.requireNbf); err != nil {
 		errs = append(errs, err)
 	}
 
