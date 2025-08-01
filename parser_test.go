@@ -592,6 +592,8 @@ func TestParser_ParseUnverified(t *testing.T) {
 				token, _, err = parser.ParseUnverified(data.tokenString, jwt.MapClaims{})
 			case *jwt.RegisteredClaims:
 				token, _, err = parser.ParseUnverified(data.tokenString, &jwt.RegisteredClaims{})
+			case *customClaimsWithDifferentTypes:
+				token, _, err = parser.ParseUnverified(data.tokenString, &customClaimsWithDifferentTypes{})
 			}
 
 			if err != nil {
