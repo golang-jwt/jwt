@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -25,18 +24,17 @@ func init() {
 
 // Example creating, signing, and encoding a JWT token using the HMAC signing method
 func ExampleNew_hmac() {
-	// Create a new token object, specifying signing method and the claims
-	// you would like it to contain.
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"foo": "bar",
-		"nbf": time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
-	})
+	// Create a new token object, specifying signing method
+	token := jwt.New(jwt.SigningMethodHS256)
+
+	// Optionally, add claims to the token object
+	token.Claims = jwt.MapClaims{"aud": "someone"}
 
 	// Sign and get the complete encoded token as a string using the secret
 	tokenString, err := token.SignedString(hmacSampleSecret)
 
 	fmt.Println(tokenString, err)
-	// Output: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJuYmYiOjE0NDQ0Nzg0MDB9.u1riaD1rW97opCoAuRCTy4w58Br-Zk-bh7vLiRIsrpU <nil>
+	// Output: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJzb21lb25lIn0.F0J37fS_ENgyQg9nxIE0fMS-DX3A11SMh4bvZ7MzD4M <nil>
 }
 
 // Example parsing and validating a token using the HMAC signing method
