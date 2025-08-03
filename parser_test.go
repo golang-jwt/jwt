@@ -132,6 +132,26 @@ var jwtTestData = []struct {
 		nil,
 		jwt.SigningMethodRS256,
 	},
+	/*
+		custom claims with JSON Data Types
+		Payload:
+		{
+		  "stringClaim": "string",
+		  "intClaim": -1,
+		  "boolClaim": true,
+		  "uintClaim": 1,
+		  "floatClaim": 5.01,
+		  "sliceClaim": [
+		    -1,
+		    0,
+		    1
+		  ],
+		  "objectClaim": {
+		    "property": "something"
+		  },
+		  "nilPointerClaim": null
+		}
+	*/
 	{
 		"custom claims with JSON Data Types",
 		"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdHJpbmdDbGFpbSI6InN0cmluZyIsImludENsYWltIjotMSwiYm9vbENsYWltIjp0cnVlLCJ1aW50Q2xhaW0iOjEsImZsb2F0Q2xhaW0iOjUuMDEsInNsaWNlQ2xhaW0iOlstMSwwLDFdLCJvYmplY3RDbGFpbSI6eyJwcm9wZXJ0eSI6InNvbWV0aGluZyJ9LCJuaWxQb2ludGVyQ2xhaW0iOm51bGx9.08Q-I2ISws_DaZnxjZ39j5EtmhGSo6dwigxMlV42kKeSVIiMDAGdukYDMJvyurrvLV19gMWkAHdLp5j23qHhP_KUcj2dKlooIFkkRvp2XuTdOtGsyCy5X7jHMYhyR4pMW7y5jor1njrxuDPBvI_oxjs-EZEYqjk8Su4_LAS5AmI2wnTR5DQAAF70WqZAvfnEwavtKSuSCYZS8ZcblBvhfufnjoXtOHbjFnIN1hEzbiLFOe-Ka_tGegYy-7RgX65ohlAFV3By48rXAcr6PLk5eG2Hz9ZSJ6GR6bozqwwnbbm7loiJYtIw7nwQSeo2sRHCw9RFG61Rq33XNlUD_kYC8Q",
