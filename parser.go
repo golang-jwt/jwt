@@ -216,7 +216,7 @@ func splitToken(token string) ([]string, bool) {
 	parts[1] = claims
 	// One more cut to ensure the signature is the last part of the token and there are no more
 	// delimiters. This avoids an issue where malicious input could contain additional delimiters
-	// causing unecessary overhead parsing tokens.
+	// causing unnecessary overhead parsing tokens.
 	signature, _, unexpected := strings.Cut(remain, tokenDelimiter)
 	if unexpected {
 		return nil, false
