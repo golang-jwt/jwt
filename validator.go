@@ -94,14 +94,16 @@ func NewValidator(opts ...ParserOption) *Validator {
 // verified.
 func (v *Validator) Validate(claims Claims) error {
 	var (
-		now  time.Time = time.Now()
-		errs           = make([]error, 0, 6)
+		now  time.Time
+		errs = make([]error, 0, 6)
 		err  error
 	)
 
 	// Check, if we have a time func
 	if v.timeFunc != nil {
 		now = v.timeFunc()
+	} else {
+		now = time.Now()
 	}
 
 	// We always need to check the expiration time, but usage of the claim
