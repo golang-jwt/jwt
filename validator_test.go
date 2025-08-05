@@ -308,11 +308,20 @@ func Test_Validator_requireNotBefore(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			v := &Validator{
-				leeway:    tt.fields.leeway,
-				timeFunc:  tt.fields.timeFunc,
-				verifyIat: tt.fields.requireNbf,
+			opts := []ParserOption{
+				WithLeeway(tt.fields.leeway),
 			}
+
+			if tt.fields.requireNbf {
+				opts = append(opts, WithNotBeforeRequired())
+			}
+
+			if tt.fields.timeFunc != nil {
+				opts = append(opts, WithTimeFunc(tt.fields.timeFunc))
+			}
+
+			v := NewValidator(opts...)
+
 			if err := v.verifyNotBefore(tt.args.claims, tt.args.cmp, tt.args.required); (err != nil) && !errors.Is(err, tt.wantErr) {
 				t.Errorf("validator.requireNotBefore() error = %v, wantErr %v", err, tt.wantErr)
 			}
