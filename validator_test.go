@@ -262,6 +262,73 @@ func Test_Validator_verifyIssuedAt(t *testing.T) {
 	}
 }
 
+func Test_Validator_requireNotBefore(t *testing.T) {
+	type fields struct {
+		leeway     time.Duration
+		timeFunc   func() time.Time
+		requireNbf bool
+	}
+	type args struct {
+		claims   Claims
+		cmp      time.Time
+		required bool
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr error
+	}{
+		{
+			name:    "good claim without nbf",
+			fields:  fields{requireNbf: false},
+			args:    args{claims: MapClaims{}, required: false},
+			wantErr: nil,
+		},
+		{
+			name:   "good claim with nbf",
+			fields: fields{requireNbf: true},
+			args: args{
+				claims:   RegisteredClaims{NotBefore: NewNumericDate(time.Now().Add(time.Minute * -10))},
+				cmp:      time.Now().Add(10 * time.Minute),
+				required: true,
+			},
+			wantErr: nil,
+		},
+		{
+			name:   "token nbf time is in future",
+			fields: fields{requireNbf: true, timeFunc: time.Now},
+			args: args{
+				claims:   RegisteredClaims{NotBefore: NewNumericDate(time.Now().Add(time.Minute * +10))},
+				cmp:      time.Now().Add(10 * time.Minute),
+				required: true,
+			},
+			wantErr: ErrTokenNotValidYet,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			opts := []ParserOption{
+				WithLeeway(tt.fields.leeway),
+			}
+
+			if tt.fields.requireNbf {
+				opts = append(opts, WithNotBeforeRequired())
+			}
+
+			if tt.fields.timeFunc != nil {
+				opts = append(opts, WithTimeFunc(tt.fields.timeFunc))
+			}
+
+			v := NewValidator(opts...)
+
+			if err := v.verifyNotBefore(tt.args.claims, tt.args.cmp, tt.args.required); (err != nil) && !errors.Is(err, tt.wantErr) {
+				t.Errorf("validator.requireNotBefore() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
 func Test_Validator_verifyAudience(t *testing.T) {
 	type fields struct {
 		expectedAud []string
