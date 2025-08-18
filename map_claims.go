@@ -39,6 +39,11 @@ func (m MapClaims) GetSubject() (string, error) {
 	return m.parseString("sub")
 }
 
+// GetID implements the Claims interface.
+func (m MapClaims) GetID() (string, error) {
+	return m.parseString("jti")
+}
+
 // parseNumericDate tries to parse a key in the map claims type as a number
 // date. This will succeed, if the underlying type is either a [float64] or a
 // [json.Number]. Otherwise, nil will be returned.
