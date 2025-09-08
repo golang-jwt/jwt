@@ -18,7 +18,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: "${{ matrix.go }}"
           check-latest: true
@@ -42,7 +42,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
       - name: Coverage
         run: |
           go test -v -covermode=count -coverprofile=coverage.cov ./...
