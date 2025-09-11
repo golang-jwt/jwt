@@ -9,6 +9,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -74,7 +75,7 @@ func start() error {
 }
 
 // Helper func:  Read input from specified file or stdin
-func loadData(p string) ([]byte, error) {
+func loadData(p string) (_ []byte, retErr error) {
 	if p == "" {
 		return nil, fmt.Errorf("no path specified")
 	}
@@ -91,9 +92,9 @@ func loadData(p string) ([]byte, error) {
 			return nil, err
 		}
 		rdr = f
-		if err := f.Close(); err != nil {
-			return nil, err
-		}
+		defer func() {
+			retErr = errors.Join(retErr, f.Close())
+		}()
 	}
 	return io.ReadAll(rdr)
 }
