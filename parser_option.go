@@ -3,9 +3,7 @@ package jwt
 import "time"
 
 // ParserOption is used to implement functional-style options that modify the
-// behavior of the parser. To add new options, just create a function (ideally
-// beginning with With or Without) that returns an anonymous function that takes
-// a *Parser type as input and manipulates its configuration accordingly.
+// behavior of the parser.
 type ParserOption func(*Parser)
 
 // WithValidMethods is an option to supply algorithm methods that the parser
