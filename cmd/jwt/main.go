@@ -192,7 +192,7 @@ func signToken() error {
 	// add command line claims
 	if len(flagClaims) > 0 {
 		for k, v := range flagClaims {
-			claims[k] = v
+			claims[jwt.ClaimsType(k)] = v
 		}
 	}
 
