@@ -142,7 +142,7 @@ func TestMapClaimsVerifyExpiresAtExpire(t *testing.T) {
 
 func TestMapClaims_parseString(t *testing.T) {
 	type args struct {
-		key string
+		key ClaimsType
 	}
 	tests := []struct {
 		name    string
