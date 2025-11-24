@@ -18,7 +18,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: "${{ matrix.go }}"
           check-latest: true
@@ -29,9 +29,14 @@ jobs:
             echo "Please format Go code by running: go fmt ./..."
             exit 1
           fi
+      - name: Install tparse
+        run: |
+          mkdir -p $HOME/.local/bin
+          curl -L -o $HOME/.local/bin/tparse https://github.com/mfridman/tparse/releases/latest/download/tparse_linux_x86_64
+          chmod +x $HOME/.local/bin/tparse
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - name: Build
         run: |
-          go install github.com/mfridman/tparse@latest  
           go vet ./...
           go test -v -race -count=1 -json -cover ./... | tee output.json | tparse -follow -notests || true
           tparse -format markdown -file output.json -all > $GITHUB_STEP_SUMMARY
@@ -42,7 +47,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
       - name: Coverage
         run: |
           go test -v -covermode=count -coverprofile=coverage.cov ./...
