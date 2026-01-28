@@ -28,12 +28,12 @@ type VerificationKeySet struct {
 // Token represents a JWT Token.  Different fields will be used depending on
 // whether you're creating or parsing/verifying a token.
 type Token struct {
-	Raw       string                 // Raw contains the raw token.  Populated when you [Parse] a token
-	Method    SigningMethod          // Method is the signing method used or to be used
-	Header    map[string]interface{} // Header is the first segment of the token in decoded form
-	Claims    Claims                 // Claims is the second segment of the token in decoded form
-	Signature []byte                 // Signature is the third segment of the token in decoded form.  Populated when you [Parse] or sign a token
-	Valid     bool                   // Valid specifies if the token is valid.  Populated when you [Parse] a token
+	Raw       string         // Raw contains the raw token.  Populated when you [Parse] a token
+	Method    SigningMethod  // Method is the signing method used or to be used
+	Header    map[string]any // Header is the first segment of the token in decoded form
+	Claims    Claims         // Claims is the second segment of the token in decoded form
+	Signature []byte         // Signature is the third segment of the token in decoded form.  Populated when you [Parse] or sign a token
+	Valid     bool           // Valid specifies if the token is valid.  Populated when you [Parse] a token
 }
 
 // New creates a new [Token] with the specified signing method and an empty map
