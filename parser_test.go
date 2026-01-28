@@ -16,35 +16,54 @@ import (
 
 var errKeyFuncError error = fmt.Errorf("error loading key")
 
+// customClaimsWithDifferentTypes embeds the standard jwt.RegisteredClaims
+// struct, along with other valid JSON Data Types
+type customClaimsWithDifferentTypes struct {
+	StringClaim     string       `json:"stringClaim"`
+	IntClaim        int          `json:"intClaim"`
+	BoolClaim       bool         `json:"boolClaim"`
+	UintClaim       uint         `json:"uintClaim"`
+	FloatClaim      float64      `json:"floatClaim"`
+	SliceClaim      []int        `json:"sliceClaim"`
+	ObjectClaim     CustomObject `json:"objectClaim"`
+	NilPointerClaim *int         `json:"nilPointerClaim"`
+
+	jwt.RegisteredClaims
+}
+
+type CustomObject struct {
+	Property string `json:"property"`
+}
+
 var (
 	jwtTestDefaultKey      *rsa.PublicKey
 	jwtTestRSAPrivateKey   *rsa.PrivateKey
 	jwtTestEC256PublicKey  crypto.PublicKey
 	jwtTestEC256PrivateKey crypto.PrivateKey
 	paddedKey              crypto.PublicKey
-	defaultKeyFunc         jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return jwtTestDefaultKey, nil }
-	ecdsaKeyFunc           jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return jwtTestEC256PublicKey, nil }
-	paddedKeyFunc          jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return paddedKey, nil }
-	emptyKeyFunc           jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return nil, nil }
-	errorKeyFunc           jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return nil, errKeyFuncError }
+	defaultKeyFunc         jwt.Keyfunc = func(t *jwt.Token) (any, error) { return jwtTestDefaultKey, nil }
+	ecdsaKeyFunc           jwt.Keyfunc = func(t *jwt.Token) (any, error) { return jwtTestEC256PublicKey, nil }
+	paddedKeyFunc          jwt.Keyfunc = func(t *jwt.Token) (any, error) { return paddedKey, nil }
+	emptyKeyFunc           jwt.Keyfunc = func(t *jwt.Token) (any, error) { return nil, nil }
+	errorKeyFunc           jwt.Keyfunc = func(t *jwt.Token) (any, error) { return nil, errKeyFuncError }
 	nilKeyFunc             jwt.Keyfunc = nil
-	multipleZeroKeyFunc    jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return []interface{}{}, nil }
-	multipleEmptyKeyFunc   jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) {
+	multipleZeroKeyFunc    jwt.Keyfunc = func(t *jwt.Token) (any, error) { return []any{}, nil }
+	multipleEmptyKeyFunc   jwt.Keyfunc = func(t *jwt.Token) (any, error) {
 		return jwt.VerificationKeySet{Keys: []jwt.VerificationKey{nil, nil}}, nil
 	}
-	multipleVerificationKeysFunc jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) {
+	multipleVerificationKeysFunc jwt.Keyfunc = func(t *jwt.Token) (any, error) {
 		return []jwt.VerificationKey{jwtTestDefaultKey, jwtTestEC256PublicKey}, nil
 	}
-	multipleLastKeyFunc jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) {
+	multipleLastKeyFunc jwt.Keyfunc = func(t *jwt.Token) (any, error) {
 		return jwt.VerificationKeySet{Keys: []jwt.VerificationKey{jwtTestEC256PublicKey, jwtTestDefaultKey}}, nil
 	}
-	multipleFirstKeyFunc jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) {
+	multipleFirstKeyFunc jwt.Keyfunc = func(t *jwt.Token) (any, error) {
 		return jwt.VerificationKeySet{Keys: []jwt.VerificationKey{jwtTestDefaultKey, jwtTestEC256PublicKey}}, nil
 	}
-	multipleAltTypedKeyFunc jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) {
+	multipleAltTypedKeyFunc jwt.Keyfunc = func(t *jwt.Token) (any, error) {
 		return jwt.VerificationKeySet{Keys: []jwt.VerificationKey{jwtTestDefaultKey, jwtTestDefaultKey}}, nil
 	}
-	emptyVerificationKeySetFunc jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) {
+	emptyVerificationKeySetFunc jwt.Keyfunc = func(t *jwt.Token) (any, error) {
 		return jwt.VerificationKeySet{}, nil
 	}
 )
@@ -108,6 +127,47 @@ var jwtTestData = []struct {
 		"eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJmb28iOiJiYXIifQ.FhkiHkoESI_cG3NPigFrxEk9Z60_oXrOT2vGm9Pn6RDgYNovYORQmmA0zs1AoAOf09ly2Nx2YAg6ABqAYga1AcMFkJljwxTT5fYphTuqpWdy4BELeSYJx5Ty2gmr8e7RonuUztrdD5WfPqLKMm1Ozp_T6zALpRmwTIW0QPnaBXaQD90FplAg46Iy1UlDKr-Eupy0i5SLch5Q-p2ZpaL_5fnTIUDlxC3pWhJTyx_71qDI-mAA_5lE_VdroOeflG56sSmDxopPEG3bFlSu1eowyBfxtu0_CuVd-M42RU75Zc4Gsj6uV77MBtbMrf4_7M_NUTSgoIF3fRqxrj0NzihIBg",
 		defaultKeyFunc,
 		jwt.MapClaims{"foo": "bar"},
+		true,
+		nil,
+		nil,
+		jwt.SigningMethodRS256,
+	},
+	/*
+		custom claims with JSON Data Types
+		Payload:
+		{
+		  "stringClaim": "string",
+		  "intClaim": -1,
+		  "boolClaim": true,
+		  "uintClaim": 1,
+		  "floatClaim": 5.01,
+		  "sliceClaim": [
+		    -1,
+		    0,
+		    1
+		  ],
+		  "objectClaim": {
+		    "property": "something"
+		  },
+		  "nilPointerClaim": null
+		}
+	*/
+	{
+		"custom claims with JSON Data Types",
+		"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdHJpbmdDbGFpbSI6InN0cmluZyIsImludENsYWltIjotMSwiYm9vbENsYWltIjp0cnVlLCJ1aW50Q2xhaW0iOjEsImZsb2F0Q2xhaW0iOjUuMDEsInNsaWNlQ2xhaW0iOlstMSwwLDFdLCJvYmplY3RDbGFpbSI6eyJwcm9wZXJ0eSI6InNvbWV0aGluZyJ9LCJuaWxQb2ludGVyQ2xhaW0iOm51bGx9.08Q-I2ISws_DaZnxjZ39j5EtmhGSo6dwigxMlV42kKeSVIiMDAGdukYDMJvyurrvLV19gMWkAHdLp5j23qHhP_KUcj2dKlooIFkkRvp2XuTdOtGsyCy5X7jHMYhyR4pMW7y5jor1njrxuDPBvI_oxjs-EZEYqjk8Su4_LAS5AmI2wnTR5DQAAF70WqZAvfnEwavtKSuSCYZS8ZcblBvhfufnjoXtOHbjFnIN1hEzbiLFOe-Ka_tGegYy-7RgX65ohlAFV3By48rXAcr6PLk5eG2Hz9ZSJ6GR6bozqwwnbbm7loiJYtIw7nwQSeo2sRHCw9RFG61Rq33XNlUD_kYC8Q",
+		defaultKeyFunc,
+		&customClaimsWithDifferentTypes{
+			StringClaim: "string",
+			IntClaim:    -1,
+			BoolClaim:   true,
+			UintClaim:   1,
+			FloatClaim:  5.01,
+			SliceClaim:  []int{-1, 0, 1},
+			ObjectClaim: CustomObject{
+				Property: "something",
+			},
+			NilPointerClaim: nil,
+		},
 		true,
 		nil,
 		nil,
@@ -437,7 +497,7 @@ var jwtTestData = []struct {
 
 // signToken creates and returns a signed JWT token using signingMethod.
 func signToken(claims jwt.Claims, signingMethod jwt.SigningMethod) string {
-	var privateKey interface{}
+	var privateKey any
 	switch signingMethod {
 	case jwt.SigningMethodRS256:
 		privateKey = jwtTestRSAPrivateKey
@@ -471,6 +531,8 @@ func TestParser_Parse(t *testing.T) {
 				token, err = parser.ParseWithClaims(data.tokenString, jwt.MapClaims{}, data.keyfunc)
 			case *jwt.RegisteredClaims:
 				token, err = parser.ParseWithClaims(data.tokenString, &jwt.RegisteredClaims{}, data.keyfunc)
+			case *customClaimsWithDifferentTypes:
+				token, err = parser.ParseWithClaims(data.tokenString, &customClaimsWithDifferentTypes{}, data.keyfunc)
 			case nil:
 				token, err = parser.ParseWithClaims(data.tokenString, nil, data.keyfunc)
 			}
@@ -550,6 +612,8 @@ func TestParser_ParseUnverified(t *testing.T) {
 				token, _, err = parser.ParseUnverified(data.tokenString, jwt.MapClaims{})
 			case *jwt.RegisteredClaims:
 				token, _, err = parser.ParseUnverified(data.tokenString, &jwt.RegisteredClaims{})
+			case *customClaimsWithDifferentTypes:
+				token, _, err = parser.ParseUnverified(data.tokenString, &customClaimsWithDifferentTypes{})
 			}
 
 			if err != nil {
@@ -744,7 +808,7 @@ func TestSetPadding(t *testing.T) {
 			// Parse the token
 			var token *jwt.Token
 			var err error
-			var opts []jwt.ParserOption = []jwt.ParserOption{jwt.WithoutClaimsValidation()}
+			var opts = []jwt.ParserOption{jwt.WithoutClaimsValidation()}
 
 			if data.paddedDecode {
 				opts = append(opts, jwt.WithPaddingAllowed())
@@ -812,7 +876,7 @@ func benchmarkParsing(b *testing.B, parser *jwt.Parser, tokenString string, clai
 }
 
 // Helper method for benchmarking various signing methods
-func benchmarkSigning(b *testing.B, method jwt.SigningMethod, key interface{}) {
+func benchmarkSigning(b *testing.B, method jwt.SigningMethod, key any) {
 	b.Helper()
 	t := jwt.New(method)
 	b.ReportAllocs()

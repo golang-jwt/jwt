@@ -9,6 +9,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -74,7 +75,7 @@ func start() error {
 }
 
 // Helper func:  Read input from specified file or stdin
-func loadData(p string) ([]byte, error) {
+func loadData(p string) (_ []byte, retErr error) {
 	if p == "" {
 		return nil, fmt.Errorf("no path specified")
 	}
@@ -91,13 +92,15 @@ func loadData(p string) ([]byte, error) {
 			return nil, err
 		}
 		rdr = f
-		defer f.Close()
+		defer func() {
+			retErr = errors.Join(retErr, f.Close())
+		}()
 	}
 	return io.ReadAll(rdr)
 }
 
 // Print a json object in accordance with the prophecy (or the command line options)
-func printJSON(j interface{}) error {
+func printJSON(j any) error {
 	var out []byte
 	var err error
 
@@ -130,7 +133,7 @@ func verifyToken() error {
 	}
 
 	// Parse the token.  Load the key from command line option
-	token, err := jwt.Parse(string(tokData), func(t *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(string(tokData), func(t *jwt.Token) (any, error) {
 		if isNone() {
 			return jwt.UnsafeAllowNoneSignatureType, nil
 		}
@@ -194,7 +197,7 @@ func signToken() error {
 	}
 
 	// get the key
-	var key interface{}
+	var key any
 	if isNone() {
 		key = jwt.UnsafeAllowNoneSignatureType
 	} else {

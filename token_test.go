@@ -10,7 +10,7 @@ func TestToken_SigningString(t1 *testing.T) {
 	type fields struct {
 		Raw       string
 		Method    jwt.SigningMethod
-		Header    map[string]interface{}
+		Header    map[string]any
 		Claims    jwt.Claims
 		Signature []byte
 		Valid     bool
@@ -26,7 +26,7 @@ func TestToken_SigningString(t1 *testing.T) {
 			fields: fields{
 				Raw:    "",
 				Method: jwt.SigningMethodHS256,
-				Header: map[string]interface{}{
+				Header: map[string]any{
 					"typ": "JWT",
 					"alg": jwt.SigningMethodHS256.Alg(),
 				},
@@ -62,7 +62,7 @@ func TestToken_SigningString(t1 *testing.T) {
 func BenchmarkToken_SigningString(b *testing.B) {
 	t := &jwt.Token{
 		Method: jwt.SigningMethodHS256,
-		Header: map[string]interface{}{
+		Header: map[string]any{
 			"typ": "JWT",
 			"alg": jwt.SigningMethodHS256.Alg(),
 		},

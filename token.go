@@ -11,9 +11,9 @@ import (
 // Token.  This allows you to use properties in the Header of the token (such as
 // `kid`) to identify which key to use.
 //
-// The returned interface{} may be a single key or a VerificationKeySet containing
+// The returned any may be a single key or a VerificationKeySet containing
 // multiple keys.
-type Keyfunc func(*Token) (interface{}, error)
+type Keyfunc func(*Token) (any, error)
 
 // VerificationKey represents a public or secret key for verifying a token's signature.
 type VerificationKey interface {
@@ -46,7 +46,7 @@ func New(method SigningMethod, opts ...TokenOption) *Token {
 // claims. Additional options can be specified, but are currently unused.
 func NewWithClaims(method SigningMethod, claims Claims, opts ...TokenOption) *Token {
 	return &Token{
-		Header: map[string]interface{}{
+		Header: map[string]any{
 			"typ": "JWT",
 			"alg": method.Alg(),
 		},
@@ -60,7 +60,7 @@ func NewWithClaims(method SigningMethod, claims Claims, opts ...TokenOption) *To
 // https://golang-jwt.github.io/jwt/usage/signing_methods/#signing-methods-and-key-types
 // for an overview of the different signing methods and their respective key
 // types.
-func (t *Token) SignedString(key interface{}) (string, error) {
+func (t *Token) SignedString(key any) (string, error) {
 	sstr, err := t.SigningString()
 	if err != nil {
 		return "", err

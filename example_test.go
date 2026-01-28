@@ -84,13 +84,13 @@ func ExampleParseWithClaims_customClaimsType() {
 		jwt.RegisteredClaims
 	}
 
-	token, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, func(token *jwt.Token) (any, error) {
 		return []byte("AllYourBase"), nil
 	})
 	if err != nil {
 		log.Fatal(err)
 	} else if claims, ok := token.Claims.(*MyCustomClaims); ok {
-		fmt.Println(claims.Foo, claims.RegisteredClaims.Issuer)
+		fmt.Println(claims.Foo, claims.Issuer)
 	} else {
 		log.Fatal("unknown claims type, cannot proceed")
 	}
@@ -108,13 +108,13 @@ func ExampleParseWithClaims_validationOptions() {
 		jwt.RegisteredClaims
 	}
 
-	token, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, func(token *jwt.Token) (any, error) {
 		return []byte("AllYourBase"), nil
 	}, jwt.WithLeeway(5*time.Second))
 	if err != nil {
 		log.Fatal(err)
 	} else if claims, ok := token.Claims.(*MyCustomClaims); ok {
-		fmt.Println(claims.Foo, claims.RegisteredClaims.Issuer)
+		fmt.Println(claims.Foo, claims.Issuer)
 	} else {
 		log.Fatal("unknown claims type, cannot proceed")
 	}
@@ -147,13 +147,13 @@ func (m MyCustomClaims) Validate() error {
 func ExampleParseWithClaims_customValidation() {
 	tokenString := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJpc3MiOiJ0ZXN0IiwiYXVkIjoic2luZ2xlIn0.QAWg1vGvnqRuCFTMcPkjZljXHh8U3L_qUjszOtQbeaA"
 
-	token, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, func(token *jwt.Token) (any, error) {
 		return []byte("AllYourBase"), nil
 	}, jwt.WithLeeway(5*time.Second))
 	if err != nil {
 		log.Fatal(err)
 	} else if claims, ok := token.Claims.(*MyCustomClaims); ok {
-		fmt.Println(claims.Foo, claims.RegisteredClaims.Issuer)
+		fmt.Println(claims.Foo, claims.Issuer)
 	} else {
 		log.Fatal("unknown claims type, cannot proceed")
 	}
@@ -166,7 +166,7 @@ func ExampleParse_errorChecking() {
 	// Token from another example.  This token is expired
 	var tokenString = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJleHAiOjE1MDAwLCJpc3MiOiJ0ZXN0In0.HE7fK0xOQwFEr4WDgRWj4teRPZ6i3GLwD5YCm6Pwu_c"
 
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
 		return []byte("AllYourBase"), nil
 	})
 
