@@ -187,6 +187,13 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 		return token, parts, newError("could not JSON decode claim", ErrTokenMalformed, err)
 	}
 
+	if len(parts) > 2 {
+		token.Signature, err = p.DecodeSegment(parts[2])
+		if err != nil {
+			return token, nil, err
+		}
+	}
+
 	// Lookup signature method
 	if method, ok := token.Header["alg"].(string); ok {
 		if token.Method = GetSigningMethod(method); token.Method == nil {
