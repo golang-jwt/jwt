@@ -1,8 +1,11 @@
 package jwt_test
 
 import (
+	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"math"
+	"strings"
 	"testing"
 	"time"
 
@@ -122,5 +125,23 @@ func TestNumericDate_MarshalJSON(t *testing.T) {
 		if got := string(by); got != tc.want {
 			t.Errorf("[%d]: failed encoding: got %q want %q", i, got, tc.want)
 		}
+	}
+}
+
+func TestGetSignatureAfterSigning(t *testing.T) {
+	token := jwt.New(jwt.SigningMethodHS256, nil)
+	signedString, err := token.SignedString([]byte("test12345"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	sigStr := signedString[strings.LastIndex(signedString, ".")+1:]
+	sig, err := base64.RawURLEncoding.DecodeString(sigStr)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !bytes.Equal(sig, token.Signature) {
+		t.Errorf("token.Signature not equal to signature in signed string")
 	}
 }
