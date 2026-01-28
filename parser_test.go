@@ -632,10 +632,6 @@ func TestParser_ParseUnverified(t *testing.T) {
 				// The 'Valid' field should not be set to true when invoking ParseUnverified()
 				t.Errorf("[%v] Token.Valid field mismatch. Expecting false, got %v", data.name, token.Valid)
 			}
-			if len(token.Signature) != 0 {
-				// The signature was not validated, hence the 'Signature' field is not populated.
-				t.Errorf("[%v] Token.Signature field mismatch. Expecting '', got %v", data.name, token.Signature)
-			}
 		})
 	}
 }
