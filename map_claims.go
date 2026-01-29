@@ -5,32 +5,32 @@ import (
 	"fmt"
 )
 
-// ClaimsType is a type alias for claim keys in the [MapClaims] type.
-type ClaimsType string
+// MapClaimsKey is a type alias for claim keys in the [MapClaims] type.
+type MapClaimsKey string
 
 var (
 	// Exp is the "exp" claim key according to RFC 7519 section 4.1.4.
-	Exp ClaimsType = "exp"
+	Exp MapClaimsKey = "exp"
 
 	// Nbf is the "nbf" claim key according to RFC 7519 section 4.1.5.
-	Nbf ClaimsType = "nbf"
+	Nbf MapClaimsKey = "nbf"
 
 	// Iat is the "iat" claim key according to RFC 7519 section 4.1.6.
-	Iat ClaimsType = "iat"
+	Iat MapClaimsKey = "iat"
 
 	// Aud is the "aud" claim key according to RFC 7519 section 4.1.3.
-	Aud ClaimsType = "aud"
+	Aud MapClaimsKey = "aud"
 
 	// Iss is the "iss" claim key according to RFC 7519 section 4.1.1.
-	Iss ClaimsType = "iss"
+	Iss MapClaimsKey = "iss"
 
 	// Sub is the "sub" claim key according to RFC 7519 section 4.1.2.
-	Sub ClaimsType = "sub"
+	Sub MapClaimsKey = "sub"
 )
 
-// MapClaims is a claims type that uses of map of [ClaimsType] with value [any]
+// MapClaims is a claims type that uses of map of [MapClaimsKey] with value [any]
 // for JSON decoding. This is the default claims type if you do not supply one.
-type MapClaims map[ClaimsType]any
+type MapClaims map[MapClaimsKey]any
 
 // GetExpirationTime implements the Claims interface.
 func (m MapClaims) GetExpirationTime() (*NumericDate, error) {
@@ -65,7 +65,7 @@ func (m MapClaims) GetSubject() (string, error) {
 // parseNumericDate tries to parse a key in the map claims type as a number
 // date. This will succeed, if the underlying type is either a [float64] or a
 // [json.Number]. Otherwise, nil will be returned.
-func (m MapClaims) parseNumericDate(key ClaimsType) (*NumericDate, error) {
+func (m MapClaims) parseNumericDate(key MapClaimsKey) (*NumericDate, error) {
 	v, ok := m[key]
 	if !ok {
 		return nil, nil
@@ -89,7 +89,7 @@ func (m MapClaims) parseNumericDate(key ClaimsType) (*NumericDate, error) {
 
 // parseClaimsString tries to parse a key in the map claims type as a
 // [ClaimsStrings] type, which can either be a string or an array of string.
-func (m MapClaims) parseClaimsString(key ClaimsType) (ClaimStrings, error) {
+func (m MapClaims) parseClaimsString(key MapClaimsKey) (ClaimStrings, error) {
 	var cs []string
 	switch v := m[key].(type) {
 	case string:
@@ -112,7 +112,7 @@ func (m MapClaims) parseClaimsString(key ClaimsType) (ClaimStrings, error) {
 // parseString tries to parse a key in the map claims type as a [string] type.
 // If the key does not exist, an empty string is returned. If the key has the
 // wrong type, an error is returned.
-func (m MapClaims) parseString(key ClaimsType) (string, error) {
+func (m MapClaims) parseString(key MapClaimsKey) (string, error) {
 	var (
 		ok  bool
 		raw any

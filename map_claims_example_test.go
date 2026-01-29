@@ -11,11 +11,11 @@ var (
 	// OpenID Connect Core 1.0, section 5.1.
 	//
 	// Reference: https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
-	OpenIdConnectEMail jwt.ClaimsType = "email"
+	OpenIdConnectEMail jwt.MapClaimsKey = "email"
 )
 
 // ExampleMapClaims shows how to create a token with custom claims using
-// [jwt.MapClaims] and the custom [jwt.ClaimsType].
+// [jwt.MapClaims] and the custom [jwt.MapClaimsKey].
 func ExampleMapClaims() {
 	claims := jwt.MapClaims{
 		"custom_claim":     "custom_value",
