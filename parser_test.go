@@ -3,10 +3,12 @@ package jwt_test
 import (
 	"crypto"
 	"crypto/rsa"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -632,9 +634,9 @@ func TestParser_ParseUnverified(t *testing.T) {
 				// The 'Valid' field should not be set to true when invoking ParseUnverified()
 				t.Errorf("[%v] Token.Valid field mismatch. Expecting false, got %v", data.name, token.Valid)
 			}
-			if len(token.Signature) == 0 {
-				// The 'Signature' should always be populated.
-				t.Errorf("[%v] Token.Signature field mismatch. Expecting non-nil, got %v", data.name, token.Signature)
+			if len(token.Signature) != 0 {
+				// ParseUnverified does not decode the signature, so it should be nil.
+				t.Errorf("[%v] Token.Signature field mismatch. Expecting nil, got %v", data.name, token.Signature)
 			}
 		})
 	}
@@ -830,6 +832,68 @@ func TestSetPadding(t *testing.T) {
 				)
 			}
 		})
+	}
+}
+
+func TestParseUnverified_MalformedSignature(t *testing.T) {
+	// A token where the signature segment is not valid base64url. ParseUnverified should
+	// succeed because it does not decode the signature.
+	//
+	// Header: {"alg":"HS256","typ":"JWT"}
+	// Claims: {"sub":"1234567890"}
+	tokenString := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.!!invalid-signature!!"
+	parser := jwt.NewParser()
+	token, _, err := parser.ParseUnverified(tokenString, jwt.MapClaims{})
+	if err != nil {
+		t.Fatalf("ParseUnverified should not error on malformed signatures, got: %v", err)
+	}
+	if token.Valid {
+		t.Error("Token.Valid should be false for ParseUnverified")
+	}
+	sub, ok := token.Claims.(jwt.MapClaims)["sub"].(string)
+	if !ok || sub != "1234567890" {
+		t.Errorf("Expected sub claim '1234567890', got %v", sub)
+	}
+}
+
+func TestWithDecodeSegment(t *testing.T) {
+	// This token is signed with HS256 using the key "secret" and the claim
+	// {"sub":"test-subject-1"}. The URL-safe signature is:
+	//   L_rqLmb061UGQyGdS7tmTlGJYl7dYN6J9UHkjSt3dG0
+	// We replace - with + and _ with / to simulate a non-conformant issuer that
+	// uses the standard base64 alphabet instead of the URL-safe alphabet.
+	key := []byte("secret")
+	conformantToken := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0LXN1YmplY3QtMSJ9.L_rqLmb061UGQyGdS7tmTlGJYl7dYN6J9UHkjSt3dG0"
+
+	parts := strings.SplitN(conformantToken, ".", 3)
+	stdSig := strings.NewReplacer("-", "+", "_", "/").Replace(parts[2])
+	if stdSig == parts[2] {
+		t.Fatal("Test token signature must contain URL-safe characters")
+	}
+	nonConformantToken := parts[0] + "." + parts[1] + "." + stdSig
+
+	keyfunc := func(*jwt.Token) (any, error) { return key, nil }
+
+	// Without the option, parsing should fail.
+	_, err := jwt.Parse(nonConformantToken, keyfunc, jwt.WithoutClaimsValidation())
+	if err == nil {
+		t.Fatal("Expected error parsing non-conformant token without WithDecodeSegment")
+	}
+
+	// With a custom decoder that falls back to standard base64, parsing should succeed.
+	stdDecoder := jwt.WithDecodeSegment(func(seg string) ([]byte, error) {
+		b, err := base64.RawURLEncoding.DecodeString(seg)
+		if err != nil {
+			return base64.RawStdEncoding.DecodeString(seg)
+		}
+		return b, nil
+	})
+	parsed, err := jwt.Parse(nonConformantToken, keyfunc, stdDecoder, jwt.WithoutClaimsValidation())
+	if err != nil {
+		t.Fatalf("Expected no error with WithDecodeSegment, got: %v", err)
+	}
+	if !parsed.Valid {
+		t.Error("Expected token to be valid")
 	}
 }
 

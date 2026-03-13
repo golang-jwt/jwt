@@ -149,3 +149,17 @@ func WithStrictDecoding() ParserOption {
 		p.decodeStrict = true
 	}
 }
+
+// WithDecodeSegment overrides the default base64url segment decoder with a
+// custom function. When set, the provided function is used to decode all token
+// segments (header, claims, and signature) instead of the built-in decoder.
+// This takes precedence over [WithPaddingAllowed] and [WithStrictDecoding].
+//
+// This is useful for handling non-conformant tokens, such as those that use the
+// standard base64 alphabet (+/) instead of the URL-safe alphabet (-_) required
+// by RFC 7515.
+func WithDecodeSegment(f func(seg string) ([]byte, error)) ParserOption {
+	return func(p *Parser) {
+		p.decodeSegment = f
+	}
+}
