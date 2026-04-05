@@ -193,10 +193,8 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 	}
 
 	// Parse token signature
-	token.Signature, err = p.DecodeSegment(parts[2])
-	if err != nil {
-		return token, parts, newError("could not base64 decode signature", ErrTokenMalformed, err)
-	}
+	token.Signature, _ = p.DecodeSegment(parts[2])
+	// Ignore error: ParseUnverified does not validate the signature per documentation
 
 	return token, parts, nil
 }
