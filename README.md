@@ -98,7 +98,7 @@ for examples of usage:
 * [Simple example of parsing and validating a
   token](https://pkg.go.dev/github.com/golang-jwt/jwt/v5#example-Parse-Hmac)
 * [Simple example of building and signing a
-  token](https://pkg.go.dev/github.com/golang-jwt/jwt/v5#example-New-Hmac)
+  token](https://pkg.go.dev/github.com/golang-jwt/jwt/v5#example-NewWithClaims-Hmac)
 * [Directory of
   Examples](https://pkg.go.dev/github.com/golang-jwt/jwt/v5#pkg-examples)
 
