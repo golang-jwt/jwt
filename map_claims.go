@@ -51,7 +51,7 @@ func (m MapClaims) parseNumericDate(key string) (*NumericDate, error) {
 	switch exp := v.(type) {
 	case float64:
 		if exp == 0 {
-			return nil, nil
+			return newNumericDateFromSeconds(0), nil
 		}
 
 		return newNumericDateFromSeconds(exp), nil
