@@ -216,3 +216,23 @@ func TestMapClaims_GetExpirationTime_ZeroIsExpired(t *testing.T) {
 		})
 	}
 }
+
+// A string exp must come back as ErrInvalidType, not as a stealth
+// "claim not present" via the old float64==0 shortcut. Empty string is
+// the case worth pinning down explicitly.
+func TestMapClaims_GetExpirationTime_StringIsInvalidType(t *testing.T) {
+	for name, claims := range map[string]MapClaims{
+		"empty string": {"exp": ""},
+		"non-empty":    {"exp": "foo"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			_, err := claims.GetExpirationTime()
+			if err == nil {
+				t.Fatalf("expected an error, got nil")
+			}
+			if !errors.Is(err, ErrInvalidType) {
+				t.Fatalf("expected ErrInvalidType, got %v", err)
+			}
+		})
+	}
+}
