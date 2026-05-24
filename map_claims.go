@@ -77,6 +77,16 @@ func (m MapClaims) parseClaimsString(key string) (ClaimStrings, error) {
 			}
 			cs = append(cs, vs)
 		}
+	case nil:
+		// The claim is either absent or explicitly null. As the claim is
+		// optional, this is not an error and means "no value".
+		return nil, nil
+	default:
+		// Any other type (e.g. a number, boolean or object) is invalid, which
+		// is reported as an error to stay consistent with the other accessors
+		// such as parseString and parseNumericDate, as well as with the
+		// per-element type check performed on []any audiences above.
+		return nil, newError(fmt.Sprintf("%s is invalid", key), ErrInvalidType)
 	}
 
 	return cs, nil

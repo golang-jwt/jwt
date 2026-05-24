@@ -3,6 +3,7 @@ package jwt
 import (
 	"encoding/json"
 	"errors"
+	"reflect"
 	"testing"
 	"time"
 )
@@ -232,6 +233,48 @@ func TestMapClaims_GetExpirationTime_StringIsInvalidType(t *testing.T) {
 			}
 			if !errors.Is(err, ErrInvalidType) {
 				t.Fatalf("expected ErrInvalidType, got %v", err)
+			}
+		})
+	}
+}
+
+func TestMapClaims_GetAudience(t *testing.T) {
+	tests := []struct {
+		name    string
+		m       MapClaims
+		want    ClaimStrings
+		wantErr bool
+	}{
+		// aud is optional: absent or null means "no audience", not an error.
+		{name: "missing aud", m: MapClaims{}, want: nil, wantErr: false},
+		{name: "null aud", m: MapClaims{"aud": nil}, want: nil, wantErr: false},
+		// Valid shapes per RFC 7519: a single string or an array of strings.
+		{name: "string aud", m: MapClaims{"aud": "example.com"}, want: ClaimStrings{"example.com"}, wantErr: false},
+		{name: "[]string aud", m: MapClaims{"aud": []string{"a", "b"}}, want: ClaimStrings{"a", "b"}, wantErr: false},
+		{name: "[]any of strings aud", m: MapClaims{"aud": []any{"a", "b"}}, want: ClaimStrings{"a", "b"}, wantErr: false},
+		// Invalid types must return ErrInvalidType, consistent with the other
+		// MapClaims accessors (iss/sub/exp/nbf/iat) and with the per-element
+		// check already performed on []any audiences.
+		{name: "[]any with non-string element", m: MapClaims{"aud": []any{"a", 5}}, want: nil, wantErr: true},
+		{name: "wrong type: number", m: MapClaims{"aud": 123}, want: nil, wantErr: true},
+		{name: "wrong type: bool", m: MapClaims{"aud": true}, want: nil, wantErr: true},
+		{name: "wrong type: object", m: MapClaims{"aud": map[string]any{"x": 1}}, want: nil, wantErr: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := tt.m.GetAudience()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MapClaims.GetAudience() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr {
+				if !errors.Is(err, ErrInvalidType) {
+					t.Errorf("MapClaims.GetAudience() error = %v, want errors.Is(err, ErrInvalidType)", err)
+				}
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("MapClaims.GetAudience() = %#v, want %#v", got, tt.want)
 			}
 		})
 	}
