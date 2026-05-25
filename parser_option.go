@@ -48,11 +48,21 @@ func WithTimeFunc(f func() time.Time) ParserOption {
 	}
 }
 
-// WithIssuedAt returns the ParserOption to enable verification
-// of issued-at.
+// WithIssuedAt returns the ParserOption to enable verification of issued-at
+// when the claim is present.
 func WithIssuedAt() ParserOption {
 	return func(p *Parser) {
 		p.validator.verifyIat = true
+	}
+}
+
+// WithIssuedAtRequired returns the ParserOption to make iat claim required.
+// By default iat claim is optional. This option also enables issued-at
+// verification.
+func WithIssuedAtRequired() ParserOption {
+	return func(p *Parser) {
+		p.validator.verifyIat = true
+		p.validator.requireIat = true
 	}
 }
 

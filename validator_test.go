@@ -329,6 +329,92 @@ func Test_Validator_requireNotBefore(t *testing.T) {
 	}
 }
 
+func Test_Validator_requireIssuedAt(t *testing.T) {
+	type fields struct {
+		leeway     time.Duration
+		timeFunc   func() time.Time
+		requireIat bool
+	}
+	type args struct {
+		claims Claims
+		cmp    time.Time
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr error
+	}{
+		{
+			name:    "good claim without iat",
+			fields:  fields{requireIat: false},
+			args:    args{claims: MapClaims{}},
+			wantErr: nil,
+		},
+		{
+			name:   "missing iat when required",
+			fields: fields{requireIat: true},
+			args:   args{claims: MapClaims{}},
+			wantErr: ErrTokenRequiredClaimMissing,
+		},
+		{
+			name:   "good claim with iat",
+			fields: fields{requireIat: true},
+			args: args{
+				claims: RegisteredClaims{IssuedAt: NewNumericDate(time.Now().Add(-10 * time.Minute))},
+				cmp:    time.Now(),
+			},
+			wantErr: nil,
+		},
+		{
+			name:   "token iat time is in future",
+			fields: fields{requireIat: true, timeFunc: time.Now},
+			args: args{
+				claims: RegisteredClaims{IssuedAt: NewNumericDate(time.Now().Add(10 * time.Minute))},
+				cmp:    time.Now(),
+			},
+			wantErr: ErrTokenUsedBeforeIssued,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			opts := []ParserOption{
+				WithLeeway(tt.fields.leeway),
+				WithIssuedAt(),
+			}
+
+			if tt.fields.requireIat {
+				opts = append(opts, WithIssuedAtRequired())
+			}
+
+			if tt.fields.timeFunc != nil {
+				opts = append(opts, WithTimeFunc(tt.fields.timeFunc))
+			}
+
+			v := NewValidator(opts...)
+
+			cmp := tt.args.cmp
+			if cmp.IsZero() && tt.fields.timeFunc != nil {
+				cmp = tt.fields.timeFunc()
+			}
+			if cmp.IsZero() {
+				cmp = time.Now()
+			}
+
+			err := v.Validate(tt.args.claims)
+			if tt.wantErr == nil {
+				if err != nil {
+					t.Errorf("validator.Validate() error = %v, wantErr nil", err)
+				}
+				return
+			}
+			if err == nil || !errors.Is(err, tt.wantErr) {
+				t.Errorf("validator.Validate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
 func Test_Validator_verifyAudience(t *testing.T) {
 	type fields struct {
 		expectedAud []string

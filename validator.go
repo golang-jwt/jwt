@@ -47,6 +47,9 @@ type Validator struct {
 	// requireNbf specifies whether the nbf claim is required
 	requireNbf bool
 
+	// requireIat specifies whether the iat claim is required
+	requireIat bool
+
 	// verifyIat specifies whether the iat (Issued At) claim will be verified.
 	// According to https://www.rfc-editor.org/rfc/rfc7519#section-4.1.6 this
 	// only specifies the age of the token, but no validation check is
@@ -122,7 +125,7 @@ func (v *Validator) Validate(claims Claims) error {
 
 	// Check issued-at if the option is enabled
 	if v.verifyIat {
-		if err = v.verifyIssuedAt(claims, now, false); err != nil {
+		if err = v.verifyIssuedAt(claims, now, v.requireIat); err != nil {
 			errs = append(errs, err)
 		}
 	}
