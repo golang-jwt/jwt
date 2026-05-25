@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -637,6 +638,36 @@ func TestParser_ParseUnverified(t *testing.T) {
 				t.Errorf("[%v] Token.Signature field mismatch. Expecting non-nil, got %v", data.name, token.Signature)
 			}
 		})
+	}
+}
+
+func TestParser_ParseUnverifiedIgnoresMalformedSignature(t *testing.T) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{"sub": "1234567890"})
+	tokenString, err := token.SignedString([]byte("secret"))
+	if err != nil {
+		t.Fatalf("failed to sign token: %v", err)
+	}
+
+	parts := strings.Split(tokenString, ".")
+	if len(parts) != 3 {
+		t.Fatalf("unexpected token parts: %d", len(parts))
+	}
+	malformedSignatureToken := parts[0] + "." + parts[1] + ".!!!"
+
+	parsed, _, err := jwt.NewParser().ParseUnverified(malformedSignatureToken, jwt.MapClaims{})
+	if err != nil {
+		t.Fatalf("ParseUnverified returned error: %v", err)
+	}
+
+	claims, ok := parsed.Claims.(jwt.MapClaims)
+	if !ok {
+		t.Fatalf("unexpected claims type %T", parsed.Claims)
+	}
+	if claims["sub"] != "1234567890" {
+		t.Fatalf("unexpected sub claim: %v", claims["sub"])
+	}
+	if len(parsed.Signature) != 0 {
+		t.Fatalf("expected empty signature bytes, got %v", parsed.Signature)
 	}
 }
 

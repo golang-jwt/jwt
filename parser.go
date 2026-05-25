@@ -192,11 +192,9 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 		return token, parts, newError("signing method (alg) is unspecified", ErrTokenUnverifiable)
 	}
 
-	// Parse token signature
-	token.Signature, err = p.DecodeSegment(parts[2])
-	if err != nil {
-		return token, parts, newError("could not base64 decode signature", ErrTokenMalformed, err)
-	}
+	// Parse token signature. Signature validation is intentionally skipped in
+	// ParseUnverified; a malformed signature segment must not fail parsing.
+	token.Signature, _ = p.DecodeSegment(parts[2])
 
 	return token, parts, nil
 }
