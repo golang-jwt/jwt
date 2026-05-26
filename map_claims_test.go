@@ -1,6 +1,8 @@
 package jwt
 
 import (
+	"encoding/json"
+	"errors"
 	"testing"
 	"time"
 )
@@ -188,6 +190,48 @@ func TestMapClaims_parseString(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("MapClaims.parseString() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+// Regression for #496: a token whose exp claim is the literal 0 (i.e.
+// 1970-01-01) used to be treated as valid because parseNumericDate
+// special-cased a zero float64 as "claim not present". The json.Number
+// branch had no such carve-out, so the same token parsed via
+// WithJSONNumber() correctly came back expired.
+func TestMapClaims_GetExpirationTime_ZeroIsExpired(t *testing.T) {
+	for name, claims := range map[string]MapClaims{
+		"float64":     {"exp": float64(0)},
+		"json.Number": {"exp": json.Number("0")},
+	} {
+		t.Run(name, func(t *testing.T) {
+			err := NewValidator().Validate(claims)
+			if err == nil {
+				t.Fatalf("expected an error for exp=0, got nil")
+			}
+			if !errors.Is(err, ErrTokenExpired) {
+				t.Fatalf("expected ErrTokenExpired, got %v", err)
+			}
+		})
+	}
+}
+
+// A string exp must come back as ErrInvalidType, not as a stealth
+// "claim not present" via the old float64==0 shortcut. Empty string is
+// the case worth pinning down explicitly.
+func TestMapClaims_GetExpirationTime_StringIsInvalidType(t *testing.T) {
+	for name, claims := range map[string]MapClaims{
+		"empty string": {"exp": ""},
+		"non-empty":    {"exp": "foo"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			_, err := claims.GetExpirationTime()
+			if err == nil {
+				t.Fatalf("expected an error, got nil")
+			}
+			if !errors.Is(err, ErrInvalidType) {
+				t.Fatalf("expected ErrInvalidType, got %v", err)
 			}
 		})
 	}
