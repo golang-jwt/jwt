@@ -182,7 +182,7 @@ func (v *Validator) verifyExpiresAt(claims Claims, cmp time.Time, required bool)
 		return errorIfRequired(required, "exp")
 	}
 
-	return errorIfFalse(cmp.Before((exp.Time).Add(+v.leeway)), ErrTokenExpired)
+	return errorIfFalse(cmp.Before((exp.Time).Add(+v.leeway)), fmt.Errorf("%w by %s", ErrTokenExpired, cmp.Sub(exp.Time).Truncate(time.Second)))
 }
 
 // verifyIssuedAt compares the iat claim in claims against cmp. This function

@@ -2,6 +2,7 @@ package jwt
 
 import (
 	"errors"
+	"strings"
 	"testing"
 	"time"
 )
@@ -103,6 +104,7 @@ func Test_Validator_verifyExpiresAt(t *testing.T) {
 		fields  fields
 		args    args
 		wantErr error
+		wantBy  string
 	}{
 		{
 			name:    "good claim",
@@ -116,6 +118,19 @@ func Test_Validator_verifyExpiresAt(t *testing.T) {
 			args:    args{claims: MapClaims{"exp": "string"}},
 			wantErr: ErrInvalidType,
 		},
+		{
+			name:    "when leeway is in future",
+			fields:  fields{leeway: 10 * time.Minute},
+			args:    args{claims: RegisteredClaims{ExpiresAt: NewNumericDate(time.Now().Add(9 * time.Minute))}},
+			wantErr: nil,
+		},
+		{
+			name:    "when leeway is in the past",
+			fields:  fields{leeway: 10 * time.Minute},
+			args:    args{claims: RegisteredClaims{ExpiresAt: NewNumericDate(time.Now().Add(-15 * time.Minute))}, cmp: time.Now()},
+			wantErr: ErrTokenExpired,
+			wantBy:  "by 15m0s",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -125,8 +140,14 @@ func Test_Validator_verifyExpiresAt(t *testing.T) {
 			}
 
 			err := v.verifyExpiresAt(tt.args.claims, tt.args.cmp, tt.args.required)
-			if (err != nil) && !errors.Is(err, tt.wantErr) {
-				t.Errorf("validator.verifyExpiresAt() error = %v, wantErr %v", err, tt.wantErr)
+			if err != nil {
+				if !errors.Is(err, tt.wantErr) {
+					t.Errorf("validator.verifyExpiresAt() error = %v, wantErr %v", err, tt.wantErr)
+				}
+
+				if errors.Is(err, ErrTokenExpired) && !strings.Contains(err.Error(), tt.wantBy) {
+					t.Errorf("Error string %q did not contain %q", err, tt.wantBy)
+				}
 			}
 		})
 	}
