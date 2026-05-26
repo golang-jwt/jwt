@@ -69,6 +69,8 @@ func (m MapClaims) parseNumericDate(key string) (*NumericDate, error) {
 func (m MapClaims) parseClaimsString(key string) (ClaimStrings, error) {
 	var cs []string
 	switch v := m[key].(type) {
+	case nil:
+		return nil, nil
 	case string:
 		cs = append(cs, v)
 	case []string:
@@ -81,6 +83,8 @@ func (m MapClaims) parseClaimsString(key string) (ClaimStrings, error) {
 			}
 			cs = append(cs, vs)
 		}
+	default:
+		return nil, newError(fmt.Sprintf("%s is invalid", key), ErrInvalidType)
 	}
 
 	return cs, nil

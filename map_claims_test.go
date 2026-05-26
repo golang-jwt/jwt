@@ -140,6 +140,79 @@ func TestMapClaimsVerifyExpiresAtExpire(t *testing.T) {
 	}
 }
 
+func TestMapClaims_GetAudience(t *testing.T) {
+	tests := []struct {
+		name    string
+		claims  MapClaims
+		want    ClaimStrings
+		wantErr bool
+	}{
+		{
+			name:   "missing aud",
+			claims: MapClaims{},
+		},
+		{
+			name:   "null aud",
+			claims: MapClaims{"aud": nil},
+		},
+		{
+			name:   "string aud",
+			claims: MapClaims{"aud": "example.com"},
+			want:   ClaimStrings{"example.com"},
+		},
+		{
+			name:   "string slice aud",
+			claims: MapClaims{"aud": []string{"a", "b"}},
+			want:   ClaimStrings{"a", "b"},
+		},
+		{
+			name:   "any slice aud",
+			claims: MapClaims{"aud": []any{"a", "b"}},
+			want:   ClaimStrings{"a", "b"},
+		},
+		{
+			name:    "invalid element in any slice",
+			claims:  MapClaims{"aud": []any{"a", 1}},
+			wantErr: true,
+		},
+		{
+			name:    "invalid number aud",
+			claims:  MapClaims{"aud": 123},
+			wantErr: true,
+		},
+		{
+			name:    "invalid bool aud",
+			claims:  MapClaims{"aud": true},
+			wantErr: true,
+		},
+		{
+			name:    "invalid object aud",
+			claims:  MapClaims{"aud": map[string]string{"a": "b"}},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := tt.claims.GetAudience()
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("GetAudience() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if tt.wantErr {
+				return
+			}
+			if len(got) != len(tt.want) {
+				t.Fatalf("GetAudience() = %v, want %v", got, tt.want)
+			}
+			for i := range tt.want {
+				if got[i] != tt.want[i] {
+					t.Fatalf("GetAudience() = %v, want %v", got, tt.want)
+				}
+			}
+		})
+	}
+}
+
 func TestMapClaims_parseString(t *testing.T) {
 	type args struct {
 		key string
