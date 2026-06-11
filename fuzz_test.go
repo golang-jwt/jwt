@@ -51,7 +51,7 @@ func FuzzParseRoundTrip(f *testing.F) {
 			jwt.NewParser(jwt.WithoutClaimsValidation()),
 			jwt.NewParser(jwt.WithValidMethods([]string{"HS256", "none"})),
 		} {
-			parser.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			_, _ = parser.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 				// Return appropriate key based on algorithm
 				switch token.Method.Alg() {
 				case "HS256", "HS384", "HS512":
@@ -118,7 +118,7 @@ func FuzzClaimsValidation(f *testing.F) {
 		}
 		// Parse back the signed token
 		parser := jwt.NewParser()
-		parser.Parse(signed, func(t *jwt.Token) (interface{}, error) {
+		_, _ = parser.Parse(signed, func(t *jwt.Token) (interface{}, error) {
 			return &key.PublicKey, nil
 		})
 	})
