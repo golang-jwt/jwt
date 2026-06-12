@@ -136,6 +136,34 @@ methods or key functions.  Simply implement the `SigningMethod` interface and
 register a factory method using `RegisterSigningMethod` or provide a
 `jwt.Keyfunc`.
 
+
+### Post-Quantum Signing (PhiFalcon512)
+
+```go
+import jwt "github.com/golang-jwt/jwt/v5"
+
+// Generate Falcon-512 key (requires liboqs)
+key, err := jwt.GenerateRealOQSKey()
+if err != nil { panic(err) }
+
+// Create signing method
+method := jwt.NewRealOQSMethod()
+
+// Create token
+token := jwt.NewWithClaims(method, jwt.MapClaims{
+    "sub": "user123",
+    "iat": time.Now().Unix(),
+    "exp": time.Now().Add(time.Hour).Unix(),
+})
+
+// Sign with Falcon-512 (NIST PQC Level 1)
+tokenString, err := token.SignedString(key)
+
+// Verify
+parsed, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
+    return key, nil
+})
+```
 A common use case would be integrating with different 3rd party signature
 providers, like key management services from various cloud providers or Hardware
 Security Modules (HSMs) or to implement additional standards.
