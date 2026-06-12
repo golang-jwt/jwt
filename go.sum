@@ -1,0 +1,4 @@
+github.com/cloudflare/circl v1.6.3 h1:9GPOhQGF9MCYUeXyMYlqTR6a5gTrgR/fBLXvUgtVcg8=
+github.com/cloudflare/circl v1.6.3/go.mod h1:2eXP6Qfat4O/Yhh8BznvKnJ+uzEoTQ6jVKJRn81BiS4=
+github.com/open-quantum-safe/liboqs-go v0.0.0-20260310140033-75451133b94a h1:ODvqx48snl7BdkeVq+iStisJJlDr5Sfzns8YupfhDTg=
+github.com/open-quantum-safe/liboqs-go v0.0.0-20260310140033-75451133b94a/go.mod h1:OoIQ+v4rM6S6cF9zLGxsnsXX9vwv7WLp9s0TV2FbD6M=
