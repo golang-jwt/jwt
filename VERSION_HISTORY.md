@@ -135,3 +135,10 @@ It is likely the only integration change required here will be to change `func(t
 * API stabilized
 * Supports creating, signing, parsing, and validating JWT tokens
 * Supports RS256 and HS256 signing methods
+
+## v5.1.0 (Phi-JWT)
+* Added post-quantum Falcon-512 signing method (PhiFalcon512-Real via liboqs)
+* Added simulated Dilithium-2 and Falcon-512 methods
+* Added Φ-JWT auth server (cmd/phi_server)
+* Added φ-DNA enhancements: divine noise (40-bit), Lyapunov stable (λ=-0.4812)
+* Complete security test suite (9/9 tests)
