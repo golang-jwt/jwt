@@ -191,6 +191,24 @@ func TestMLDSAVerifyInvalidKey(t *testing.T) {
 	}
 }
 
+func TestMLDSANilKey(t *testing.T) {
+	t.Run("Verify with nil public key", func(t *testing.T) {
+		method := jwt.GetSigningMethod("ML-DSA-44")
+		err := method.Verify("test", []byte("sig"), (*mldsa.PublicKey)(nil))
+		if err == nil {
+			t.Error("Expected error when verifying with nil public key")
+		}
+	})
+
+	t.Run("Sign with nil private key", func(t *testing.T) {
+		method := jwt.GetSigningMethod("ML-DSA-44")
+		_, err := method.Sign("test", (*mldsa.PrivateKey)(nil))
+		if err == nil {
+			t.Error("Expected error when signing with nil private key")
+		}
+	})
+}
+
 func TestMLDSAParameterMismatch(t *testing.T) {
 	// Sign with ML-DSA-44 key, try to verify with ML-DSA-65 method
 	sk44, err := mldsa.GenerateKey(mldsa.MLDSA44())

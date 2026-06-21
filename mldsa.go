@@ -62,6 +62,10 @@ func (m *SigningMethodMLDSA) Verify(signingString string, sig []byte, key any) e
 		return newError("ML-DSA verify expects *mldsa.PublicKey", ErrInvalidKeyType)
 	}
 
+	if mldsaKey == nil {
+		return ErrMLDSAVerification
+	}
+
 	if mldsaKey.Parameters() != m.Params {
 		return newError("ML-DSA verify: key parameter set mismatch", ErrInvalidKey)
 	}
@@ -78,6 +82,9 @@ func (m *SigningMethodMLDSA) Verify(signingString string, sig []byte, key any) e
 func (m *SigningMethodMLDSA) Sign(signingString string, key any) ([]byte, error) {
 	var mldsaKey *mldsa.PrivateKey
 
+	// *mldsa.PrivateKey is matched before crypto.Signer intentionally,
+	// since PrivateKey implements the Signer interface and we want to
+	// use the direct signing path when a concrete key is provided.
 	switch k := key.(type) {
 	case *mldsa.PrivateKey:
 		mldsaKey = k
@@ -97,6 +104,10 @@ func (m *SigningMethodMLDSA) Sign(signingString string, key any) ([]byte, error)
 		return sig, nil
 	default:
 		return nil, newError("ML-DSA sign expects *mldsa.PrivateKey", ErrInvalidKeyType)
+	}
+
+	if mldsaKey == nil {
+		return nil, ErrInvalidKey
 	}
 
 	// Verify parameter set matches
