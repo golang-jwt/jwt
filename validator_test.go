@@ -239,7 +239,7 @@ func Test_Validator_verifyIssuedAt(t *testing.T) {
 	type fields struct {
 		leeway    time.Duration
 		timeFunc  func() time.Time
-		verifyIat bool
+		verifyIat  bool
 		requireIat bool
 	}
 	type args struct {
@@ -279,9 +279,9 @@ func Test_Validator_verifyIssuedAt(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v := &Validator{
-				leeway:    tt.fields.leeway,
-				timeFunc:  tt.fields.timeFunc,
-				verifyIat: tt.fields.verifyIat,
+				leeway:     tt.fields.leeway,
+				timeFunc:   tt.fields.timeFunc,
+				verifyIat:  tt.fields.verifyIat,
 				requireIat: tt.fields.requireIat,
 			}
 			if err := v.verifyIssuedAt(tt.args.claims, tt.args.cmp, tt.args.required); (err != nil) && !errors.Is(err, tt.wantErr) {
