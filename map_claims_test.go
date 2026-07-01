@@ -90,6 +90,15 @@ func TestMapclaimsVerifyIssuedAtInvalidTypeString(t *testing.T) {
 	}
 }
 
+func TestMapclaimsVerifyIssuedAtRequired(t *testing.T) {
+	mapClaims := MapClaims{}
+	want := false
+	got := NewValidator(WithIssuedAtRequired()).Validate(mapClaims)
+	if want != (got == nil) {
+		t.Fatalf("Failed to verify required iat claim, wanted: %v got %v", want, (got == nil))
+	}
+}
+
 func TestMapclaimsVerifyNotBeforeInvalidTypeString(t *testing.T) {
 	mapClaims := MapClaims{
 		"nbf": "foo",

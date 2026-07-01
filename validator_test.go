@@ -240,6 +240,7 @@ func Test_Validator_verifyIssuedAt(t *testing.T) {
 		leeway    time.Duration
 		timeFunc  func() time.Time
 		verifyIat bool
+		requireIat bool
 	}
 	type args struct {
 		claims   Claims
@@ -260,13 +261,19 @@ func Test_Validator_verifyIssuedAt(t *testing.T) {
 		},
 		{
 			name:   "good claim with iat",
-			fields: fields{verifyIat: true},
+			fields: fields{verifyIat: true, requireIat: true},
 			args: args{
 				claims:   RegisteredClaims{IssuedAt: NewNumericDate(time.Now())},
 				cmp:      time.Now().Add(10 * time.Minute),
-				required: false,
+				required: true,
 			},
 			wantErr: nil,
+		},
+		{
+			name:    "required iat missing",
+			fields:  fields{verifyIat: true, requireIat: true},
+			args:    args{claims: MapClaims{}, required: true},
+			wantErr: ErrTokenRequiredClaimMissing,
 		},
 	}
 	for _, tt := range tests {
@@ -275,6 +282,7 @@ func Test_Validator_verifyIssuedAt(t *testing.T) {
 				leeway:    tt.fields.leeway,
 				timeFunc:  tt.fields.timeFunc,
 				verifyIat: tt.fields.verifyIat,
+				requireIat: tt.fields.requireIat,
 			}
 			if err := v.verifyIssuedAt(tt.args.claims, tt.args.cmp, tt.args.required); (err != nil) && !errors.Is(err, tt.wantErr) {
 				t.Errorf("validator.verifyIssuedAt() error = %v, wantErr %v", err, tt.wantErr)
