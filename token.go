@@ -100,3 +100,15 @@ func (t *Token) SigningString() (string, error) {
 func (*Token) EncodeSegment(seg []byte) string {
 	return base64.RawURLEncoding.EncodeToString(seg)
 }
+
+// SetType sets the "typ" (Type) header parameter as defined in RFC 7519 Section 5.1.
+// Common values include "JWT", "at+jwt", etc.
+func (t *Token) SetType(typ string) {
+	t.Header["typ"] = typ
+}
+
+// SetContentType sets the "cty" (Content Type) header parameter as defined in RFC 7519 Section 5.2.
+// This is used to declare the media type of the content in nested JWTs.
+func (t *Token) SetContentType(cty string) {
+	t.Header["cty"] = cty
+}
