@@ -100,3 +100,30 @@ func (t *Token) SigningString() (string, error) {
 func (*Token) EncodeSegment(seg []byte) string {
 	return base64.RawURLEncoding.EncodeToString(seg)
 }
+
+// SetType sets the "typ" (type) header parameter.
+// According to https://datatracker.ietf.org/doc/html/rfc7519#section-5.1,
+// this parameter is optional.
+// Passing an empty string removes the parameter.
+func (t *Token) SetType(typ string) {
+	t.setHeaderParam("typ", typ)
+}
+
+// SetContentType sets the "cty" (content type) header parameter.
+// According to https://datatracker.ietf.org/doc/html/rfc7519#section-5.2,
+// this parameter is typically used when nested JWTs are present.
+// Passing an empty string removes the parameter.
+func (t *Token) SetContentType(cty string) {
+	t.setHeaderParam("cty", cty)
+}
+
+func (t *Token) setHeaderParam(k, v string) {
+	if t.Header == nil {
+		t.Header = make(map[string]any)
+	}
+	if v == "" {
+		delete(t.Header, k)
+		return
+	}
+	t.Header[k] = v
+}
