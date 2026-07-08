@@ -20,9 +20,11 @@ var AuthorizationHeaderExtractor = &PostExtractionFilter{
 	stripBearerPrefixFromTokenString,
 }
 
-// OAuth2Extractor is an Extractor for OAuth2 access tokens.  Looks in 'Authorization'
-// header then 'access_token' argument for a token.
+// OAuth2Extractor is an Extractor for OAuth2 access tokens. It looks for a
+// "Bearer" token in the 'Authorization' header, then for an 'access_token'
+// argument. A non-Bearer Authorization header (e.g. Basic auth) is ignored so
+// that it does not shadow a valid 'access_token' argument.
 var OAuth2Extractor = &MultiExtractor{
-	AuthorizationHeaderExtractor,
+	BearerExtractor{},
 	ArgumentExtractor{"access_token"},
 }
