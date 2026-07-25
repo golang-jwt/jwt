@@ -39,11 +39,25 @@ func NewNumericDate(t time.Time) *NumericDate {
 	return &NumericDate{t.Truncate(TimePrecision)}
 }
 
+// maxNumericDateSeconds is the largest absolute UNIX-epoch value, in seconds,
+// that newNumericDateFromSeconds accepts. Beyond this bound the float64->int64
+// conversion and time.Unix's internal offset both overflow, producing a
+// time.Time that formats as a far-future date but compares as if it were in the
+// distant past. 2^62 seconds is well below either overflow point and still far
+// beyond any representable calendar date (year 9999 is ~2.5e11 seconds).
+const maxNumericDateSeconds = 1 << 62
+
 // newNumericDateFromSeconds creates a new *NumericDate out of a float64 representing a
-// UNIX epoch with the float fraction representing non-integer seconds.
-func newNumericDateFromSeconds(f float64) *NumericDate {
+// UNIX epoch with the float fraction representing non-integer seconds. It returns an
+// error if f is not a finite number within the representable range, so that an
+// out-of-range value is rejected rather than silently wrapping around.
+func newNumericDateFromSeconds(f float64) (*NumericDate, error) {
+	if math.IsNaN(f) || math.IsInf(f, 0) || f > maxNumericDateSeconds || f < -maxNumericDateSeconds {
+		return nil, fmt.Errorf("%w: numeric date %v is out of range", ErrInvalidType, f)
+	}
+
 	round, frac := math.Modf(f)
-	return NewNumericDate(time.Unix(int64(round), int64(frac*1e9)))
+	return NewNumericDate(time.Unix(int64(round), int64(frac*1e9))), nil
 }
 
 // MarshalJSON is an implementation of the json.RawMessage interface and serializes the UNIX epoch
@@ -91,7 +105,10 @@ func (date *NumericDate) UnmarshalJSON(b []byte) (err error) {
 		return fmt.Errorf("could not convert json number value to float: %w", err)
 	}
 
-	n := newNumericDateFromSeconds(f)
+	n, err := newNumericDateFromSeconds(f)
+	if err != nil {
+		return err
+	}
 	*date = *n
 
 	return nil
