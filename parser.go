@@ -175,6 +175,8 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 		return token, parts, NewValidationError("signing method (alg) is unspecified.", ValidationErrorUnverifiable)
 	}
 
+	token.Signature = parts[2]
+
 	return token, parts, nil
 }
 
