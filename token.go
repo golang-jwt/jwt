@@ -100,3 +100,19 @@ func (t *Token) SigningString() (string, error) {
 func (*Token) EncodeSegment(seg []byte) string {
 	return base64.RawURLEncoding.EncodeToString(seg)
 }
+
+// SetType sets the "typ" (Type) header parameter on the token (RFC 7519 Section 5.1).
+func (t *Token) SetType(typ string) {
+	if t.Header == nil {
+		t.Header = make(map[string]any)
+	}
+	t.Header["typ"] = typ
+}
+
+// SetContentType sets the "cty" (Content Type) header parameter on the token (RFC 7519 Section 5.2).
+func (t *Token) SetContentType(cty string) {
+	if t.Header == nil {
+		t.Header = make(map[string]any)
+	}
+	t.Header["cty"] = cty
+}

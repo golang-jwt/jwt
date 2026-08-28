@@ -76,3 +76,16 @@ func BenchmarkToken_SigningString(b *testing.B) {
 		}
 	})
 }
+
+func TestToken_SetTypeAndContentType(t *testing.T) {
+	token := jwt.New(jwt.SigningMethodHS256)
+	token.SetType("at+jwt")
+	token.SetContentType("JWT")
+
+	if token.Header["typ"] != "at+jwt" {
+		t.Errorf("expected typ to be at+jwt, got %v", token.Header["typ"])
+	}
+	if token.Header["cty"] != "JWT" {
+		t.Errorf("expected cty to be JWT, got %v", token.Header["cty"])
+	}
+}
