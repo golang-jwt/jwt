@@ -184,7 +184,7 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 	}
 
 	// Lookup signature method
-	if method, ok := token.Header["alg"].(string); ok {
+	if method, ok := token.Header[HeaderAlgorithm].(string); ok {
 		if token.Method = GetSigningMethod(method); token.Method == nil {
 			return token, parts, newError("signing method (alg) is unavailable", ErrTokenUnverifiable)
 		}

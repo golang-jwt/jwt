@@ -25,12 +25,29 @@ type VerificationKeySet struct {
 	Keys []VerificationKey
 }
 
+// Registered JOSE header parameter names, for use as keys in [Token.Header]
+// instead of string literals. See
+// https://datatracker.ietf.org/doc/html/rfc7515#section-4.1 and
+// https://datatracker.ietf.org/doc/html/rfc7519#section-5.
+const (
+	// HeaderAlgorithm identifies the cryptographic algorithm used to secure the JWT.
+	HeaderAlgorithm = "alg"
+	// HeaderType declares the media type of the complete JWT, e.g. "JWT" or "at+jwt".
+	HeaderType = "typ"
+	// HeaderContentType declares the media type of the secured content (the payload), used for nested JWTs.
+	HeaderContentType = "cty"
+	// HeaderKeyID hints at which key was used to secure the JWT.
+	HeaderKeyID = "kid"
+	// HeaderCritical lists extensions that MUST be understood and processed.
+	HeaderCritical = "crit"
+)
+
 // Token represents a JWT Token.  Different fields will be used depending on
 // whether you're creating or parsing/verifying a token.
 type Token struct {
 	Raw       string         // Raw contains the raw token.  Populated when you [Parse] a token
 	Method    SigningMethod  // Method is the signing method used or to be used
-	Header    map[string]any // Header is the first segment of the token in decoded form
+	Header    map[string]any // Header is the first segment of the token in decoded form. Use the Header* constants (e.g. [HeaderType]) as keys rather than string literals.
 	Claims    Claims         // Claims is the second segment of the token in decoded form
 	Signature []byte         // Signature is the third segment of the token in decoded form.  Populated when you [Parse] or sign a token
 	Valid     bool           // Valid specifies if the token is valid.  Populated when you [Parse] a token
@@ -47,8 +64,8 @@ func New(method SigningMethod, opts ...TokenOption) *Token {
 func NewWithClaims(method SigningMethod, claims Claims, opts ...TokenOption) *Token {
 	return &Token{
 		Header: map[string]any{
-			"typ": "JWT",
-			"alg": method.Alg(),
+			HeaderType:      "JWT",
+			HeaderAlgorithm: method.Alg(),
 		},
 		Claims: claims,
 		Method: method,

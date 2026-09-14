@@ -59,6 +59,34 @@ func TestToken_SigningString(t1 *testing.T) {
 	}
 }
 
+func TestHeaderParameterConstants(t *testing.T) {
+	tests := map[string]string{
+		jwt.HeaderAlgorithm:   "alg",
+		jwt.HeaderType:        "typ",
+		jwt.HeaderContentType: "cty",
+		jwt.HeaderKeyID:       "kid",
+		jwt.HeaderCritical:    "crit",
+	}
+	for got, want := range tests {
+		if got != want {
+			t.Errorf("got %v, want %v", got, want)
+		}
+	}
+}
+
+func TestToken_SetHeaderParameter(t *testing.T) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{})
+	token.Header[jwt.HeaderType] = "at+jwt"
+	token.Header[jwt.HeaderContentType] = "JWT"
+
+	if token.Header[jwt.HeaderType] != "at+jwt" {
+		t.Errorf("Header[%v] = %v, want at+jwt", jwt.HeaderType, token.Header[jwt.HeaderType])
+	}
+	if token.Header[jwt.HeaderContentType] != "JWT" {
+		t.Errorf("Header[%v] = %v, want JWT", jwt.HeaderContentType, token.Header[jwt.HeaderContentType])
+	}
+}
+
 func BenchmarkToken_SigningString(b *testing.B) {
 	t := &jwt.Token{
 		Method: jwt.SigningMethodHS256,
