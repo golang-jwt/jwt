@@ -43,7 +43,23 @@ func NewNumericDate(t time.Time) *NumericDate {
 // UNIX epoch with the float fraction representing non-integer seconds.
 func newNumericDateFromSeconds(f float64) *NumericDate {
 	round, frac := math.Modf(f)
-	return NewNumericDate(time.Unix(int64(round), int64(frac*1e9)))
+
+	// f is only an approximation of the decimal value that MarshalJSON
+	// produced: float64 cannot represent most base-10 fractions exactly, so
+	// frac*1e9 can land tens to a few hundred nanoseconds away from the
+	// timestamp that was actually encoded, in either direction. That
+	// timestamp always sits exactly on a TimePrecision boundary (it was
+	// produced by this package, truncated to TimePrecision, in the first
+	// place), so using Truncate here, as NewNumericDate does for arbitrary
+	// wall-clock times, would silently drop into the previous
+	// TimePrecision bucket whenever the approximation undershoots -
+	// rounding to the nearest nanosecond first is not enough to fix this,
+	// since the error can exceed a nanosecond. Rounding to the nearest
+	// TimePrecision unit instead makes this the exact inverse of
+	// MarshalJSON, regardless of which way the float64 approximation drifts.
+	t := time.Unix(int64(round), int64(math.Round(frac*1e9))).Round(TimePrecision)
+
+	return &NumericDate{t}
 }
 
 // MarshalJSON is an implementation of the json.RawMessage interface and serializes the UNIX epoch
