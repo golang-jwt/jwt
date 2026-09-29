@@ -146,7 +146,7 @@ func (m *SigningMethodECDSA) Sign(signingString string, key any) ([]byte, error)
 			return nil, errors.New("invalid ASN.1 ECDSA signature")
 		}
 	} else {
-		return nil, newError("ECDSA sign expects *ecdsa.PrivateKey", ErrInvalidKeyType)
+		return nil, newError("ECDSA sign expects *ecdsa.PrivateKey or crypto.Signer", ErrInvalidKeyType)
 	}
 
 	if m.CurveBits != curveBits {
