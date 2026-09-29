@@ -121,7 +121,7 @@ func (m *SigningMethodECDSA) Sign(signingString string, key any) ([]byte, error)
 		if !ok {
 			return nil, newError("ECDSA sign expects crypto.Signer.Public() with *ecdsa.PublicKey", ErrInvalidKeyType)
 		}
-		params := publicKey.Curve.Params()
+		params := publicKey.Params()
 		curveBits = params.BitSize
 
 		// Sign the hashed message to produce an ASN.1 encoded signature
