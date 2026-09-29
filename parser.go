@@ -25,6 +25,8 @@ type Parser struct {
 	decodeStrict bool
 
 	decodePaddingAllowed bool
+
+	decodeSegment func(seg string) ([]byte, error)
 }
 
 // NewParser creates a new Parser with the specified options
@@ -74,6 +76,12 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 			// signing method is not in the listed set
 			return token, newError(fmt.Sprintf("signing method %v is invalid", alg), ErrTokenSignatureInvalid)
 		}
+	}
+
+	// Decode signature
+	token.Signature, err = p.DecodeSegment(parts[2])
+	if err != nil {
+		return token, newError("could not base64 decode signature", ErrTokenMalformed, err)
 	}
 
 	// Lookup key(s)
@@ -192,12 +200,6 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 		return token, parts, newError("signing method (alg) is unspecified", ErrTokenUnverifiable)
 	}
 
-	// Parse token signature
-	token.Signature, err = p.DecodeSegment(parts[2])
-	if err != nil {
-		return token, parts, newError("could not base64 decode signature", ErrTokenMalformed, err)
-	}
-
 	return token, parts, nil
 }
 
@@ -230,8 +232,16 @@ func splitToken(token string) ([]string, bool) {
 
 // DecodeSegment decodes a JWT specific base64url encoding. This function will
 // take into account whether the [Parser] is configured with additional options,
-// such as [WithStrictDecoding] or [WithPaddingAllowed].
+// such as [WithStrictDecoding] and [WithPaddingAllowed].
+//
+// If you need full control over segment decoding, for example to handle
+// non-conformant tokens that use the standard base64 alphabet instead of
+// base64url, use the [WithDecodeSegment] option to provide a custom decoder.
 func (p *Parser) DecodeSegment(seg string) ([]byte, error) {
+	if p.decodeSegment != nil {
+		return p.decodeSegment(seg)
+	}
+
 	encoding := base64.RawURLEncoding
 
 	if p.decodePaddingAllowed {
