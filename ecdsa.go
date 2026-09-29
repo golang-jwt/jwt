@@ -4,6 +4,7 @@ import (
 	"crypto"
 	"crypto/ecdsa"
 	"crypto/rand"
+	"encoding/asn1"
 	"errors"
 	"math/big"
 )
@@ -90,15 +91,6 @@ func (m *SigningMethodECDSA) Verify(signingString string, sig []byte, key any) e
 // Sign implements token signing for the SigningMethod.
 // For this signing method, key must be an ecdsa.PrivateKey struct
 func (m *SigningMethodECDSA) Sign(signingString string, key any) ([]byte, error) {
-	// Get the key
-	var ecdsaKey *ecdsa.PrivateKey
-	switch k := key.(type) {
-	case *ecdsa.PrivateKey:
-		ecdsaKey = k
-	default:
-		return nil, newError("ECDSA sign expects *ecdsa.PrivateKey", ErrInvalidKeyType)
-	}
-
 	// Create the hasher
 	if !m.Hash.Available() {
 		return nil, ErrHashUnavailable
@@ -107,28 +99,67 @@ func (m *SigningMethodECDSA) Sign(signingString string, key any) ([]byte, error)
 	hasher := m.Hash.New()
 	hasher.Write([]byte(signingString))
 
-	// Sign the string and return r, s
-	if r, s, err := ecdsa.Sign(rand.Reader, ecdsaKey, hasher.Sum(nil)); err == nil {
-		curveBits := ecdsaKey.Curve.Params().BitSize
-
-		if m.CurveBits != curveBits {
-			return nil, ErrInvalidKey
-		}
-
-		keyBytes := curveBits / 8
-		if curveBits%8 > 0 {
-			keyBytes += 1
-		}
-
-		// We serialize the outputs (r and s) into big-endian byte arrays
-		// padded with zeros on the left to make sure the sizes work out.
-		// Output must be 2*keyBytes long.
-		out := make([]byte, 2*keyBytes)
-		r.FillBytes(out[0:keyBytes]) // r is assigned to the first half of output.
-		s.FillBytes(out[keyBytes:])  // s is assigned to the second half of output.
-
-		return out, nil
-	} else {
-		return nil, err
+	// create a structure to hold the parsed signature components (r and s)
+	var parsedSignature struct {
+		R, S *big.Int
 	}
+	var curveBits int
+
+	if ecdsaKey, ok := key.(*ecdsa.PrivateKey); ok {
+		curveBits = ecdsaKey.Curve.Params().BitSize
+
+		// Sign the string and return r, s
+		r, s, err := ecdsa.Sign(rand.Reader, ecdsaKey, hasher.Sum(nil))
+		if err != nil {
+			return nil, err
+		}
+
+		parsedSignature.R = r
+		parsedSignature.S = s
+	} else if ecdsaSigner, ok := key.(crypto.Signer); ok {
+		publicKey, ok := ecdsaSigner.Public().(*ecdsa.PublicKey)
+		if !ok {
+			return nil, newError("ECDSA sign expects crypto.Signer.Public() with *ecdsa.PublicKey", ErrInvalidKeyType)
+		}
+		params := publicKey.Params()
+		curveBits = params.BitSize
+
+		// Sign the hashed message to produce an ASN.1 encoded signature
+		signature, err := ecdsaSigner.Sign(rand.Reader, hasher.Sum(nil), m.Hash)
+		if err != nil {
+			return nil, err
+		}
+
+		// Parse the ASN.1-encoded signature into r and s
+		rest, err := asn1.Unmarshal(signature, &parsedSignature)
+		if err != nil {
+			return nil, newError("ECDSA sign expects signature in ASN.1 format", err)
+		}
+
+		if len(rest) != 0 ||
+			parsedSignature.R == nil || parsedSignature.S == nil ||
+			parsedSignature.R.Sign() <= 0 || parsedSignature.S.Sign() <= 0 ||
+			// Ensure r and s are less than the order of the curve (N).
+			parsedSignature.R.Cmp(params.N) >= 0 || parsedSignature.S.Cmp(params.N) >= 0 ||
+			// Ensure r and s do not exceed the bit length of the curve.
+			parsedSignature.R.BitLen() > curveBits || parsedSignature.S.BitLen() > curveBits {
+			return nil, errors.New("invalid ASN.1 ECDSA signature")
+		}
+	} else {
+		return nil, newError("ECDSA sign expects *ecdsa.PrivateKey or crypto.Signer", ErrInvalidKeyType)
+	}
+
+	if m.CurveBits != curveBits {
+		return nil, ErrInvalidKey
+	}
+
+	keyBytes := (curveBits + 7) / 8
+	// We serialize the outputs (r and s) into big-endian byte arrays
+	// padded with zeros on the left to make sure the sizes work out.
+	// Output must be 2*keyBytes long.
+	out := make([]byte, 2*keyBytes)
+	parsedSignature.R.FillBytes(out[0:keyBytes]) // r is assigned to the first half of output.
+	parsedSignature.S.FillBytes(out[keyBytes:])  // s is assigned to the second half of output.
+
+	return out, nil
 }

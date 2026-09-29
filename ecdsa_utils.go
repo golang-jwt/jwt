@@ -1,6 +1,7 @@
 package jwt
 
 import (
+	"crypto"
 	"crypto/ecdsa"
 	"crypto/x509"
 	"encoding/pem"
@@ -66,4 +67,19 @@ func ParseECPublicKeyFromPEM(key []byte) (*ecdsa.PublicKey, error) {
 	}
 
 	return pkey, nil
+}
+
+func ParseECSignerFromPEM(key []byte) (crypto.Signer, error) {
+	// create a mock structure that implements crypto.Signer using the parsed ECDSA private key
+	var mockEcdsaPrivateKey struct {
+		*ecdsa.PrivateKey
+	}
+
+	pkey, err := ParseECPrivateKeyFromPEM(key)
+	if err != nil {
+		return nil, err
+	}
+	mockEcdsaPrivateKey.PrivateKey = pkey
+
+	return mockEcdsaPrivateKey, nil
 }
