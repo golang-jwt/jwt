@@ -40,8 +40,9 @@ func (m MapClaims) GetSubject() (string, error) {
 }
 
 // parseNumericDate tries to parse a key in the map claims type as a number
-// date. This will succeed, if the underlying type is either a [float64] or a
-// [json.Number]. Otherwise, nil will be returned.
+// date. This will succeed if the underlying type is a [float64], an integer
+// type (as produced by time.Time.Unix() and similar helpers when constructing
+// MapClaims manually), or a [json.Number]. Otherwise, an error is returned.
 func (m MapClaims) parseNumericDate(key string) (*NumericDate, error) {
 	v, ok := m[key]
 	if !ok {
@@ -51,10 +52,31 @@ func (m MapClaims) parseNumericDate(key string) (*NumericDate, error) {
 	switch exp := v.(type) {
 	case float64:
 		return newNumericDateFromSeconds(exp), nil
+	case float32:
+		return newNumericDateFromSeconds(float64(exp)), nil
+	case int:
+		return newNumericDateFromSeconds(float64(exp)), nil
+	case int8:
+		return newNumericDateFromSeconds(float64(exp)), nil
+	case int16:
+		return newNumericDateFromSeconds(float64(exp)), nil
+	case int32:
+		return newNumericDateFromSeconds(float64(exp)), nil
+	case int64:
+		return newNumericDateFromSeconds(float64(exp)), nil
+	case uint:
+		return newNumericDateFromSeconds(float64(exp)), nil
+	case uint8:
+		return newNumericDateFromSeconds(float64(exp)), nil
+	case uint16:
+		return newNumericDateFromSeconds(float64(exp)), nil
+	case uint32:
+		return newNumericDateFromSeconds(float64(exp)), nil
+	case uint64:
+		return newNumericDateFromSeconds(float64(exp)), nil
 	case json.Number:
-		v, _ := exp.Float64()
-
-		return newNumericDateFromSeconds(v), nil
+		f, _ := exp.Float64()
+		return newNumericDateFromSeconds(f), nil
 	}
 
 	return nil, newError(fmt.Sprintf("%s is invalid", key), ErrInvalidType)
