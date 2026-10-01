@@ -247,13 +247,13 @@ func (p *Parser) DecodeSegment(seg string) ([]byte, error) {
 	return encoding.DecodeString(seg)
 }
 
-// Parse parses, validates, verifies the signature and returns the parsed token.
-// keyFunc will receive the parsed token and should return the cryptographic key
-// for verifying the signature. The caller is strongly encouraged to set the
-// WithValidMethods option to validate the 'alg' claim in the token matches the
-// expected algorithm. For more details about the importance of validating the
-// 'alg' claim, see
-// https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/
+// Parse parses, validates, verifies the signature, and returns the parsed token. 
+// When a keyFunc is set and a tokenString is provided, the library will not accept 
+// the 'none' type algorithm, ensuring security by default. However, it is strongly 
+// recommended to explicitly specify the allowed algorithms using the WithValidMethods 
+// option to ensure the 'none' type algorithm is definitively rejected. For more 
+// information on the importance of validating the 'alg' claim, see 
+// https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/.
 func Parse(tokenString string, keyFunc Keyfunc, options ...ParserOption) (*Token, error) {
 	return NewParser(options...).Parse(tokenString, keyFunc)
 }
