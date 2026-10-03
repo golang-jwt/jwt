@@ -238,6 +238,22 @@ func TestMapClaims_GetExpirationTime_StringIsInvalidType(t *testing.T) {
 	}
 }
 
+func TestMapClaims_GetExpirationTime_PreservesMillisecondPrecision(t *testing.T) {
+	oldPrecision := TimePrecision
+	TimePrecision = time.Millisecond
+	t.Cleanup(func() { TimePrecision = oldPrecision })
+
+	claims := MapClaims{"exp": json.Number("1700000000.001")}
+	got, err := claims.GetExpirationTime()
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := time.Unix(1700000000, int64(time.Millisecond))
+	if !got.Equal(want) {
+		t.Fatalf("expiration = %s, want %s", got, want)
+	}
+}
+
 func TestMapClaims_GetAudience(t *testing.T) {
 	tests := []struct {
 		name    string
