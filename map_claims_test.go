@@ -3,6 +3,7 @@ package jwt
 import (
 	"encoding/json"
 	"errors"
+	"math"
 	"reflect"
 	"testing"
 	"time"
@@ -204,6 +205,8 @@ func TestMapClaims_parseString(t *testing.T) {
 func TestMapClaims_GetExpirationTime_ZeroIsExpired(t *testing.T) {
 	for name, claims := range map[string]MapClaims{
 		"float64":     {"exp": float64(0)},
+		"int64":       {"exp": int64(0)},
+		"int":         {"exp": int(0)},
 		"json.Number": {"exp": json.Number("0")},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -272,4 +275,205 @@ func TestMapClaims_GetAudience(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestMapClaims_NumericDate_Types(t *testing.T) {
+	ts := int64(1700000000)
+	want := time.Unix(ts, 0).Truncate(TimePrecision)
+
+	tests := []struct {
+		name  string
+		value any
+		want  time.Time
+	}{
+		{name: "float64", value: float64(ts), want: want},
+		{name: "float32", value: float32(ts), want: time.Unix(int64(float32(ts)), 0).Truncate(TimePrecision)},
+		{name: "int64", value: int64(ts), want: want},
+		{name: "int", value: int(ts), want: want},
+		{name: "int32", value: int32(100000), want: time.Unix(100000, 0).Truncate(TimePrecision)},
+		{name: "int16", value: int16(1000), want: time.Unix(1000, 0).Truncate(TimePrecision)},
+		{name: "int8", value: int8(10), want: time.Unix(10, 0).Truncate(TimePrecision)},
+		{name: "uint64", value: uint64(ts), want: want},
+		{name: "uint", value: uint(ts), want: want},
+		{name: "uint32", value: uint32(100000), want: time.Unix(100000, 0).Truncate(TimePrecision)},
+		{name: "uint16", value: uint16(1000), want: time.Unix(1000, 0).Truncate(TimePrecision)},
+		{name: "uint8", value: uint8(10), want: time.Unix(10, 0).Truncate(TimePrecision)},
+		{name: "json.Number", value: json.Number("1700000000"), want: want},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			m := MapClaims{
+				"exp": tt.value,
+				"nbf": tt.value,
+				"iat": tt.value,
+			}
+
+			exp, err := m.GetExpirationTime()
+			if err != nil {
+				t.Fatalf("GetExpirationTime() unexpected error: %v", err)
+			}
+			if exp == nil || !exp.Time.Equal(tt.want) {
+				t.Errorf("GetExpirationTime() = %v, want %v", exp, tt.want)
+			}
+
+			nbf, err := m.GetNotBefore()
+			if err != nil {
+				t.Fatalf("GetNotBefore() unexpected error: %v", err)
+			}
+			if nbf == nil || !nbf.Time.Equal(tt.want) {
+				t.Errorf("GetNotBefore() = %v, want %v", nbf, tt.want)
+			}
+
+			iat, err := m.GetIssuedAt()
+			if err != nil {
+				t.Fatalf("GetIssuedAt() unexpected error: %v", err)
+			}
+			if iat == nil || !iat.Time.Equal(tt.want) {
+				t.Errorf("GetIssuedAt() = %v, want %v", iat, tt.want)
+			}
+		})
+	}
+}
+
+func TestMapClaims_NumericDate_Negative(t *testing.T) {
+	tests := []struct {
+		name  string
+		value any
+		want  int64
+	}{
+		{name: "int64", value: int64(-500), want: -500},
+		{name: "int", value: int(-500), want: -500},
+		{name: "int32", value: int32(-500), want: -500},
+		{name: "int16", value: int16(-500), want: -500},
+		{name: "int8", value: int8(-50), want: -50},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			m := MapClaims{"exp": tt.value}
+			exp, err := m.GetExpirationTime()
+			if err != nil {
+				t.Fatalf("GetExpirationTime() unexpected error: %v", err)
+			}
+			wantTime := time.Unix(tt.want, 0).Truncate(TimePrecision)
+			if exp == nil || !exp.Time.Equal(wantTime) {
+				t.Errorf("GetExpirationTime() = %v, want %v", exp, wantTime)
+			}
+		})
+	}
+}
+
+func TestMapClaims_NumericDate_Invalid(t *testing.T) {
+	tests := []struct {
+		name  string
+		value any
+	}{
+		{name: "string", value: "1700000000"},
+		{name: "bool", value: true},
+		{name: "slice", value: []int{1, 2, 3}},
+		{name: "map", value: map[string]int{"exp": 1}},
+		{name: "struct", value: struct{}{}},
+		{name: "invalid json.Number", value: json.Number("not-a-number")},
+		{name: "uint64 overflow", value: uint64(math.MaxInt64) + 1},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			m := MapClaims{"exp": tt.value, "nbf": tt.value, "iat": tt.value}
+
+			_, err := m.GetExpirationTime()
+			if !errors.Is(err, ErrInvalidType) {
+				t.Errorf("GetExpirationTime() error = %v, want ErrInvalidType", err)
+			}
+
+			_, err = m.GetNotBefore()
+			if !errors.Is(err, ErrInvalidType) {
+				t.Errorf("GetNotBefore() error = %v, want ErrInvalidType", err)
+			}
+
+			_, err = m.GetIssuedAt()
+			if !errors.Is(err, ErrInvalidType) {
+				t.Errorf("GetIssuedAt() error = %v, want ErrInvalidType", err)
+			}
+		})
+	}
+}
+
+func TestMapClaims_NumericDate_Missing(t *testing.T) {
+	m := MapClaims{}
+
+	exp, err := m.GetExpirationTime()
+	if err != nil || exp != nil {
+		t.Errorf("GetExpirationTime() = (%v, %v), want (nil, nil)", exp, err)
+	}
+
+	nbf, err := m.GetNotBefore()
+	if err != nil || nbf != nil {
+		t.Errorf("GetNotBefore() = (%v, %v), want (nil, nil)", nbf, err)
+	}
+
+	iat, err := m.GetIssuedAt()
+	if err != nil || iat != nil {
+		t.Errorf("GetIssuedAt() = (%v, %v), want (nil, nil)", iat, err)
+	}
+}
+
+func TestMapClaims_Validator_IntegerTimestamps(t *testing.T) {
+	now := time.Now()
+
+	t.Run("valid integer claims", func(t *testing.T) {
+		claims := MapClaims{
+			"exp": now.Add(time.Hour).Unix(),
+			"iat": now.Unix(),
+			"nbf": now.Add(-time.Hour).Unix(),
+		}
+		validator := NewValidator(
+			WithIssuedAt(),
+			WithTimeFunc(func() time.Time { return now }),
+		)
+		if err := validator.Validate(claims); err != nil {
+			t.Fatalf("expected valid claims, got: %v", err)
+		}
+	})
+
+	t.Run("expired integer claim", func(t *testing.T) {
+		claims := MapClaims{
+			"exp": now.Add(-time.Hour).Unix(),
+		}
+		validator := NewValidator(
+			WithTimeFunc(func() time.Time { return now }),
+		)
+		err := validator.Validate(claims)
+		if !errors.Is(err, ErrTokenExpired) {
+			t.Fatalf("expected ErrTokenExpired, got: %v", err)
+		}
+	})
+
+	t.Run("future nbf integer claim", func(t *testing.T) {
+		claims := MapClaims{
+			"nbf": now.Add(time.Hour).Unix(),
+		}
+		validator := NewValidator(
+			WithTimeFunc(func() time.Time { return now }),
+		)
+		err := validator.Validate(claims)
+		if !errors.Is(err, ErrTokenNotValidYet) {
+			t.Fatalf("expected ErrTokenNotValidYet, got: %v", err)
+		}
+	})
+
+	t.Run("future iat integer claim", func(t *testing.T) {
+		claims := MapClaims{
+			"iat": now.Add(time.Hour).Unix(),
+		}
+		validator := NewValidator(
+			WithIssuedAt(),
+			WithTimeFunc(func() time.Time { return now }),
+		)
+		err := validator.Validate(claims)
+		if !errors.Is(err, ErrTokenUsedBeforeIssued) {
+			t.Fatalf("expected ErrTokenUsedBeforeIssued, got: %v", err)
+		}
+	})
 }

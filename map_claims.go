@@ -3,6 +3,8 @@ package jwt
 import (
 	"encoding/json"
 	"fmt"
+	"math"
+	"time"
 )
 
 // MapClaims is a claims type that uses the map[string]any for JSON
@@ -40,8 +42,8 @@ func (m MapClaims) GetSubject() (string, error) {
 }
 
 // parseNumericDate tries to parse a key in the map claims type as a number
-// date. This will succeed, if the underlying type is either a [float64] or a
-// [json.Number]. Otherwise, nil will be returned.
+// date. This will succeed, if the underlying type is a [float64], [float32],
+// an integer, or a [json.Number]. Otherwise, an error will be returned.
 func (m MapClaims) parseNumericDate(key string) (*NumericDate, error) {
 	v, ok := m[key]
 	if !ok {
@@ -51,8 +53,39 @@ func (m MapClaims) parseNumericDate(key string) (*NumericDate, error) {
 	switch exp := v.(type) {
 	case float64:
 		return newNumericDateFromSeconds(exp), nil
+	case float32:
+		return newNumericDateFromSeconds(float64(exp)), nil
+	case int64:
+		return NewNumericDate(time.Unix(exp, 0)), nil
+	case int:
+		return NewNumericDate(time.Unix(int64(exp), 0)), nil
+	case int32:
+		return NewNumericDate(time.Unix(int64(exp), 0)), nil
+	case int16:
+		return NewNumericDate(time.Unix(int64(exp), 0)), nil
+	case int8:
+		return NewNumericDate(time.Unix(int64(exp), 0)), nil
+	case uint64:
+		if exp > math.MaxInt64 {
+			return nil, newError(fmt.Sprintf("%s is invalid", key), ErrInvalidType)
+		}
+		return NewNumericDate(time.Unix(int64(exp), 0)), nil
+	case uint:
+		if uint64(exp) > math.MaxInt64 {
+			return nil, newError(fmt.Sprintf("%s is invalid", key), ErrInvalidType)
+		}
+		return NewNumericDate(time.Unix(int64(exp), 0)), nil
+	case uint32:
+		return NewNumericDate(time.Unix(int64(exp), 0)), nil
+	case uint16:
+		return NewNumericDate(time.Unix(int64(exp), 0)), nil
+	case uint8:
+		return NewNumericDate(time.Unix(int64(exp), 0)), nil
 	case json.Number:
-		v, _ := exp.Float64()
+		v, err := exp.Float64()
+		if err != nil {
+			return nil, newError(fmt.Sprintf("%s is invalid", key), ErrInvalidType)
+		}
 
 		return newNumericDateFromSeconds(v), nil
 	}
