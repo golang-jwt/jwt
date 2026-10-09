@@ -232,6 +232,10 @@ func splitToken(token string) ([]string, bool) {
 // take into account whether the [Parser] is configured with additional options,
 // such as [WithStrictDecoding] or [WithPaddingAllowed].
 func (p *Parser) DecodeSegment(seg string) ([]byte, error) {
+	if i := strings.IndexAny(seg, "\r\n"); i != -1 {
+		return nil, base64.CorruptInputError(i)
+	}
+
 	encoding := base64.RawURLEncoding
 
 	if p.decodePaddingAllowed {
