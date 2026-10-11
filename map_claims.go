@@ -52,9 +52,7 @@ func (m MapClaims) parseNumericDate(key string) (*NumericDate, error) {
 	case float64:
 		return newNumericDateFromSeconds(exp), nil
 	case json.Number:
-		v, _ := exp.Float64()
-
-		return newNumericDateFromSeconds(v), nil
+		return newNumericDateFromNumber(exp)
 	}
 
 	return nil, newError(fmt.Sprintf("%s is invalid", key), ErrInvalidType)

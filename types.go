@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -42,8 +43,82 @@ func NewNumericDate(t time.Time) *NumericDate {
 // newNumericDateFromSeconds creates a new *NumericDate out of a float64 representing a
 // UNIX epoch with the float fraction representing non-integer seconds.
 func newNumericDateFromSeconds(f float64) *NumericDate {
+	if !math.IsNaN(f) && !math.IsInf(f, 0) {
+		formatted := strconv.FormatFloat(f, 'f', -1, 64)
+		if n, err := newNumericDateFromNumber(json.Number(formatted)); err == nil {
+			return n
+		}
+	}
 	round, frac := math.Modf(f)
-	return NewNumericDate(time.Unix(int64(round), int64(frac*1e9)))
+	return NewNumericDate(time.Unix(int64(round), int64(math.Round(frac*1e9))))
+}
+
+// newNumericDateFromNumber creates a new *NumericDate out of a [json.Number] representing a
+// UNIX epoch with decimal seconds, avoiding floating point precision loss.
+func newNumericDateFromNumber(number json.Number) (*NumericDate, error) {
+	s := number.String()
+	if strings.ContainsAny(s, "eE") {
+		f, err := number.Float64()
+		if err != nil {
+			return nil, fmt.Errorf("could not convert json number value to float: %w", err)
+		}
+		round, frac := math.Modf(f)
+		return NewNumericDate(time.Unix(int64(round), int64(math.Round(frac*1e9)))), nil
+	}
+
+	parts := strings.SplitN(s, ".", 2)
+	secStr := parts[0]
+	isNegative := strings.HasPrefix(secStr, "-")
+
+	sec, err := strconv.ParseInt(secStr, 10, 64)
+	if err != nil {
+		f, errFloat := number.Float64()
+		if errFloat != nil {
+			return nil, fmt.Errorf("could not convert json number value to float: %w", errFloat)
+		}
+		round, frac := math.Modf(f)
+		return NewNumericDate(time.Unix(int64(round), int64(math.Round(frac*1e9)))), nil
+	}
+
+	var nsec int64
+	if len(parts) == 2 && len(parts[1]) > 0 {
+		fracStr := parts[1]
+		if len(fracStr) <= 9 {
+			padded := fracStr + strings.Repeat("0", 9-len(fracStr))
+			n, err := strconv.ParseInt(padded, 10, 64)
+			if err != nil {
+				f, _ := number.Float64()
+				round, frac := math.Modf(f)
+				return NewNumericDate(time.Unix(int64(round), int64(math.Round(frac*1e9)))), nil
+			}
+			nsec = n
+		} else {
+			n, err := strconv.ParseInt(fracStr[:9], 10, 64)
+			if err != nil {
+				f, _ := number.Float64()
+				round, frac := math.Modf(f)
+				return NewNumericDate(time.Unix(int64(round), int64(math.Round(frac*1e9)))), nil
+			}
+			nsec = n
+			if fracStr[9] >= '5' {
+				nsec++
+			}
+			if nsec >= 1_000_000_000 {
+				nsec -= 1_000_000_000
+				if isNegative {
+					sec--
+				} else {
+					sec++
+				}
+			}
+		}
+	}
+
+	if isNegative {
+		nsec = -nsec
+	}
+
+	return NewNumericDate(time.Unix(sec, nsec)), nil
 }
 
 // MarshalJSON is an implementation of the json.RawMessage interface and serializes the UNIX epoch
@@ -51,7 +126,7 @@ func newNumericDateFromSeconds(f float64) *NumericDate {
 func (date NumericDate) MarshalJSON() (b []byte, err error) {
 	var prec int
 	if TimePrecision < time.Second {
-		prec = int(math.Log10(float64(time.Second) / float64(TimePrecision)))
+		prec = int(math.Round(math.Log10(float64(time.Second) / float64(TimePrecision))))
 	}
 	truncatedDate := date.Truncate(TimePrecision)
 
@@ -65,8 +140,23 @@ func (date NumericDate) MarshalJSON() (b []byte, err error) {
 	//    within the second of the particular unix time instance, to form the
 	//    decimal part of the output
 	// 3. Concatenate them to produce the final result
-	seconds := strconv.FormatInt(truncatedDate.Unix(), 10)
-	nanosecondsOffset := strconv.FormatFloat(float64(truncatedDate.Nanosecond())/float64(time.Second), 'f', prec, 64)
+	var (
+		seconds           string
+		nanosecondsOffset string
+	)
+	if truncatedDate.Unix() < 0 && truncatedDate.Nanosecond() > 0 && prec > 0 {
+		sec := truncatedDate.Unix() + 1
+		if sec == 0 {
+			seconds = "-0"
+		} else {
+			seconds = strconv.FormatInt(sec, 10)
+		}
+		nanos := int64(time.Second) - int64(truncatedDate.Nanosecond())
+		nanosecondsOffset = strconv.FormatFloat(float64(nanos)/float64(time.Second), 'f', prec, 64)
+	} else {
+		seconds = strconv.FormatInt(truncatedDate.Unix(), 10)
+		nanosecondsOffset = strconv.FormatFloat(float64(truncatedDate.Nanosecond())/float64(time.Second), 'f', prec, 64)
+	}
 
 	output := append([]byte(seconds), []byte(nanosecondsOffset)[1:]...)
 
@@ -78,20 +168,16 @@ func (date NumericDate) MarshalJSON() (b []byte, err error) {
 // [json.Number]. This number represents an UNIX epoch with either integer or
 // non-integer seconds.
 func (date *NumericDate) UnmarshalJSON(b []byte) (err error) {
-	var (
-		number json.Number
-		f      float64
-	)
+	var number json.Number
 
 	if err = json.Unmarshal(b, &number); err != nil {
 		return fmt.Errorf("could not parse NumericData: %w", err)
 	}
 
-	if f, err = number.Float64(); err != nil {
-		return fmt.Errorf("could not convert json number value to float: %w", err)
+	n, err := newNumericDateFromNumber(number)
+	if err != nil {
+		return err
 	}
-
-	n := newNumericDateFromSeconds(f)
 	*date = *n
 
 	return nil

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"math"
 	"strings"
 	"testing"
@@ -145,3 +146,165 @@ func TestGetSignatureAfterSigning(t *testing.T) {
 		t.Errorf("token.Signature not equal to signature in signed string")
 	}
 }
+
+func TestNumericDate_RoundtripMillisecondPrecision(t *testing.T) {
+	oldPrecision := jwt.TimePrecision
+	t.Cleanup(func() {
+		jwt.TimePrecision = oldPrecision
+	})
+
+	jwt.TimePrecision = time.Millisecond
+
+	// Specific cases reported in issue #536
+	specificCases := []int64{123, 125, 100, 1, 0, 999}
+	for _, ms := range specificCases {
+		expected := time.Unix(1700000000, ms*int64(time.Millisecond))
+		data, err := json.Marshal(jwt.NewNumericDate(expected))
+		if err != nil {
+			t.Fatalf("failed to marshal NumericDate (%d ms): %v", ms, err)
+		}
+
+		var actual jwt.NumericDate
+		if err := json.Unmarshal(data, &actual); err != nil {
+			t.Fatalf("failed to unmarshal NumericDate (%d ms): %v", ms, err)
+		}
+
+		if !actual.Equal(expected) {
+			t.Errorf("round-trip mismatch for %d ms: got %v (%s), want %v", ms, actual.Time, string(data), expected)
+		}
+	}
+
+	// Full sweep across all 1000 millisecond fractions of a second
+	for ms := int64(0); ms < 1000; ms++ {
+		expected := time.Unix(1700000000, ms*int64(time.Millisecond))
+		data, err := json.Marshal(jwt.NewNumericDate(expected))
+		if err != nil {
+			t.Fatalf("failed to marshal NumericDate (%d ms): %v", ms, err)
+		}
+
+		var actual jwt.NumericDate
+		if err := json.Unmarshal(data, &actual); err != nil {
+			t.Fatalf("failed to unmarshal NumericDate (%d ms): %v", ms, err)
+		}
+
+		if !actual.Equal(expected) {
+			t.Fatalf("round-trip mismatch for %d ms: got %v (%s), want %v", ms, actual.Time, string(data), expected)
+		}
+	}
+}
+
+func TestNumericDate_RoundtripSubsecondPrecisions(t *testing.T) {
+	oldPrecision := jwt.TimePrecision
+	t.Cleanup(func() {
+		jwt.TimePrecision = oldPrecision
+	})
+
+	testCases := []struct {
+		name      string
+		precision time.Duration
+		samples   []time.Time
+	}{
+		{
+			name:      "microsecond",
+			precision: time.Microsecond,
+			samples: []time.Time{
+				time.Unix(1700000000, 123456*int64(time.Microsecond)),
+				time.Unix(1700000000, 100*int64(time.Microsecond)),
+				time.Unix(1700000000, 1*int64(time.Microsecond)),
+				time.Unix(1700000000, 999999*int64(time.Microsecond)),
+				time.Unix(1700000000, 0),
+			},
+		},
+		{
+			name:      "nanosecond",
+			precision: time.Nanosecond,
+			samples: []time.Time{
+				time.Unix(1700000000, 123456789),
+				time.Unix(1700000000, 100),
+				time.Unix(1700000000, 1),
+				time.Unix(1700000000, 999999999),
+				time.Unix(1700000000, 0),
+			},
+		},
+		{
+			name:      "negative timestamps",
+			precision: time.Millisecond,
+			samples: []time.Time{
+				time.Unix(-1700000000, -123*int64(time.Millisecond)),
+				time.Unix(-1700000000, -125*int64(time.Millisecond)),
+				time.Unix(-1700000000, -100*int64(time.Millisecond)),
+				time.Unix(-1700000000, -1*int64(time.Millisecond)),
+				time.Unix(-1, -500*int64(time.Millisecond)),
+				time.Unix(0, -123*int64(time.Millisecond)),
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			jwt.TimePrecision = tc.precision
+			for _, expected := range tc.samples {
+				data, err := json.Marshal(jwt.NewNumericDate(expected))
+				if err != nil {
+					t.Fatalf("failed to marshal: %v", err)
+				}
+
+				var actual jwt.NumericDate
+				if err := json.Unmarshal(data, &actual); err != nil {
+					t.Fatalf("failed to unmarshal: %v", err)
+				}
+
+				if !actual.Equal(expected) {
+					t.Errorf("round-trip mismatch: got %v (%s), want %v", actual.Time, string(data), expected)
+				}
+			}
+		})
+	}
+}
+
+func TestNumericDate_MapClaimsPrecision(t *testing.T) {
+	oldPrecision := jwt.TimePrecision
+	t.Cleanup(func() {
+		jwt.TimePrecision = oldPrecision
+	})
+
+	jwt.TimePrecision = time.Millisecond
+
+	for _, ms := range []int64{123, 125, 100, 1} {
+		expected := time.Unix(1700000000, ms*int64(time.Millisecond))
+		jsonStr := []byte(fmt.Sprintf(`{"exp":1700000000.%03d}`, ms))
+
+		// 1. Unmarshal into MapClaims (default float64)
+		var claims jwt.MapClaims
+		if err := json.Unmarshal(jsonStr, &claims); err != nil {
+			t.Fatalf("failed to unmarshal MapClaims: %v", err)
+		}
+
+		exp, err := claims.GetExpirationTime()
+		if err != nil {
+			t.Fatalf("failed to get expiration time: %v", err)
+		}
+
+		if !exp.Equal(expected) {
+			t.Errorf("MapClaims float64 precision mismatch for %d ms: got %v, want %v", ms, exp.Time, expected)
+		}
+
+		// 2. Unmarshal with UseNumber (json.Number)
+		var claimsNumber jwt.MapClaims
+		dec := json.NewDecoder(bytes.NewReader(jsonStr))
+		dec.UseNumber()
+		if err := dec.Decode(&claimsNumber); err != nil {
+			t.Fatalf("failed to decode MapClaims with UseNumber: %v", err)
+		}
+
+		expNumber, err := claimsNumber.GetExpirationTime()
+		if err != nil {
+			t.Fatalf("failed to get expiration time with UseNumber: %v", err)
+		}
+
+		if !expNumber.Equal(expected) {
+			t.Errorf("MapClaims json.Number precision mismatch for %d ms: got %v, want %v", ms, expNumber.Time, expected)
+		}
+	}
+}
+
