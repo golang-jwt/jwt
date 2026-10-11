@@ -70,6 +70,42 @@ func Test_Validator_Validate(t *testing.T) {
 			args:    args{MyCustomClaims{Foo: "not-bar"}},
 			wantErr: ErrFooBar,
 		},
+		{
+			name:    "future iat with verifyIat true",
+			fields:  fields{verifyIat: true},
+			args:    args{RegisteredClaims{IssuedAt: NewNumericDate(time.Now().Add(10 * time.Minute))}},
+			wantErr: ErrTokenUsedBeforeIssued,
+		},
+		{
+			name:    "future iat with verifyIat false",
+			fields:  fields{verifyIat: false},
+			args:    args{RegisteredClaims{IssuedAt: NewNumericDate(time.Now().Add(10 * time.Minute))}},
+			wantErr: nil,
+		},
+		{
+			name:    "future iat within leeway with verifyIat true",
+			fields:  fields{verifyIat: true, leeway: 15 * time.Minute},
+			args:    args{RegisteredClaims{IssuedAt: NewNumericDate(time.Now().Add(10 * time.Minute))}},
+			wantErr: nil,
+		},
+		{
+			name:    "future iat exceeding leeway with verifyIat true",
+			fields:  fields{verifyIat: true, leeway: 5 * time.Minute},
+			args:    args{RegisteredClaims{IssuedAt: NewNumericDate(time.Now().Add(10 * time.Minute))}},
+			wantErr: ErrTokenUsedBeforeIssued,
+		},
+		{
+			name:    "good claim with past iat and verifyIat true",
+			fields:  fields{verifyIat: true},
+			args:    args{RegisteredClaims{IssuedAt: NewNumericDate(time.Now().Add(-10 * time.Minute))}},
+			wantErr: nil,
+		},
+		{
+			name:    "missing iat with verifyIat true",
+			fields:  fields{verifyIat: true},
+			args:    args{RegisteredClaims{}},
+			wantErr: nil,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -82,7 +118,7 @@ func Test_Validator_Validate(t *testing.T) {
 				expectedIss:  tt.fields.expectedIss,
 				expectedSub:  tt.fields.expectedSub,
 			}
-			if err := v.Validate(tt.args.claims); (err != nil) && !errors.Is(err, tt.wantErr) {
+			if err := v.Validate(tt.args.claims); !errors.Is(err, tt.wantErr) {
 				t.Errorf("validator.Validate() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -268,6 +304,56 @@ func Test_Validator_verifyIssuedAt(t *testing.T) {
 			},
 			wantErr: nil,
 		},
+		{
+			name:   "future iat exceeds leeway",
+			fields: fields{verifyIat: true},
+			args: args{
+				claims:   RegisteredClaims{IssuedAt: NewNumericDate(time.Now().Add(10 * time.Minute))},
+				cmp:      time.Now(),
+				required: false,
+			},
+			wantErr: ErrTokenUsedBeforeIssued,
+		},
+		{
+			name:   "future iat within leeway",
+			fields: fields{verifyIat: true, leeway: 15 * time.Minute},
+			args: args{
+				claims:   RegisteredClaims{IssuedAt: NewNumericDate(time.Now().Add(10 * time.Minute))},
+				cmp:      time.Now(),
+				required: false,
+			},
+			wantErr: nil,
+		},
+		{
+			name:   "future iat exceeding leeway",
+			fields: fields{verifyIat: true, leeway: 5 * time.Minute},
+			args: args{
+				claims:   RegisteredClaims{IssuedAt: NewNumericDate(time.Now().Add(10 * time.Minute))},
+				cmp:      time.Now(),
+				required: false,
+			},
+			wantErr: ErrTokenUsedBeforeIssued,
+		},
+		{
+			name:   "missing iat when required",
+			fields: fields{verifyIat: true},
+			args: args{
+				claims:   MapClaims{},
+				cmp:      time.Now(),
+				required: true,
+			},
+			wantErr: ErrTokenRequiredClaimMissing,
+		},
+		{
+			name:   "invalid type for iat",
+			fields: fields{verifyIat: true},
+			args: args{
+				claims:   MapClaims{"iat": "invalid-string"},
+				cmp:      time.Now(),
+				required: false,
+			},
+			wantErr: ErrInvalidType,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -276,8 +362,70 @@ func Test_Validator_verifyIssuedAt(t *testing.T) {
 				timeFunc:  tt.fields.timeFunc,
 				verifyIat: tt.fields.verifyIat,
 			}
-			if err := v.verifyIssuedAt(tt.args.claims, tt.args.cmp, tt.args.required); (err != nil) && !errors.Is(err, tt.wantErr) {
+			if err := v.verifyIssuedAt(tt.args.claims, tt.args.cmp, tt.args.required); !errors.Is(err, tt.wantErr) {
 				t.Errorf("validator.verifyIssuedAt() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func Test_Validator_WithIssuedAt(t *testing.T) {
+	now := time.Now()
+	tests := []struct {
+		name    string
+		opts    []ParserOption
+		claims  Claims
+		wantErr error
+	}{
+		{
+			name:    "future iat fails validation when WithIssuedAt is specified",
+			opts:    []ParserOption{WithIssuedAt(), WithTimeFunc(func() time.Time { return now })},
+			claims:  RegisteredClaims{IssuedAt: NewNumericDate(now.Add(10 * time.Minute))},
+			wantErr: ErrTokenUsedBeforeIssued,
+		},
+		{
+			name:    "future iat passes validation when WithIssuedAt is not specified",
+			opts:    []ParserOption{WithTimeFunc(func() time.Time { return now })},
+			claims:  RegisteredClaims{IssuedAt: NewNumericDate(now.Add(10 * time.Minute))},
+			wantErr: nil,
+		},
+		{
+			name:    "future iat passes validation when WithIssuedAt and WithLeeway accommodate skew",
+			opts:    []ParserOption{WithIssuedAt(), WithLeeway(15 * time.Minute), WithTimeFunc(func() time.Time { return now })},
+			claims:  RegisteredClaims{IssuedAt: NewNumericDate(now.Add(10 * time.Minute))},
+			wantErr: nil,
+		},
+		{
+			name:    "future iat fails validation when WithIssuedAt and WithLeeway do not accommodate skew",
+			opts:    []ParserOption{WithIssuedAt(), WithLeeway(5 * time.Minute), WithTimeFunc(func() time.Time { return now })},
+			claims:  RegisteredClaims{IssuedAt: NewNumericDate(now.Add(10 * time.Minute))},
+			wantErr: ErrTokenUsedBeforeIssued,
+		},
+		{
+			name:    "past iat passes validation when WithIssuedAt is specified",
+			opts:    []ParserOption{WithIssuedAt(), WithTimeFunc(func() time.Time { return now })},
+			claims:  RegisteredClaims{IssuedAt: NewNumericDate(now.Add(-10 * time.Minute))},
+			wantErr: nil,
+		},
+		{
+			name:    "omitted iat passes validation when WithIssuedAt is specified",
+			opts:    []ParserOption{WithIssuedAt(), WithTimeFunc(func() time.Time { return now })},
+			claims:  RegisteredClaims{},
+			wantErr: nil,
+		},
+		{
+			name:    "future iat in MapClaims fails validation when WithIssuedAt is specified",
+			opts:    []ParserOption{WithIssuedAt(), WithTimeFunc(func() time.Time { return now })},
+			claims:  MapClaims{"iat": float64(now.Add(10 * time.Minute).Unix())},
+			wantErr: ErrTokenUsedBeforeIssued,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			v := NewValidator(tt.opts...)
+			err := v.Validate(tt.claims)
+			if !errors.Is(err, tt.wantErr) {
+				t.Errorf("validator.Validate() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

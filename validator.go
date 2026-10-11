@@ -120,7 +120,8 @@ func (v *Validator) Validate(claims Claims) error {
 		errs = append(errs, err)
 	}
 
-	// Check issued-at if the option is enabled
+	// Check issued-at if the option is enabled. The claim itself
+	// remains optional by default.
 	if v.verifyIat {
 		if err = v.verifyIssuedAt(claims, now, false); err != nil {
 			errs = append(errs, err)
@@ -309,7 +310,7 @@ func (v *Validator) verifySubject(claims Claims, cmp string, required bool) erro
 	return errorIfFalse(sub == cmp, ErrTokenInvalidSubject)
 }
 
-// errorIfFalse returns the error specified in err, if the value is true.
+// errorIfFalse returns the error specified in err, if the value is false.
 // Otherwise, nil is returned.
 func errorIfFalse(value bool, err error) error {
 	if value {
