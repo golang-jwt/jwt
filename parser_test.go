@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -888,4 +889,49 @@ func benchmarkSigning(b *testing.B, method jwt.SigningMethod, key any) {
 			}
 		}
 	})
+}
+
+// TestParser_RejectsCRLFInToken is a regression for
+// https://github.com/golang-jwt/jwt/issues/542. Go's base64 decoder silently
+// ignores CR and LF (documented, including in base64.Encoding.Strict), so a
+// token with a stray newline anywhere in a segment would otherwise be accepted
+// as valid. RFC 7515 §5.2 forbids this. Parse and ParseUnverified must now
+// reject such input as malformed before any further processing.
+func TestParser_RejectsCRLFInToken(t *testing.T) {
+	// Build a known-valid HS256 token to splice newlines into.
+	key := []byte("secret")
+	signed, err := jwt.New(jwt.SigningMethodHS256).SignedString(key)
+	if err != nil {
+		t.Fatalf("could not sign reference token: %v", err)
+	}
+	sigAt := strings.LastIndexByte(signed, '.') + 1
+	keyFunc := func(*jwt.Token) (any, error) { return key, nil }
+
+	cases := []struct {
+		name  string
+		token string
+	}{
+		{"LF in signature", signed[:sigAt+4] + "\n" + signed[sigAt+4:]},
+		{"CR in signature", signed[:sigAt+4] + "\r" + signed[sigAt+4:]},
+		{"CRLF in signature", signed[:sigAt+4] + "\r\n" + signed[sigAt+4:]},
+		{"LF in header", "e" + "\n" + signed[1:]},
+		{"LF in claims", signed[:sigAt-2] + "\n" + signed[sigAt-2:]},
+		{"trailing LF", signed + "\n"},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if _, err := jwt.Parse(tc.token, keyFunc); !errors.Is(err, jwt.ErrTokenMalformed) {
+				t.Fatalf("Parse: want ErrTokenMalformed, got %v", err)
+			}
+			if _, _, err := jwt.NewParser().ParseUnverified(tc.token, jwt.MapClaims{}); !errors.Is(err, jwt.ErrTokenMalformed) {
+				t.Fatalf("ParseUnverified: want ErrTokenMalformed, got %v", err)
+			}
+		})
+	}
+
+	// Baseline: the unmodified token still parses.
+	if _, err := jwt.Parse(signed, keyFunc); err != nil {
+		t.Fatalf("baseline parse failed: %v", err)
+	}
 }

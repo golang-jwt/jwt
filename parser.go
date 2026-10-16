@@ -134,6 +134,16 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 // It's only ever useful in cases where you know the signature is valid (since it has already
 // been or will be checked elsewhere in the stack) and you want to extract values from it.
 func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Token, parts []string, err error) {
+	// RFC 7515 §5.2 steps 2, 6, and 7 require that the base64url-encoded
+	// representation of each JWS segment contain no line breaks, whitespace,
+	// or other additional characters. Go's base64 decoder silently ignores
+	// CR and LF (documented behaviour, including in base64.Encoding.Strict),
+	// so a stray \r or \n anywhere in the token would otherwise be accepted
+	// as a valid signature, even though it changes the on-the-wire bytes.
+	// Reject such tokens as malformed before any further parsing.
+	if strings.ContainsAny(tokenString, "\r\n") {
+		return nil, nil, newError("token contains CR or LF, which RFC 7515 §5.2 forbids in a JWS segment", ErrTokenMalformed)
+	}
 	var ok bool
 	parts, ok = splitToken(tokenString)
 	if !ok {
