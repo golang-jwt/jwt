@@ -89,7 +89,7 @@ func (m *SigningMethodECDSA) Verify(signingString string, sig []byte, key any) e
 }
 
 // Sign implements token signing for the SigningMethod.
-// For this signing method, key must be an ecdsa.PrivateKey struct
+// For this signing method, key must be an ecdsa.PrivateKey struct or a crypto.Signer that uses an ECDSA private key.
 func (m *SigningMethodECDSA) Sign(signingString string, key any) ([]byte, error) {
 	// Create the hasher
 	if !m.Hash.Available() {
