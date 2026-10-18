@@ -1,8 +1,8 @@
 package jwt
 
 import (
+	"crypto/subtle"
 	"fmt"
-	"slices"
 	"time"
 )
 
@@ -248,25 +248,45 @@ func (v *Validator) verifyAudience(claims Claims, cmp []string, expectAllAud boo
 	}
 
 	if !expectAllAud {
+		// No early return: every aud value is checked against every
+		// expected value, so the time taken does not depend on which
+		// value, if any, matched.
+		matched := false
 		for _, a := range aud {
-			// If we only expect one match, we can stop early if we find a match
-			if slices.Contains(cmp, a) {
-				return nil
-			}
+			matched = containsConstantTime(cmp, a) || matched
+		}
+		if !matched {
+			return ErrTokenInvalidAudience
 		}
 
+		return nil
+	}
+
+	// All expected audiences must be present; again without stopping at the
+	// first miss, so a missing audience is not distinguishable by timing from
+	// a present one.
+	all := true
+	for _, a := range cmp {
+		all = containsConstantTime(aud, a) && all
+	}
+	if !all {
 		return ErrTokenInvalidAudience
 	}
 
-	// Note that we are looping cmp here to ensure that all expected audiences
-	// are present in the aud claim.
-	for _, a := range cmp {
-		if !slices.Contains(aud, a) {
-			return ErrTokenInvalidAudience
-		}
+	return nil
+}
+
+// containsConstantTime reports whether s is one of set. Every element is
+// compared in full with subtle.ConstantTimeCompare and the loop never
+// returns early, so the time taken does not depend on which element, if
+// any, matched. The length of s still leaks, as it did before #433.
+func containsConstantTime(set []string, s string) bool {
+	found := 0
+	for _, candidate := range set {
+		found |= subtle.ConstantTimeCompare([]byte(candidate), []byte(s))
 	}
 
-	return nil
+	return found == 1
 }
 
 // verifyIssuer compares the iss claim in claims against cmp.
