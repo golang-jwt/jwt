@@ -61,3 +61,8 @@ func (c RegisteredClaims) GetIssuer() (string, error) {
 func (c RegisteredClaims) GetSubject() (string, error) {
 	return c.Subject, nil
 }
+
+// GetID implements the Claims interface.
+func (c RegisteredClaims) GetID() (string, error) {
+	return c.ID, nil
+}
