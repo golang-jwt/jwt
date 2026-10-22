@@ -54,6 +54,10 @@ type Validator struct {
 	// unrealistic, i.e., in the future.
 	verifyIat bool
 
+	// requireIat specifies whether the iat claim is required when iat
+	// verification is enabled.
+	requireIat bool
+
 	// expectedAud contains the audience this token expects. Supplying an empty
 	// slice will disable aud checking.
 	expectedAud []string
@@ -122,7 +126,7 @@ func (v *Validator) Validate(claims Claims) error {
 
 	// Check issued-at if the option is enabled
 	if v.verifyIat {
-		if err = v.verifyIssuedAt(claims, now, false); err != nil {
+		if err = v.verifyIssuedAt(claims, now, v.requireIat); err != nil {
 			errs = append(errs, err)
 		}
 	}
