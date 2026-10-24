@@ -1,6 +1,7 @@
 package jwt_test
 
 import (
+	"crypto"
 	"crypto/ecdsa"
 	"os"
 	"reflect"
@@ -101,6 +102,38 @@ func TestECDSASign(t *testing.T) {
 			}
 
 			err = method.Verify(toSign, sig, ecdsaKey.Public())
+			if err != nil {
+				t.Errorf("[%v] Sign produced an invalid signature: %v", data.name, err)
+			}
+		}
+	}
+}
+
+func TestECDSASignWithSigner(t *testing.T) {
+	for _, data := range ecdsaTestData {
+		var err error
+		key, _ := os.ReadFile(data.keys["private"])
+
+		var ecdsaSigner crypto.Signer
+		if ecdsaSigner, err = jwt.ParseECSignerFromPEM(key); err != nil {
+			t.Errorf("Unable to parse ECDSA signer: %v", err)
+		}
+
+		if data.valid {
+			parts := strings.Split(data.tokenString, ".")
+			toSign := strings.Join(parts[0:2], ".")
+			method := jwt.GetSigningMethod(data.alg)
+			sig, err := method.Sign(toSign, ecdsaSigner)
+			if err != nil {
+				t.Errorf("[%v] Error signing token: %v", data.name, err)
+			}
+
+			ssig := encodeSegment(sig)
+			if ssig == parts[2] {
+				t.Errorf("[%v] Identical signatures\nbefore:\n%v\nafter:\n%v", data.name, parts[2], ssig)
+			}
+
+			err = method.Verify(toSign, sig, ecdsaSigner.Public())
 			if err != nil {
 				t.Errorf("[%v] Sign produced an invalid signature: %v", data.name, err)
 			}
