@@ -134,6 +134,9 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 // It's only ever useful in cases where you know the signature is valid (since it has already
 // been or will be checked elsewhere in the stack) and you want to extract values from it.
 func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Token, parts []string, err error) {
+	if strings.ContainsAny(tokenString, "\r\n") {
+		return nil, nil, newError("token contains line breaks", ErrTokenMalformed)
+	}
 	var ok bool
 	parts, ok = splitToken(tokenString)
 	if !ok {
