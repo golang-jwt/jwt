@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"math/big"
 	"strconv"
 	"time"
 )
@@ -46,6 +47,36 @@ func newNumericDateFromSeconds(f float64) *NumericDate {
 	return NewNumericDate(time.Unix(int64(round), int64(frac*1e9)))
 }
 
+// newNumericDateFromString preserves the decimal value from JSON while
+// converting it to nanoseconds. Parsing through float64 first loses precision
+// for contemporary Unix timestamps with millisecond fractions.
+func newNumericDateFromString(s string) (*NumericDate, error) {
+	seconds, ok := new(big.Rat).SetString(s)
+	if !ok {
+		return nil, fmt.Errorf("could not parse numeric date %q", s)
+	}
+
+	nanos := new(big.Int).Mul(seconds.Num(), big.NewInt(int64(time.Second)))
+	wholeNanos, remainder := new(big.Int), new(big.Int)
+	wholeNanos.QuoRem(nanos, seconds.Denom(), remainder)
+	// Round the fractional nanosecond to nearest, matching float-to-time
+	// conversion while avoiding binary floating-point error in decimal input.
+	doubledRemainder := new(big.Int).Lsh(new(big.Int).Abs(remainder), 1)
+	if doubledRemainder.Cmp(seconds.Denom()) >= 0 {
+		if nanos.Sign() < 0 {
+			wholeNanos.Sub(wholeNanos, big.NewInt(1))
+		} else {
+			wholeNanos.Add(wholeNanos, big.NewInt(1))
+		}
+	}
+	wholeSeconds, fractionalNanos := new(big.Int), new(big.Int)
+	wholeSeconds.QuoRem(wholeNanos, big.NewInt(int64(time.Second)), fractionalNanos)
+	if !wholeSeconds.IsInt64() {
+		return nil, fmt.Errorf("numeric date %q is outside the supported range", s)
+	}
+	return NewNumericDate(time.Unix(wholeSeconds.Int64(), fractionalNanos.Int64())), nil
+}
+
 // MarshalJSON is an implementation of the json.RawMessage interface and serializes the UNIX epoch
 // represented in NumericDate to a byte array, using the precision specified in TimePrecision.
 func (date NumericDate) MarshalJSON() (b []byte, err error) {
@@ -78,20 +109,20 @@ func (date NumericDate) MarshalJSON() (b []byte, err error) {
 // [json.Number]. This number represents an UNIX epoch with either integer or
 // non-integer seconds.
 func (date *NumericDate) UnmarshalJSON(b []byte) (err error) {
-	var (
-		number json.Number
-		f      float64
-	)
+	var number json.Number
 
 	if err = json.Unmarshal(b, &number); err != nil {
 		return fmt.Errorf("could not parse NumericData: %w", err)
 	}
 
-	if f, err = number.Float64(); err != nil {
+	if _, err = number.Float64(); err != nil {
 		return fmt.Errorf("could not convert json number value to float: %w", err)
 	}
 
-	n := newNumericDateFromSeconds(f)
+	n, err := newNumericDateFromString(number.String())
+	if err != nil {
+		return err
+	}
 	*date = *n
 
 	return nil
