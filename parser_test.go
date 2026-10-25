@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -834,25 +835,24 @@ func TestSetPadding(t *testing.T) {
 }
 
 func TestParser_ParseLineBreaks(t *testing.T) {
-	// The segments of the "basic" token in jwtTestData.
-	const header = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9"
-	const claims = "eyJmb28iOiJiYXIifQ"
-	const signature = "FhkiHkoESI_cG3NPigFrxEk9Z60_oXrOT2vGm9Pn6RDgYNovYORQmmA0zs1AoAOf09ly2Nx2YAg6ABqAYga1AcMFkJljwxTT5fYphTuqpWdy4BELeSYJx5Ty2gmr8e7RonuUztrdD5WfPqLKMm1Ozp_T6zALpRmwTIW0QPnaBXaQD90FplAg46Iy1UlDKr-Eupy0i5SLch5Q-p2ZpaL_5fnTIUDlxC3pWhJTyx_71qDI-mAA_5lE_VdroOeflG56sSmDxopPEG3bFlSu1eowyBfxtu0_CuVd-M42RU75Zc4Gsj6uV77MBtbMrf4_7M_NUTSgoIF3fRqxrj0NzihIBg"
+	token := signToken(jwt.MapClaims{"foo": "bar"}, jwt.SigningMethodRS256)
+	parts := strings.Split(token, ".")
+	header, claims, signature := parts[0], parts[1], parts[2]
 
 	tests := []struct {
-		name        string
-		tokenString string
+		name  string
+		token string
 	}{
-		{"LF in header", header[:16] + "\n" + header[16:] + "." + claims + "." + signature},
-		{"CR in claims", header + "." + claims[:9] + "\r" + claims[9:] + "." + signature},
-		{"CRLF in signature", header + "." + claims + "." + signature[:44] + "\r\n" + signature[44:]},
-		{"trailing LF", header + "." + claims + "." + signature + "\n"},
+		{"LF in header", header + "\n." + claims + "." + signature},
+		{"CR in claims", header + "." + claims + "\r." + signature},
+		{"CRLF in signature", header + "." + claims + ".\r\n" + signature},
+		{"trailing LF", token + "\n"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// A line break is malformed, not a bad signature.
-			_, err := jwt.Parse(tt.tokenString, defaultKeyFunc)
+			_, err := jwt.Parse(tt.token, defaultKeyFunc)
 			if !errors.Is(err, jwt.ErrTokenMalformed) {
 				t.Fatalf("expected %v, got %v", jwt.ErrTokenMalformed, err)
 			}
