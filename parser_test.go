@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -828,6 +829,32 @@ func TestSetPadding(t *testing.T) {
 					data.paddedDecode,
 					err,
 				)
+			}
+		})
+	}
+}
+
+func TestParser_ParseLineBreaks(t *testing.T) {
+	token := signToken(jwt.MapClaims{"foo": "bar"}, jwt.SigningMethodRS256)
+	parts := strings.Split(token, ".")
+	header, claims, signature := parts[0], parts[1], parts[2]
+
+	tests := []struct {
+		name  string
+		token string
+	}{
+		{"LF in header", header + "\n." + claims + "." + signature},
+		{"CR in claims", header + "." + claims + "\r." + signature},
+		{"CRLF in signature", header + "." + claims + ".\r\n" + signature},
+		{"trailing LF", token + "\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// A line break is malformed, not a bad signature.
+			_, err := jwt.Parse(tt.token, defaultKeyFunc)
+			if !errors.Is(err, jwt.ErrTokenMalformed) {
+				t.Fatalf("expected %v, got %v", jwt.ErrTokenMalformed, err)
 			}
 		})
 	}
