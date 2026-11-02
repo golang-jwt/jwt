@@ -88,6 +88,10 @@ func (m *SigningMethodRSAPSS) Verify(signingString string, sig []byte, key any) 
 		return newError("RSA-PSS verify expects *rsa.PublicKey", ErrInvalidKeyType)
 	}
 
+	if rsaKey == nil {
+		return newError("key is nil", ErrInvalidKey)
+	}
+
 	// Create hasher
 	if !m.Hash.Available() {
 		return ErrHashUnavailable
@@ -113,6 +117,10 @@ func (m *SigningMethodRSAPSS) Sign(signingString string, key any) ([]byte, error
 		rsaKey = k
 	default:
 		return nil, newError("RSA-PSS sign expects *rsa.PrivateKey", ErrInvalidKeyType)
+	}
+
+	if rsaKey == nil {
+		return nil, newError("key is nil", ErrInvalidKey)
 	}
 
 	// Create the hasher
