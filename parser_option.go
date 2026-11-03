@@ -56,6 +56,15 @@ func WithIssuedAt() ParserOption {
 	}
 }
 
+// WithIssuedAtRequired returns the ParserOption to make the iat claim
+// required. Enabling this option also enables issued-at verification.
+func WithIssuedAtRequired() ParserOption {
+	return func(p *Parser) {
+		p.validator.verifyIat = true
+		p.validator.requireIat = true
+	}
+}
+
 // WithExpirationRequired returns the ParserOption to make exp claim required.
 // By default exp claim is optional.
 func WithExpirationRequired() ParserOption {
