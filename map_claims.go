@@ -6,7 +6,14 @@ import (
 )
 
 // MapClaims is a claims type that uses the map[string]any for JSON
-// decoding. This is the default claims type if you don't supply one
+// decoding. This is the default claims type if you don't supply one.
+//
+// The numeric date claims "exp", "nbf", and "iat" must be float64 or
+// [json.Number] for their getters and validation to succeed. These are the types
+// produced by JSON decoding, with [json.Number] used when [WithJSONNumber] is set.
+// When constructing claims in memory, convert integer timestamps explicitly,
+// for example float64(time.Now().Unix()), or use [RegisteredClaims] with
+// [NewNumericDate]. Integer types such as int64 are not accepted by the getters.
 type MapClaims map[string]any
 
 // GetExpirationTime implements the Claims interface.
@@ -39,9 +46,10 @@ func (m MapClaims) GetSubject() (string, error) {
 	return m.parseString("sub")
 }
 
-// parseNumericDate tries to parse a key in the map claims type as a number
-// date. This will succeed, if the underlying type is either a [float64] or a
-// [json.Number]. Otherwise, nil will be returned.
+// parseNumericDate tries to parse a key in the map claims type as a numeric
+// date. The underlying type must be float64 or [json.Number]. If the key does
+// not exist, nil is returned without an error. If the key has the wrong type,
+// an error wrapping [ErrInvalidType] is returned.
 func (m MapClaims) parseNumericDate(key string) (*NumericDate, error) {
 	v, ok := m[key]
 	if !ok {
