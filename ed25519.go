@@ -63,6 +63,12 @@ func (m *SigningMethodEd25519) Sign(signingString string, key any) ([]byte, erro
 		return nil, newError("Ed25519 sign expects crypto.Signer", ErrInvalidKeyType)
 	}
 
+	// A nil or wrongly-sized ed25519.PrivateKey would panic inside
+	// crypto/ed25519, so we reject it here.
+	if priv, ok := ed25519Key.(ed25519.PrivateKey); ok && len(priv) != ed25519.PrivateKeySize {
+		return nil, newError("key is nil or has an invalid size", ErrInvalidKey)
+	}
+
 	if _, ok := ed25519Key.Public().(ed25519.PublicKey); !ok {
 		return nil, ErrInvalidKey
 	}
