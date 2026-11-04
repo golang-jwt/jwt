@@ -67,7 +67,9 @@ reserved keys and the proper way to add your own.
 
 This library supports the parsing and verification as well as the generation and
 signing of JWTs.  Current supported signing algorithms are HMAC SHA, RSA,
-RSA-PSS, and ECDSA, though hooks are present for adding your own.
+RSA-PSS, ECDSA, and EdDSA, though hooks are present for adding your own.
+ML-DSA (post-quantum, [RFC 9964](https://datatracker.ietf.org/doc/html/rfc9964))
+is also supported when building with Go 1.27 or later.
 
 ## Installation Guidelines
 
