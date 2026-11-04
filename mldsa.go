@@ -14,8 +14,8 @@ var (
 )
 
 // SigningMethodMLDSA implements the ML-DSA family of signing methods.
-// It expects a crypto.Signer with an *mldsa.PublicKey for signing and
-// *mldsa.PublicKey for verification.
+// It expects *mldsa.PrivateKey or a compatible crypto.Signer for signing,
+// and *mldsa.PublicKey for verification.
 //
 // Requires Go 1.27 or later.
 type SigningMethodMLDSA struct {
