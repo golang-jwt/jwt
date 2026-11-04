@@ -10,6 +10,8 @@ import (
 )
 
 var (
+	// ErrMLDSAVerification indicates an invalid ML-DSA signature.
+	// Requires Go 1.27 or later.
 	ErrMLDSAVerification = errors.New("mldsa: verification error")
 )
 
@@ -71,7 +73,7 @@ func (m *SigningMethodMLDSA) Verify(signingString string, sig []byte, key any) e
 }
 
 // Sign implements token signing for the SigningMethod.
-// The key must be a crypto.Signer with an *mldsa.PublicKey.
+// The key must be *mldsa.PrivateKey or a compatible crypto.Signer.
 func (m *SigningMethodMLDSA) Sign(signingString string, key any) ([]byte, error) {
 	if privateKey, ok := key.(*mldsa.PrivateKey); ok && privateKey == nil {
 		return nil, ErrInvalidKey
