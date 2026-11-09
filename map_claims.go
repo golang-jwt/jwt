@@ -50,11 +50,11 @@ func (m MapClaims) parseNumericDate(key string) (*NumericDate, error) {
 
 	switch exp := v.(type) {
 	case float64:
-		return newNumericDateFromSeconds(exp), nil
+		return newNumericDateFromSeconds(exp)
 	case json.Number:
 		v, _ := exp.Float64()
 
-		return newNumericDateFromSeconds(v), nil
+		return newNumericDateFromSeconds(v)
 	}
 
 	return nil, newError(fmt.Sprintf("%s is invalid", key), ErrInvalidType)
