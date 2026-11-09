@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -232,6 +233,11 @@ func splitToken(token string) ([]string, bool) {
 // take into account whether the [Parser] is configured with additional options,
 // such as [WithStrictDecoding] or [WithPaddingAllowed].
 func (p *Parser) DecodeSegment(seg string) ([]byte, error) {
+	// The base64 decoder ignores CR and LF, which RFC 7515 forbids.
+	if strings.ContainsAny(seg, "\r\n") {
+		return nil, errors.New("segment contains line breaks")
+	}
+
 	encoding := base64.RawURLEncoding
 
 	if p.decodePaddingAllowed {
