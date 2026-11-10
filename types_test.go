@@ -128,6 +128,86 @@ func TestNumericDate_MarshalJSON(t *testing.T) {
 	}
 }
 
+// TestNumericDate_RoundTrip is a regression test for
+// https://github.com/golang-jwt/jwt/issues/536: marshalling a NumericDate
+// and unmarshalling the result back used to lose a millisecond for about
+// half of all sub-second values, because the float64 arithmetic used to
+// reconstruct the timestamp in newNumericDateFromSeconds could land a
+// fraction of a nanosecond below the intended value and then get truncated
+// away instead of rounded.
+func TestNumericDate_RoundTrip(t *testing.T) {
+	oldPrecision := jwt.TimePrecision
+	t.Cleanup(func() {
+		jwt.TimePrecision = oldPrecision
+	})
+
+	t.Run("every millisecond in a second", func(t *testing.T) {
+		jwt.TimePrecision = time.Millisecond
+
+		for ms := int64(0); ms < 1000; ms++ {
+			want := time.Unix(1700000000, ms*int64(time.Millisecond))
+
+			b, err := json.Marshal(jwt.NewNumericDate(want))
+			if err != nil {
+				t.Fatalf("ms=%d: Marshal: %s", ms, err)
+			}
+
+			var got jwt.NumericDate
+			if err := json.Unmarshal(b, &got); err != nil {
+				t.Fatalf("ms=%d: Unmarshal(%s): %s", ms, b, err)
+			}
+
+			if !got.Equal(want) {
+				t.Errorf("ms=%d: round-trip through %s produced %s, want %s", ms, b, got, want)
+			}
+		}
+	})
+
+	t.Run("exact issue #536 repro values", func(t *testing.T) {
+		jwt.TimePrecision = time.Millisecond
+
+		for _, ms := range []int64{123, 125, 100, 1} {
+			want := time.Unix(1700000000, ms*int64(time.Millisecond))
+
+			b, err := json.Marshal(jwt.NewNumericDate(want))
+			if err != nil {
+				t.Fatalf("ms=%d: Marshal: %s", ms, err)
+			}
+
+			var got jwt.NumericDate
+			if err := json.Unmarshal(b, &got); err != nil {
+				t.Fatalf("ms=%d: Unmarshal(%s): %s", ms, b, err)
+			}
+
+			if !got.Equal(want) {
+				t.Errorf("ms=%d: round-trip through %s produced %s, want %s", ms, b, got, want)
+			}
+		}
+	})
+
+	t.Run("every microsecond in a millisecond", func(t *testing.T) {
+		jwt.TimePrecision = time.Microsecond
+
+		for us := int64(0); us < 1000; us++ {
+			want := time.Unix(1700000000, 123*int64(time.Millisecond)+us*int64(time.Microsecond))
+
+			b, err := json.Marshal(jwt.NewNumericDate(want))
+			if err != nil {
+				t.Fatalf("us=%d: Marshal: %s", us, err)
+			}
+
+			var got jwt.NumericDate
+			if err := json.Unmarshal(b, &got); err != nil {
+				t.Fatalf("us=%d: Unmarshal(%s): %s", us, b, err)
+			}
+
+			if !got.Equal(want) {
+				t.Errorf("us=%d: round-trip through %s produced %s, want %s", us, b, got, want)
+			}
+		}
+	})
+}
+
 func TestGetSignatureAfterSigning(t *testing.T) {
 	token := jwt.New(jwt.SigningMethodHS256, nil)
 	signedString, err := token.SignedString([]byte("test12345"))
