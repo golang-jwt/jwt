@@ -26,6 +26,10 @@ type Parser struct {
 	decodeStrict bool
 
 	decodePaddingAllowed bool
+
+	// supportedCrit is the set of header extensions this parser understands.
+	// A missing (nil) or empty map means no extensions are supported.
+	supportedCrit map[string]struct{}
 }
 
 // NewParser creates a new Parser with the specified options
@@ -58,6 +62,10 @@ func (p *Parser) Parse(tokenString string, keyFunc Keyfunc) (*Token, error) {
 func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyfunc) (*Token, error) {
 	token, parts, err := p.ParseUnverified(tokenString, claims)
 	if err != nil {
+		return token, err
+	}
+
+	if err := p.validateCriticalHeaders(token.Header); err != nil {
 		return token, err
 	}
 
@@ -273,4 +281,70 @@ func Parse(tokenString string, keyFunc Keyfunc, options ...ParserOption) (*Token
 // otherwise you might run into a panic.
 func ParseWithClaims(tokenString string, claims Claims, keyFunc Keyfunc, options ...ParserOption) (*Token, error) {
 	return NewParser(options...).ParseWithClaims(tokenString, claims, keyFunc)
+}
+
+// registeredCritHeaders are the JWS/JWA header parameters defined by RFC 7515
+// and RFC 7518. They must not appear in the "crit" list.
+var registeredCritHeaders = map[string]struct{}{
+	HeaderAlgorithm:   {},
+	HeaderType:        {},
+	HeaderContentType: {},
+	HeaderKeyID:       {},
+	HeaderCritical:    {},
+	"jku":             {},
+	"jwk":             {},
+	"x5u":             {},
+	"x5c":             {},
+	"x5t":             {},
+	"x5t#S256":        {},
+}
+
+func (p *Parser) validateCriticalHeaders(header map[string]any) error {
+	raw, ok := header[HeaderCritical]
+	if !ok {
+		return nil
+	}
+
+	names, err := critHeaderNames(raw)
+	if err != nil {
+		return err
+	}
+	if len(names) == 0 {
+		return newError("crit header must be a non-empty array of strings", ErrTokenInvalidCritical)
+	}
+
+	for _, name := range names {
+		if name == "" {
+			return newError("crit header contains an empty name", ErrTokenInvalidCritical)
+		}
+		if _, registered := registeredCritHeaders[name]; registered {
+			return newError(fmt.Sprintf("crit header lists registered parameter %q", name), ErrTokenInvalidCritical)
+		}
+		if _, present := header[name]; !present {
+			return newError(fmt.Sprintf("crit header lists %q but the header is absent", name), ErrTokenInvalidCritical)
+		}
+		if _, supported := p.supportedCrit[name]; !supported {
+			return newError(fmt.Sprintf("crit header lists unsupported extension %q", name), ErrTokenInvalidCritical)
+		}
+	}
+	return nil
+}
+
+func critHeaderNames(raw any) ([]string, error) {
+	switch v := raw.(type) {
+	case []string:
+		return v, nil
+	case []any:
+		names := make([]string, len(v))
+		for i, item := range v {
+			s, ok := item.(string)
+			if !ok {
+				return nil, newError("crit header must be an array of strings", ErrTokenInvalidCritical)
+			}
+			names[i] = s
+		}
+		return names, nil
+	default:
+		return nil, newError("crit header must be an array of strings", ErrTokenInvalidCritical)
+	}
 }
