@@ -22,6 +22,7 @@ var (
 	ErrTokenNotValidYet          = errors.New("token is not valid yet")
 	ErrTokenInvalidId            = errors.New("token has invalid id")
 	ErrTokenInvalidClaims        = errors.New("token has invalid claims")
+	ErrTokenInvalidCritical      = errors.New("token has an invalid crit header")
 	ErrInvalidType               = errors.New("invalid type for claim")
 )
 

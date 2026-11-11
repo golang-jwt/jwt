@@ -149,3 +149,17 @@ func WithStrictDecoding() ParserOption {
 		p.decodeStrict = true
 	}
 }
+
+// WithCriticalHeaders declares the JWS header extensions this parser
+// understands. RFC 7515 §4.1.11 requires a recipient to reject a token whose
+// "crit" header lists an extension it does not support. This library
+// implements none of its own, so a token with "crit" is rejected unless every
+// listed name is passed here and is also present in the header.
+func WithCriticalHeaders(names ...string) ParserOption {
+	return func(p *Parser) {
+		p.supportedCrit = make(map[string]struct{}, len(names))
+		for _, name := range names {
+			p.supportedCrit[name] = struct{}{}
+		}
+	}
+}
