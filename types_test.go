@@ -145,3 +145,27 @@ func TestGetSignatureAfterSigning(t *testing.T) {
 		t.Errorf("token.Signature not equal to signature in signed string")
 	}
 }
+
+func TestNumericDate_MillisecondRoundTrip(t *testing.T) {
+	oldPrecision := jwt.TimePrecision
+	jwt.TimePrecision = time.Millisecond
+	t.Cleanup(func() {
+		jwt.TimePrecision = oldPrecision
+	})
+
+	for millisecond := int64(0); millisecond < 1000; millisecond++ {
+		want := time.Unix(1700000000, millisecond*int64(time.Millisecond))
+		encoded, err := json.Marshal(jwt.NewNumericDate(want))
+		if err != nil {
+			t.Fatalf("marshal millisecond %d: %v", millisecond, err)
+		}
+
+		var got jwt.NumericDate
+		if err := json.Unmarshal(encoded, &got); err != nil {
+			t.Fatalf("unmarshal millisecond %d: %v", millisecond, err)
+		}
+		if !got.Equal(want) {
+			t.Errorf("millisecond %d round-tripped as %s, want %s (JSON %s)", millisecond, got.Time, want, encoded)
+		}
+	}
+}
