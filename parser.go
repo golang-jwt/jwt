@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"strings"
 )
 
@@ -178,6 +179,17 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 			err = dec.Decode(&c)
 		} else {
 			err = dec.Decode(&claims)
+		}
+		// The claims segment must contain exactly one JSON value, as required by
+		// RFC 7519 Section 7.2. A second Decode call reaching io.EOF is the only
+		// way to spot a trailing value, which json.Unmarshal rejects in the
+		// non-JSONNumber path.
+		if err == nil {
+			if err = dec.Decode(&struct{}{}); err == io.EOF {
+				err = nil
+			} else if err == nil {
+				err = errors.New("claims segment contains more than one JSON value")
+			}
 		}
 	}
 	if err != nil {

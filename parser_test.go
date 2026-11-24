@@ -860,6 +860,54 @@ func TestParser_ParseLineBreaks(t *testing.T) {
 	}
 }
 
+
+func TestParser_ParseTrailingClaimsJSON(t *testing.T) {
+	token := signToken(jwt.MapClaims{"foo": "bar"}, jwt.SigningMethodRS256)
+	parts := strings.Split(token, ".")
+	header := parts[0]
+
+	// signClaims re-signs a token whose claims segment carries the given raw
+	// bytes, so tests can exercise JSON the Claims marshaler never produces.
+	signClaims := func(claims []byte) string {
+		signingString := header + "." + (&jwt.Token{}).EncodeSegment(claims)
+		sig, err := jwt.SigningMethodRS256.Sign(signingString, jwtTestRSAPrivateKey)
+		if err != nil {
+			t.Fatalf("signing failed: %v", err)
+		}
+		return signingString + "." + (&jwt.Token{}).EncodeSegment(sig)
+	}
+
+	tests := []struct {
+		name    string
+		claims  []byte
+		parser  *jwt.Parser
+		wantErr bool
+	}{
+		{"JSON Number rejects second JSON value", []byte(`{"foo":"bar"}{"extra":true}`), jwt.NewParser(jwt.WithJSONNumber()), true},
+		{"JSON Number rejects trailing garbage", []byte(`{"foo":"bar"}x`), jwt.NewParser(jwt.WithJSONNumber()), true},
+		{"JSON Number allows trailing whitespace", []byte(`{"foo":"bar"} `), jwt.NewParser(jwt.WithJSONNumber()), false},
+		{"default parser rejects second JSON value", []byte(`{"foo":"bar"}{"extra":true}`), jwt.NewParser(), true},
+		{"JSON Number rejects second JSON value (RegisteredClaims)", []byte(`{"sub":"x"}{"extra":true}`), jwt.NewParser(jwt.WithJSONNumber()), true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var err error
+			if strings.Contains(tt.name, "RegisteredClaims") {
+				_, err = tt.parser.ParseWithClaims(signClaims(tt.claims), &jwt.RegisteredClaims{}, defaultKeyFunc)
+			} else {
+				_, err = tt.parser.Parse(signClaims(tt.claims), defaultKeyFunc)
+			}
+			if tt.wantErr && !errors.Is(err, jwt.ErrTokenMalformed) {
+				t.Fatalf("expected %v, got %v", jwt.ErrTokenMalformed, err)
+			}
+			if !tt.wantErr && err != nil {
+				t.Fatalf("expected no error, got %v", err)
+			}
+		})
+	}
+}
+
 func BenchmarkParseUnverified(b *testing.B) {
 	// Iterate over test data set and run tests
 	for _, data := range jwtTestData {
