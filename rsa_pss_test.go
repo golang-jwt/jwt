@@ -126,7 +126,13 @@ func TestRSAPSSSaltLengthCompatibility(t *testing.T) {
 	if !verify(ps256SaltLengthAuto, makeToken(jwt.SigningMethodPS256)) {
 		t.Error("Sign by SigningMethodPS256 should be accepted by previous versions")
 	}
-	if verify(ps256SaltLengthEqualsHash, makeToken(ps256SaltLengthAuto)) {
+	if fips140Enabled() {
+		// In FIPS 140-3 mode (FIPS 186-5 §5.4), crypto/rsa clamps
+		// PSSSaltLengthAuto to hash.Size(), matching PSSSaltLengthEqualsHash.
+		if !verify(ps256SaltLengthEqualsHash, makeToken(ps256SaltLengthAuto)) {
+			t.Error("Auto salt length should be accepted in FIPS 140-3 mode, where it equals hash length")
+		}
+	} else if verify(ps256SaltLengthEqualsHash, makeToken(ps256SaltLengthAuto)) {
 		t.Error("Auto salt length should be not accepted, when RFC salt length is required")
 	}
 }
