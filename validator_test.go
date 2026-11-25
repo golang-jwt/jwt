@@ -462,3 +462,26 @@ func Test_Validator_verifyAudience(t *testing.T) {
 		})
 	}
 }
+
+func Test_Validator_verifyAudienceConstantTime(t *testing.T) {
+	// Regression test for #550: audience validation must not stop at the
+	// first match (or first miss in all-match mode). The fixed implementation
+	// uses subtle.ConstantTimeCompare, so no helper here can observe which
+	// candidate matched by returning early.
+	claims := RegisteredClaims{Audience: ClaimStrings{"other", "expected", "last"}}
+	v := &Validator{expectedAud: []string{"expected"}}
+
+	if err := v.verifyAudience(claims, []string{"expected"}, false); err != nil {
+		t.Fatalf("any-match audience validation failed: %v", err)
+	}
+
+	v = &Validator{expectedAud: []string{"expected", "last"}}
+	if err := v.verifyAudience(claims, []string{"expected", "last"}, true); err != nil {
+		t.Fatalf("all-match audience validation failed: %v", err)
+	}
+
+	v = &Validator{expectedAud: []string{"expected", "missing"}}
+	if err := v.verifyAudience(claims, []string{"expected", "missing"}, true); !errors.Is(err, ErrTokenInvalidAudience) {
+		t.Fatalf("missing expected audience: got %v, want %v", err, ErrTokenInvalidAudience)
+	}
+}

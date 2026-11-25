@@ -1,8 +1,8 @@
 package jwt
 
 import (
+	"crypto/subtle"
 	"fmt"
-	"slices"
 	"time"
 )
 
@@ -247,26 +247,40 @@ func (v *Validator) verifyAudience(claims Claims, cmp []string, expectAllAud boo
 		return errorIfRequired(required, "aud")
 	}
 
+	// Compare every expected value against every actual value, accumulating
+	// the result instead of returning on the first match or miss. Audience
+	// comparison used to be constant time (see #550), and this preserves
+	// that property in both validation modes. As before, the length of the
+	// strings is not hidden by subtle.ConstantTimeCompare.
 	if !expectAllAud {
+		matched := false
 		for _, a := range aud {
-			// If we only expect one match, we can stop early if we find a match
-			if slices.Contains(cmp, a) {
-				return nil
-			}
+			matched = containsConstantTime(cmp, a) || matched
 		}
-
-		return ErrTokenInvalidAudience
-	}
-
-	// Note that we are looping cmp here to ensure that all expected audiences
-	// are present in the aud claim.
-	for _, a := range cmp {
-		if !slices.Contains(aud, a) {
+		if !matched {
 			return ErrTokenInvalidAudience
 		}
+		return nil
 	}
 
+	all := true
+	for _, a := range cmp {
+		all = containsConstantTime(aud, a) && all
+	}
+	if !all {
+		return ErrTokenInvalidAudience
+	}
 	return nil
+}
+
+// containsConstantTime reports whether s is one of set, comparing every
+// element without an early exit.
+func containsConstantTime(set []string, s string) bool {
+	found := 0
+	for _, candidate := range set {
+		found |= subtle.ConstantTimeCompare([]byte(candidate), []byte(s))
+	}
+	return found == 1
 }
 
 // verifyIssuer compares the iss claim in claims against cmp.
