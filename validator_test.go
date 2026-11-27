@@ -445,6 +445,36 @@ func Test_Validator_verifyAudience(t *testing.T) {
 			},
 			wantErr: ErrTokenRequiredClaimMissing,
 		},
+		{
+			name:   "match at last position",
+			fields: fields{expectedAud: []string{"alpha", "beta", "target"}},
+			args: args{
+				claims:       RegisteredClaims{Audience: ClaimStrings{"target"}},
+				cmp:          []string{"alpha", "beta", "target"},
+				expectAllAud: false,
+			},
+			wantErr: nil,
+		},
+		{
+			name:   "match at first position",
+			fields: fields{expectedAud: []string{"target", "alpha", "beta"}},
+			args: args{
+				claims:       RegisteredClaims{Audience: ClaimStrings{"target"}},
+				cmp:          []string{"target", "alpha", "beta"},
+				expectAllAud: false,
+			},
+			wantErr: nil,
+		},
+		{
+			name:   "all matched with extra token audiences",
+			fields: fields{expectedAud: []string{"example.org", "example.com"}},
+			args: args{
+				claims:       RegisteredClaims{Audience: ClaimStrings{"example.org", "example.com", "extra"}},
+				cmp:          []string{"example.org", "example.com"},
+				expectAllAud: true,
+			},
+			wantErr: nil,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -1,8 +1,8 @@
 package jwt
 
 import (
+	"crypto/subtle"
 	"fmt"
-	"slices"
 	"time"
 )
 
@@ -248,25 +248,37 @@ func (v *Validator) verifyAudience(claims Claims, cmp []string, expectAllAud boo
 	}
 
 	if !expectAllAud {
+		// Compare every token audience against every expected audience in
+		// constant time. slices.Contains returns on the first match, which
+		// leaks timing information about which expected audience value
+		// matched (regression from #433, see issue #550).
+		var matched int
 		for _, a := range aud {
-			// If we only expect one match, we can stop early if we find a match
-			if slices.Contains(cmp, a) {
-				return nil
+			for _, e := range cmp {
+				matched |= subtle.ConstantTimeCompare([]byte(a), []byte(e))
 			}
 		}
-
+		if matched == 1 {
+			return nil
+		}
 		return ErrTokenInvalidAudience
 	}
 
 	// Note that we are looping cmp here to ensure that all expected audiences
-	// are present in the aud claim.
-	for _, a := range cmp {
-		if !slices.Contains(aud, a) {
-			return ErrTokenInvalidAudience
+	// are present in the aud claim. All comparisons run in constant time so no
+	// timing information about which audiences matched is leaked.
+	var allMatched int = 1
+	for _, e := range cmp {
+		var found int
+		for _, a := range aud {
+			found |= subtle.ConstantTimeCompare([]byte(a), []byte(e))
 		}
+		allMatched &= found
 	}
-
-	return nil
+	if allMatched == 1 {
+		return nil
+	}
+	return ErrTokenInvalidAudience
 }
 
 // verifyIssuer compares the iss claim in claims against cmp.
