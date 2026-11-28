@@ -445,6 +445,46 @@ func Test_Validator_verifyAudience(t *testing.T) {
 			},
 			wantErr: ErrTokenRequiredClaimMissing,
 		},
+		{
+			name:   "good when audience matches last candidate in cmp",
+			fields: fields{expectedAud: []string{"example.org", "example.net", "example.com"}},
+			args: args{
+				claims:       RegisteredClaims{Audience: ClaimStrings{"example.com"}},
+				cmp:          []string{"example.org", "example.net", "example.com"},
+				expectAllAud: false,
+			},
+			wantErr: nil,
+		},
+		{
+			name:   "good when match is last element in aud slice",
+			fields: fields{expectedAud: []string{"target.com"}},
+			args: args{
+				claims:       RegisteredClaims{Audience: ClaimStrings{"unrelated1.com", "unrelated2.com", "target.com"}},
+				cmp:          []string{"target.com"},
+				expectAllAud: false,
+			},
+			wantErr: nil,
+		},
+		{
+			name:   "good when multiple audiences in token satisfy all expected in cmp",
+			fields: fields{expectedAud: []string{"a.com", "b.com"}},
+			args: args{
+				claims:       RegisteredClaims{Audience: ClaimStrings{"c.com", "b.com", "a.com"}},
+				cmp:          []string{"a.com", "b.com"},
+				expectAllAud: true,
+			},
+			wantErr: nil,
+		},
+		{
+			name:   "fail when all expected audiences required but one missing in middle",
+			fields: fields{expectedAud: []string{"a.com", "b.com", "c.com"}},
+			args: args{
+				claims:       RegisteredClaims{Audience: ClaimStrings{"a.com", "c.com"}},
+				cmp:          []string{"a.com", "b.com", "c.com"},
+				expectAllAud: true,
+			},
+			wantErr: ErrTokenInvalidAudience,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -458,6 +498,85 @@ func Test_Validator_verifyAudience(t *testing.T) {
 				t.Errorf("validator.verifyAudience() error = %v, wantErr %v", err, tt.wantErr)
 			} else if tt.wantErr != nil && !errors.Is(err, tt.wantErr) {
 				t.Errorf("validator.verifyAudience() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func Test_containsConstantTime(t *testing.T) {
+	tests := []struct {
+		name string
+		set  []string
+		s    string
+		want int
+	}{
+		{
+			name: "empty set",
+			set:  []string{},
+			s:    "foo",
+			want: 0,
+		},
+		{
+			name: "single match",
+			set:  []string{"foo"},
+			s:    "foo",
+			want: 1,
+		},
+		{
+			name: "single non-match",
+			set:  []string{"bar"},
+			s:    "foo",
+			want: 0,
+		},
+		{
+			name: "match at start",
+			set:  []string{"foo", "bar", "baz"},
+			s:    "foo",
+			want: 1,
+		},
+		{
+			name: "match in middle",
+			set:  []string{"foo", "bar", "baz"},
+			s:    "bar",
+			want: 1,
+		},
+		{
+			name: "match at end",
+			set:  []string{"foo", "bar", "baz"},
+			s:    "baz",
+			want: 1,
+		},
+		{
+			name: "no match in multiple",
+			set:  []string{"foo", "bar", "baz"},
+			s:    "qux",
+			want: 0,
+		},
+		{
+			name: "prefix does not match",
+			set:  []string{"foobar"},
+			s:    "foo",
+			want: 0,
+		},
+		{
+			name: "different length does not match",
+			set:  []string{"foo"},
+			s:    "fooo",
+			want: 0,
+		},
+		{
+			name: "empty string match",
+			set:  []string{"", "foo"},
+			s:    "",
+			want: 1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := containsConstantTime(tt.set, tt.s)
+			if got != tt.want {
+				t.Errorf("containsConstantTime() = %v, want %v", got, tt.want)
 			}
 		})
 	}
